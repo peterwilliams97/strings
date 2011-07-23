@@ -49,10 +49,62 @@ import glob
 import re
 import os
 
+# Logging and debugging flages
+_verbose = False
+def set_verbose(verbose):
+    global _verbose
+    _verbose = verbose
+
+_dump_dict_on = False
+def set_dump_dict(dump_dict_on):
+    global _dump_dict_on
+    _dump_dict_on = dump_dict_on
+
+def report(message):
+    """Write <message> to stdout if _verbose is enabled"""
+    if _verbose:
+        print message
+#  
+# Some functions for displaying the offset dict structure used through this moduel
+#
+def offsets_string(file_names, offsets_dict):
+    string = ''
+    for f in file_names:
+        string += f + '\n'
+        for key in sorted(offsets_dict[f].keys())[:5]:
+            val = sorted(list(offsets_dict[f][key]))
+            string += '  ' + to_hex(key) + ':' + str(len(val)) + ': '  + str(val[:5]) + '\n'
+    return string
+
+def show_offsets_dict(file_names, offsets_dict):
+    print offsets_string(file_names, offsets_dict)
+
+if _dump_dict_on:
+    DUMP_DIR = 'dumps'
+    try:
+        os.mkdir(DUMP_DIR)
+    except:
+        pass
+
+def dump_dict(dumpfilename, file_names, offsets_dict):
+    """Dump <offsets_dict> to file DUMP_DIR/<dumpfilename>"""
+    if _dump_dict_on:
+        file(os.path.join(DUMP_DIR, dumpfilename), 'wt').write(offsets_string(file_names, offsets_dict))
+
 def is_junk(substring):
+    """Return True if we don't want to use <substring>
+        We currenly reject substring that contain nothing but space and ASCII 0s"""
     return len(substring.strip(' \t\0')) == 0
 
-def get_substrings(string, k, allowed_substrings, verbose):
+def filter_junk_strings(substrings):
+    """Filter out miscellaneous junk strings"""
+    filtered_substrings = {}
+    for k,v in substrings.items():
+        if not is_junk(k):
+            filtered_substrings[k] = v
+    return filtered_substrings
+
+def get_substrings(string, k, allowed_substrings):
     """Return all substrings of length >= <k> in <string> as a dict of 
         substring:count where there are count occurrences of substring in 
         <string>
@@ -64,8 +116,7 @@ def get_substrings(string, k, allowed_substrings, verbose):
         <allowed_substrings> or <parent_keys> so the best way to guarantee 
         performance is to find short key sets.
     """ 
-    if verbose:
-        print 'get_substrings: k=%d' % k, 'allowed_substrings=%d' % (len(allowed_substrings) if allowed_substrings else 0)
+    report('get_substrings:k=%d,allowed_substrings=%d' % (k, len(allowed_substrings) if allowed_substrings else 0))
     substrings = {}
     n = len(string)
     for i in range(n-k):
@@ -88,15 +139,6 @@ def filter_repeats(substrings, min_repeats):
             filtered_substrings[key] = value
     return filtered_substrings
  
-def filter_junk_strings(substrings):
-    """Filter miscellaneous junk strings.
-        Currenly filter string that contain nothing but space and ASCII 0s"""
-    filtered_substrings = {}
-    for k,v in substrings.items():
-        if not is_junk(k):
-            filtered_substrings[k] = v
-    return filtered_substrings    
-
 def get_substring_offsets(string, substring):
     """Return set of offsets of <substring> in <string>."""
     offsets = []
@@ -108,38 +150,7 @@ def get_substring_offsets(string, substring):
         offsets.append(ofs)
     return set(offsets)
 
-#    
-# Some functions for displaying the offset dict structure used through this moduel
-#
-def show_offsets_dict(offsets_dict):
-    # should be the same for all files
-    substrings_list = sorted(offsets_dict[offsets_dict.keys()[0]].keys())
-    print substrings_list
-    
-    for i,name in enumerate(sorted(offsets_dict.keys())):
-        print  i, name, len(offsets_dict[name]), [len(offsets_dict[name][s]) for s in substrings_list]
-
-_dump_dict_on = False
-if _dump_dict_on:
-    DUMP_DIR = 'dumps'
-    try:
-        os.mkdir(DUMP_DIR)
-    except:
-        pass
-
-def dump_dict(dumpfilename, file_names, offsets_dict):
-    """Dump <offsets_dict> to file DUMP_DIR/<dumpfilename>"""
-    if not _dump_dict_on:
-        return
-    dump = open(os.path.join(DUMP_DIR, dumpfilename), 'wt')
-    for f in file_names:
-        dump.write(f + '\n')
-        for key in offsets_dict[f].keys()[:5]:
-            val = sorted(list(offsets_dict[f][key]))
-            dump.write('  ' + to_hex(key) + ':' + str(len(val)) + ': '  + str(val[:5]) + '\n')
-    dump.close()
-
-def get_child_offsets(file_names, test_files, offsets_dict, k, verbose):
+def get_child_offsets(file_names, test_files, offsets_dict, k):
     """ Given a set of substrings of length <k> defined by offsets in a set of 
         test_files, find all substrings of length k+1
         where
@@ -147,9 +158,8 @@ def get_child_offsets(file_names, test_files, offsets_dict, k, verbose):
             in test_files[<filename>]
         <file_names> is keys of test_files in the desired sort order (shorter first)
     """
-    if verbose:
-        print 'get_child_offsets(%d,%d,%d,%d,k=%d)' % (len(file_names), len(test_files), 
-                len(offsets_dict), len(offsets_dict.values()[0]), k)
+    report('get_child_offsets(%d,%d,%d,%d,k=%d)' % (len(file_names), len(test_files), 
+                len(offsets_dict), len(offsets_dict.values()[0]), k))
     
     child_offsets_dict = {}
     allowed_substrings = None
@@ -176,18 +186,13 @@ def get_child_offsets(file_names, test_files, offsets_dict, k, verbose):
                     if not key1 in child_offsets_dict[f].keys():
                         child_offsets_dict[f][key1] = set([])
                     child_offsets_dict[f][key1].add(ofs1)
-        if verbose:
-            print '  child_offsets_f', len(child_offsets_dict[f]),
-                       
+ 
         for key,val in child_offsets_dict[f].items():            
             if len(val) < x['repeats']:
                 del(child_offsets_dict[f][key])
-        if verbose:
-            print  len(child_offsets_dict[f]),
-
+  
         allowed_substrings = child_offsets_dict[f].keys() 
-        if verbose:
-            print len(allowed_substrings)
+        report('  allowed_substrings=%d' % len(allowed_substrings))
 
     # Need to go back and trim the substrings lists to allowed_substrings
     # If this results in a zero length list for any file then returns
@@ -197,12 +202,11 @@ def get_child_offsets(file_names, test_files, offsets_dict, k, verbose):
                 del(child_offsets_dict[f][key])
         if len(child_offsets_dict[f]) == 0:
             return None
-   
+
     dump_dict('dumpfile_%03d' % k, file_names, child_offsets_dict)
-    
+
     for f in file_names:
-        if verbose:
-            print f, len(child_offsets_dict[f]), len(offsets_dict[f])
+        report('%s %d %d' % (f, len(child_offsets_dict[f]), len(offsets_dict[f])))
         assert(len(child_offsets_dict[f]) <= len(offsets_dict[f]))
 
     return child_offsets_dict   
@@ -210,40 +214,37 @@ def get_child_offsets(file_names, test_files, offsets_dict, k, verbose):
 min_k = 4               # Starting substring length
 max_k = 2000            # Max substring length     
 
-def find_repeated_substrings(test_files, verbose):
+def find_repeated_substrings(test_files):
     """Return the longest substring(s) s that is repeated in <test_files>
         according to rule:
             For each x in test_files:
                 s occurs at least x['repeats'] times in x['data']
         test_files[name] = {'data':data, 'repeats':repeats}
     """ 
-    if verbose: 
-        print 'find_repeated_substrings(%s,%d,%d)' % (test_files.keys(), min_k, max_k)
+    report('find_repeated_substrings(%s,%d,%d)' % (test_files.keys(), min_k, max_k))
     if not test_files:
         print 'no test files'
         return
-    
+
     # Find the substrings that are repeated >= k times in files with k repeats
     # It is important to test shorter files first
     file_names = [x for x in test_files.keys()]
     file_names.sort(key = lambda x: len(test_files[x]['data']))
-    if verbose:
-        print 'file_names:', file_names
+    report('file_names: %s' % file_names)
  
     # Start by finding all substrings of length min_k which is typically 4
     k = min_k
     allowed_substrings = None
     for name in file_names:
         x = test_files[name]
-        substrings = get_substrings(x['data'], k, allowed_substrings, verbose)
+        substrings = get_substrings(x['data'], k, allowed_substrings)
         substrings = filter_repeats(substrings, x['repeats'])
         substrings = filter_junk_strings(substrings)
         if not substrings:
             print 'No %d character string works!' % k
             return None 
         allowed_substrings = substrings.keys() 
-    if verbose:    
-        print 'k=%d:\n\substrings=%d:%s' % (k, len(allowed_substrings), sorted(allowed_substrings))
+    report('k=%d:\n\substrings=%d:%s' % (k, len(allowed_substrings), sorted(allowed_substrings)))
 
     # From now on work with offsets  
     # offsets_dict[<filename>][<substring>] = list of offsets of <substring> in file with name <filename>
@@ -256,7 +257,7 @@ def find_repeated_substrings(test_files, verbose):
 
     # Work in increasing length of substrings, +1 per round    
     for k in range(min_k, max_k):
-        child_offsets_dict = get_child_offsets(file_names, test_files, offsets_dict, k, verbose)
+        child_offsets_dict = get_child_offsets(file_names, test_files, offsets_dict, k)
         if not child_offsets_dict:
             break
         offsets_dict = child_offsets_dict 
@@ -291,7 +292,7 @@ def get_test_files(mask):
                     test_files[name] = {'repeats':repeats, 'data':data}
     return test_files
     
-def find_and_show_substrings(mask, verbse):
+def find_and_show_substrings(mask):
     """Find the longest substring that is repeated in a list of files
         matched by <mask> in which the filename encodes the number of 
         repeats as defined in name_to_repeats() above.
@@ -308,7 +309,7 @@ def find_and_show_substrings(mask, verbse):
         print '%2d: size=%6d, repeats=%2d, name="%s"' % (i, len(x['data']), x['repeats'], name)
     print '-' * 60
 
-    offsets_dict = find_repeated_substrings(test_files, verbose)
+    offsets_dict = find_repeated_substrings(test_files)
 
     # Print out the results 
     file_names = [x for x in test_files.keys()]
@@ -336,7 +337,7 @@ if __name__ == '__main__':
     if len(sys.argv) <= 1:
         print 'Usage: python', sys.argv[0], '<file mask>'
         exit()
-    verbose = False
-    find_and_show_substrings(sys.argv[1], verbose)
+    _verbose = False
+    find_and_show_substrings(sys.argv[1])
 
     
