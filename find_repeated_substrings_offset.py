@@ -14,7 +14,7 @@
     
     find_and_show_substrings()
         Reads a list of files, calls find_repeated_substrings() and prints the longest string
-    
+
     SKETCH OF ALGORITHM
     -------------------
     for k = 4 to K
@@ -27,7 +27,7 @@
             else    
                 allowed_substrings = all_substrings
             offsets[s] = offsets of allowed_substrings in s
-      
+
     PERFORMANCE
     -----------
     There are several aspects of the code that give good typical runtimes
@@ -36,7 +36,7 @@
         - for k > 4 the length k+1 substrings are generated from the length k stings by searching 1
             character forward and back. This is 
             running_time <= 2*len(allowed_substrings)*number of strings*(K-4)*string_match(K)
-    
+
     For typcial values of 
            starting len(allowed_substrings) 100
            number of strings 60
@@ -91,6 +91,8 @@ def dump_dict(dumpfilename, file_names, offsets_dict):
     if _dump_dict_on:
         file(os.path.join(DUMP_DIR, dumpfilename), 'wt').write(offsets_string(file_names, offsets_dict))
 
+# String finding code starts here!  
+        
 def is_junk(substring):
     """Return True if we don't want to use <substring>
         We currenly reject substring that contain nothing but space and ASCII 0s"""
@@ -110,8 +112,8 @@ def get_substrings(string, k, allowed_substrings):
         <string>
         If <allowed_substrings> then only allow substrings from <allowed_substrings>. 
 
-        Performance:
-        ------------
+        Performance
+        -----------
         The returned substring:count dict will no longer than 
         <allowed_substrings> or <parent_keys> so the best way to guarantee 
         performance is to find short key sets.
@@ -157,6 +159,12 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
             offsets_dict[<filename>][<substring>] is the set of offsets of <substring>
             in test_files[<filename>]
         <file_names> is keys of test_files in the desired sort order (shorter first)
+        
+        Performance
+        -----------
+        This is the inner loop of the program.
+        The returned dict will no longer than offsets_dict and string searches are on existing
+        substings + 1 character to left or right so there is not that much text to search.
     """
     report('get_child_offsets(%d,%d,%d,%d,k=%d)' % (len(file_names), len(test_files), 
                 len(offsets_dict), len(offsets_dict.values()[0]), k))
@@ -264,6 +272,8 @@ def find_repeated_substrings(test_files):
     
     # return last non-empty dict of substrings    
     return offsets_dict
+
+# String finding code ends here!  
 
 def to_hex(s):
     """Convert string <s> to hex"""    
