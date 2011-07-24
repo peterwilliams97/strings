@@ -8,7 +8,7 @@ In the sample code, the strings are files with the minimum number of occcurrence
 encoded in their names.
 
 ## find_repeated_substrings_offset.py    
-### SKETCH OF ALGORITHM
+### Sketch of Algorithm
     for k = 4 to K
         allowed_substrings = None
         for s = shortest to longest string
@@ -19,9 +19,8 @@ encoded in their names.
             else    
                 allowed_substrings = all_substrings
             offsets[s] = offsets of allowed_substrings in s
-   
 
-### PERFORMANCE
+### Peformance
 There are several aspects of the code that give good typical runtimes
 **len(allowed_substrings) cannot increase. If the first string searched is short enough 
         then len(allowed_substrings) can start at around 100-200
@@ -29,9 +28,15 @@ There are several aspects of the code that give good typical runtimes
         character forward and back. This is 
         running_time <= 2*len(allowed_substrings)*number of strings*(K-4)*string_match(K)
 
-For typcial values of 
+For typical values of 
        starting len(allowed_substrings) 100
        number of strings 60
        K 40
 this gives       
        running_time <= 2 * 100 * 60 * 40 * 40 = 19,200,000 
+
+##Plans for Improvement
+*Using [rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets
+*Possibly port to [Cython](http://cython.org/)
+*Possibly convert the whole thing to Suffix Arrays
+*Do approximate matching.
