@@ -104,10 +104,10 @@ def _od_substrings_string(offsets_dict):
 def _od_offsets_string(file_names, offsets_dict):
     """Return string representation of <offsets_dict> sorted by <file_names>"""
     string = ''
-    for f in file_names:
-        string += f + '\n'
-        for key in sorted(offsets_dict[f].keys())[:5]:
-            val = sorted(list(offsets_dict[f][key]))
+    for name in file_names:
+        string += name + '\n'
+        for key in sorted(offsets_dict[name].keys())[:5]:
+            val = sorted(list(offsets_dict[name][key]))
             string += '  %s:%3d:%s\n' % (H(key), len(val), val[:5])
     return string
 
@@ -116,10 +116,10 @@ def _od_offsets_matrix(file_names, offsets_dict, test_files):
     """Return matrix representation of <offsets_dict> sorted by <file_names>"""
     string = ''
     string += SEPARATOR.join(['name'] + file_names) + '\n'
-    string += SEPARATOR.join(['repeats'] + ['%d' % test_files[f]['repeats'] for f in file_names]) + '\n'
-    string += SEPARATOR.join(['size'] + ['%d' % len(test_files[f]['data']) for f in file_names]) + '\n'
+    string += SEPARATOR.join(['repeats'] + ['%d' % test_files[name]['repeats'] for name in file_names]) + '\n'
+    string += SEPARATOR.join(['size'] + ['%d' % len(test_files[name]['data']) for name in file_names]) + '\n'
     for subs in _od_substrings(offsets_dict):
-        string += SEPARATOR.join([H(subs)] + ['%d' % len(offsets_dict[f][subs]) for f in file_names]) + '\n'
+        string += SEPARATOR.join([H(subs)] + ['%d' % len(offsets_dict[name][subs]) for name in file_names]) + '\n'
     return string
 
 def show_offsets_dict(file_names, offsets_dict):
@@ -268,11 +268,11 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
     child_offsets_dict = {}
     allowed_substrings = None
 
-    for f in file_names:
-        x = test_files[f]
-        child_offsets_dict[f] = {}
+    for name in file_names:
+        x = test_files[name]
+        child_offsets_dict[name] = {}
         
-        for key, ofs_set in offsets_dict[f].items():
+        for key, ofs_set in offsets_dict[name].items():
             # Use a list which unlike a set can be indexed and sorted
             ofs_list = sorted(ofs_set) 
             # Remove parent offsets that would truncate substrings of length k+1
@@ -281,7 +281,8 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
             if ofs_list[-1]+k+1 == len(x['data']):
                 del(ofs_list[-1]) 
 
-            # Create the child k+1 length strings and add them to the child offsets dict
+            # Create the child length k+1 substrings and add them to the child offsets dict
+            # ofs1 is the offset of the k+1 substring key1 
             for ofs in ofs_list:
                 for ofs1 in [ofs-1, ofs]:
                     key1 = x['data'][ofs1:ofs1+k+1]
@@ -297,28 +298,28 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
                         continue
 
                     # Got through all the filters. Add the new offset to the child dict
-                    if not key1 in child_offsets_dict[f].keys():
-                        child_offsets_dict[f][key1] = set([])
-                    child_offsets_dict[f][key1].add(ofs1)
+                    if not key1 in child_offsets_dict[name].keys():
+                        child_offsets_dict[name][key1] = set([])
+                    child_offsets_dict[name][key1].add(ofs1)
  
         # Prume the entries with insufficient repeats
-        unpruned_len = len(child_offsets_dict[f].keys())
-        for key, ofs_set in child_offsets_dict[f].items():            
+        unpruned_len = len(child_offsets_dict[name].keys())
+        for key, ofs_set in child_offsets_dict[name].items():            
             if len(ofs_set) < x['repeats']:
-                del(child_offsets_dict[f][key])
+                del(child_offsets_dict[name][key])
   
         # allowed_substrings is used as a filter in all but first pass through this loop
-        allowed_substrings = child_offsets_dict[f].keys() 
+        allowed_substrings = child_offsets_dict[name].keys() 
         report('  allowed_substrings=%3d,%3d,size=%7d' % 
             (unpruned_len, len(allowed_substrings), len(x['data'])))
 
     # Need to go back and trim the substrings lists to allowed_substrings
     # If this results in a zero length list for any file then returns
-    for f in file_names:
-        for key in child_offsets_dict[f].keys():            
+    for name in file_names:
+        for key in child_offsets_dict[name].keys():            
             if not key in allowed_substrings:
-                del(child_offsets_dict[f][key])
-        if len(child_offsets_dict[f]) == 0:
+                del(child_offsets_dict[name][key])
+        if len(child_offsets_dict[name]) == 0:
             return None
 
     dump_dict('dumpfile_%03d' % (k+1), file_names, test_files, child_offsets_dict)
@@ -327,8 +328,8 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
         if not validate_child_offsets(file_names, offsets_dict, child_offsets_dict, k):
             raise ValueError
 
-    for f in file_names:
-        report('before=%3d,after=%3d,file=%s' % (len(offsets_dict[f]),len(child_offsets_dict[f]),f))
+    for name in file_names:
+        report('before=%3d,after=%3d,file=%s' % (len(offsets_dict[name]),len(child_offsets_dict[name]),name))
 
     return child_offsets_dict   
 
@@ -354,7 +355,7 @@ def find_repeated_substrings(test_files):
     file_names.sort(key = lambda x: len(test_files[x]['data']))
 
     report('file_names:\n%s' % '\n'.join(['%8d:%3d: %s' % 
-            (len(test_files[f]['data']),test_files[f]['repeats'],f) for f in file_names]))
+            (len(test_files[name]['data']),test_files[name]['repeats'],name) for name in file_names]))
 
     # Start by finding all substrings of length min_k which is typically 4
     k = min_k
@@ -390,13 +391,13 @@ def find_repeated_substrings(test_files):
     dump_dict('dumpfile_%03d' % min_k, file_names, test_files, offsets_dict)
     # Work in increasing length of substrings, +1 per round    
     for k in range(min_k, max_k):
-        note_time('got k=%3d offsets, %3d substrings' % (k, len(offsets_dict[file_names[0]]))) 
+        note_time('found %3d substrings of length >= %3d' % (len(offsets_dict[file_names[0]]), k)) 
         child_offsets_dict = get_child_offsets(file_names, test_files, offsets_dict, k)
         if not child_offsets_dict:
             break
         offsets_dict = child_offsets_dict 
-    
-    # return last non-empty dict of substrings    
+
+    # return last non-empty dict of offsets    
     return offsets_dict
 
 # String finding code ends here!  
