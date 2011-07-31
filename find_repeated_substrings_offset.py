@@ -535,7 +535,9 @@ if __name__ == '__main__':
     parser.add_option('-d', '--dump', action="store_true", dest='dump', default=False,
                 help='dump data to files')
     parser.add_option('-a', '--validate', action="store_true", dest='validate', default=False,
-                help='perform validation of intermediate results')           
+                help='perform validation of intermediate results')
+    parser.add_option('-t', '--test', action="store_true", dest='test_subsets', default=False,
+                help='test on subsets of texts')
     (options, args) = parser.parse_args()           
 
     if len(args) < 1:
@@ -549,6 +551,9 @@ if __name__ == '__main__':
     set_validate(options.validate)
     print 'options =', options
 
-    #find_and_show_substrings(args[0])
-    compare_string_subsets(args[0], 0.5, 5)
+    if options.test_subsets:
+        compare_string_subsets(args[0], 0.5, 5)
+    else:
+        find_and_show_substrings(args[0])
+    
 
