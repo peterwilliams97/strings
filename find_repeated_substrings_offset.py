@@ -47,11 +47,14 @@ import glob
 import re
 import os
 import time
+import random
 
 _start_time = time.time()
 _time_file = open('timing.txt', 'wt')
 
 def note_time(desc):
+    if _quiet:
+        return
     global _time_file
     msg = '%4.1f sec: %s' % (time.time() - _start_time, desc)
     print 'time> %s' % msg
@@ -70,7 +73,14 @@ if True:
     for s in ['abc', 'y', 'z', '123']:
         assert(unH(H(s)) == s)
     
-# Logging and debugging flages
+# Logging and debugging flags
+_quiet = False
+def set_quiet(quiet):
+    global _quiet
+    _quiet = quiet
+    if _quiet:
+        _verbose = False
+    
 _verbose = False
 def set_verbose(verbose):
     global _verbose
@@ -431,10 +441,13 @@ def find_and_show_substrings(mask):
     """Find the longest substring that is repeated in a list of files
         matched by <mask> in which the filename encodes the number of 
         repeats as defined in name_to_repeats() above.
-    """    
+    """
 
     # Read the files matched by <mask>    
     test_files = get_test_files(mask)
+    file_names = [x for x in test_files.keys()]
+    file_names.sort(key = lambda x: len(test_files[x]['data']))  
+    
     print '%d files in mask "%s"' % (len(test_files), mask)
     if not test_files:
         print 'no test files'
@@ -447,14 +460,13 @@ def find_and_show_substrings(mask):
     offsets_dict = find_repeated_substrings(test_files)
 
     # Print out the results 
-    file_names = [x for x in test_files.keys()]
-    file_names.sort(key = lambda x: len(test_files[x]['data']))  
+    
     substring_list = offsets_dict[file_names[0]].keys()
 
     print 'Substrings summary:'
     print 'Found %d substrings' % len(substring_list)
     for i, substring in enumerate(substring_list):
-        print '%2d: len=%3d, substring="%s"' % (i, len(substring), substring)
+        print '%2d: len=%3d, substring="%s"' % (i, len(substring), H(substring))
 
     print '=' * 80
     print 'Substrings in detail:'
@@ -469,11 +481,57 @@ def find_and_show_substrings(mask):
             print '%40s: needed=%-2d,num=%-2d,offsets=%s' % (os.path.basename(name), 
                 x['repeats'], len(offsets), offsets)
 
+def compare_string_subsets(mask, subset_fraction, num_tests):
+    """Find the longest substring that is repeated in several subsets of a list of files
+        matched by <mask> in which the filename encodes the number of repeats as defined 
+        in name_to_repeats() above.
+        Compare results from each set. It shoulbe the same
+    """
+    # Read the files matched by <mask>    
+    test_files = get_test_files(mask)
+    print '%d files in mask "%s"' % (len(test_files), mask)
+    if not test_files:
+        print 'no test files'
+        return
+
+    file_names = [x for x in test_files.keys()]
+    file_names.sort(key = lambda x: len(test_files[x]['data']))  
+    
+    for i, name in enumerate(file_names):
+        x = test_files[name]
+        print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
+    print '=' * 60
+
+    subset_size = int(len(test_files)*subset_fraction)
+
+    print 'Testing %d subsets of size %d from total of %d' % (num_tests, subset_size, len(test_files))
+
+    random.seed(111)
+
+    subset_substring_list_list = [] 
+    for test in range(num_tests):
+        test_file_names = file_names[:]
+        random.shuffle(test_file_names)
+        test_files_subset = test_file_names[:subset_size]
+        if not _quiet:
+            for i, name in enumerate(test_files_subset):
+                x = test_files[name]
+                print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
+            print '-' * 60
+        offsets_dict = find_repeated_substrings(test_files)
+        substring_list = offsets_dict[file_names[0]].keys()
+        subset_substring_list_list.append(substring_list)
+        print 'Found %d substrings' % len(substring_list)
+        for i, substring in enumerate(substring_list):
+            print '%2d: len=%3d, substring="%s"' % (i, len(substring), H(substring))
+
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
     parser.add_option('-v', '--verbose', action="store_true", dest='verbose', default=False,
                 help='print status messages to stdout')
+    parser.add_option('-q', '--quiet', action="store_true", dest='quiet', default=False,
+                help='print only results to stdout')
     parser.add_option('-d', '--dump', action="store_true", dest='dump', default=False,
                 help='dump data to files')
     parser.add_option('-a', '--validate', action="store_true", dest='validate', default=False,
@@ -486,9 +544,11 @@ if __name__ == '__main__':
         exit()
 
     set_verbose(options.verbose)
+    set_quiet(options.quiet)
     set_dump(options.dump)
     set_validate(options.validate)
     print 'options =', options
 
-    find_and_show_substrings(args[0])
+    #find_and_show_substrings(args[0])
+    compare_string_subsets(args[0], 0.5, 5)
 
