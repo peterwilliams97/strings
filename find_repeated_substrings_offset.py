@@ -80,7 +80,7 @@ def set_quiet(quiet):
     _quiet = quiet
     if _quiet:
         _verbose = False
-    
+
 _verbose = False
 def set_verbose(verbose):
     global _verbose
@@ -175,20 +175,20 @@ def get_substrings(string, k, allowed_substrings):
         <allowed_substrings> or <parent_keys> so the best way to guarantee 
         performance is to find short key sets.
     """ 
-    report('get_substrings:k=%2d,allowed_substrings=%3d,size=%7d' % 
-        (k, len(allowed_substrings) if allowed_substrings else 0, len(string)))
+    report('get_substrings:k=%2d,allowed_substrings=%5d,size=%7d' % 
+        (k, len(allowed_substrings) if allowed_substrings else -1, len(string)))
     substrings = {}
     n = len(string)
     for i in range(n-k):
-        seq = string[i:i+k]
-        if is_junk(seq):
+        pattern = string[i:i+k]
+        if is_junk(pattern):
             continue
         if allowed_substrings: 
-            if not seq in allowed_substrings:
+            if not pattern in allowed_substrings:
                 continue
-        if not seq in substrings:
-            substrings[seq] = 0
-        substrings[seq] += 1
+        if not pattern in substrings:
+            substrings[pattern] = 0
+        substrings[pattern] += 1
     return substrings
 
 def filter_repeats(substrings, min_repeats):
@@ -453,7 +453,8 @@ def find_and_show_substrings(mask):
         print 'no test files'
         return
 
-    for i,(name,x) in enumerate(sorted(test_files.items())):
+    for i, name in enumerate(file_names):
+        x = test_files[name]
         print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
     print '-' * 60
 
