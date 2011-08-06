@@ -48,6 +48,7 @@ import re
 import os
 import time
 import random
+import rolling_hash
 
 _start_time = time.time()
 _time_file = open('timing.txt', 'wt')

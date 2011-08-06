@@ -1,12 +1,13 @@
 """
 Rolling hash implementation
-Cython: http://docs.cython.org/
 
+Use Cython: http://docs.cython.org/
 http://docs.cython.org/src/quickstart/build.html
+
+To build:
 python setup.py build_ext --inplace
 
 """
-#from libc.stdlib cimport memset
 
 #http://wiki.cython.org/DynamicMemoryAllocation
 from libc.stdlib cimport malloc, calloc, free
@@ -14,88 +15,86 @@ from libc.stdlib cimport malloc, calloc, free
 #http://trac.cython.org/cython_trac/attachment/ticket/314/array.pxd
 cdef extern from "stdlib.h" nogil:
     void *memset(void *str, int c, size_t n)
+    void *memcpy(void *dst, void *src, size_t n)
 
-#def say_hello_to(name):
-#    print("Hello %s!" % name)
+DEF INT_SIZE = 4
+DEF INT_BITS = INT_SIZE * 8
 
-DEF NUMBER_PRIMES = 6
-DEF TABLE_SIZE = 6
+# Size of the rolling hash table. Smallest 5 digit prime
+DEF HASH_SIZE = 10009
+# Memory storage for hash table. Round up to multiple of 32 
+DEF HASH_STORAGE = 10016
 
-# Size of the rolling hash table. Smallest 4 digit prime
-DEF HASH_SIZE = 1009
-cdef unsigned char hash_table[TABLE_SIZE]
+# The "radix" for the Rabin-Karp rolling hash
+# http://en.wikipedia.org/wiki/Rolling_hash
+DEF D = 31
 
-# The base of the numeral system
-DEF H = 31
-# A big enough prime number
-DEF Q = HASH_SIZE
 
-# http://harvestsoft.net/rabinkarp.
-cdef rabin_karp(char text[], int text_len, char pattern[], int pattern_len,
-                unsigned char hits[]):
+# https://github.com/lemire/rollinghashjava/blob/master/src/rollinghash/RabinKarpHash.java
+cdef _mod(unsigned int d, unsigned int m):
+    """Return d^m """
+    cdef unsigned int d_to_n = 1
+    for i in range(m):
+        d_to_n *= d
+    return d_to_n
 
-    memset(hits, 0, text_len)
-    
-    if text_len < pattern_len:
-        return                      # no match is possible
-
-    cdef unsigned int p = 0         # the hash value of the pattern
-    cdef unsigned int t = 0         # the hash value of the text
-
-    for i in range(pattern_len): 
-        p = (p * H + pattern[i]) % Q
-        t = (t * H + text[i]) % Q
-
-    # start the "rolling hash" - for every next character in
-    for i in range(text_len - pattern_len):
-        if t == p:
-            hits[i] = 1
-        t = (t *( t - ((text[i]*H) % Q)) + text[i+pattern_len]) % Q
-
-#http://docs.cython.org/src/userguide/external_C_code.html
-ctypedef struct String:
-    int length
-    char * data
-    
-cdef get_possible_hits(char text[], int text_len, 
-                String patterns[], int num_patterns,
-                unsigned char hits[]):
-
-    memset(hits, 0, text_len)
-    cdef unsigned char pattern_hash_table[HASH_SIZE]
-    memset(pattern_hash_table, 0, sizeof(pattern_hash_table))
-
-    if num_patterns <= 0:
-        return
-
-    # For efficiency all patterns are same length !@#$
-    pattern_len =  patterns[0].length
-    if text_len < pattern_len:
-        return                              # no match is possible
-
-    #cdef unsigned int p[num_patterns]      # the hash values of the patterns
-    #memset(p, 0, sizeof(p))
-    
-    cdef unsigned int *p = <unsigned int *>calloc(num_patterns, sizeof(unsigned int))
-    cdef unsigned int t = 0                 # the hash value of the text
-
-    for j in range(num_patterns):
-        for i in range(pattern_len): 
-            p[j] = (p[j] * H + patterns[j].data[i]) % Q  
-        pattern_hash_table[p[j] % HASH_SIZE] = 1    
-
+cdef _get_simple_hash(unsigned char text[], int text_len, int offset):
+    """Return hash of text[offset:text_len]"""
+    cdef unsigned int t = 0 
     for i in range(text_len): 
-        t = (t * H + text[i]) % Q
+        t = (t * D + text[i+offset]) 
+    return t
 
-    # start the "rolling hash" - for every next character in
-    for i in range(text_len - patterns[0].length):
-        if pattern_hash_table[t % HASH_SIZE]:
-            for j in range(num_patterns):
-                if t == p[j]:
-                    hits[i] = 1
-        t = (t *( t - ((text[i]*H) % Q)) + text[i+pattern_len]) % Q       
-
-
-
+cdef _get_rolling_hash(unsigned char text[], int text_len, int pattern_len, unsigned int hashes[]):
+    """Return hashes of text[offset:offset+pattern_len] for offset in [0,text_len-pattern_len]"""
     
+    cdef unsigned int h = _mod(D, pattern_len-1)
+    print 'D = %d, pattern_len = %d, h=%d' % (D, pattern_len, h)
     
+    cdef unsigned int t = _get_simple_hash(text, pattern_len, 0) 
+    hashes[0] = t
+    assert(t != 0)
+      
+    for i in range(text_len - pattern_len):
+        t = t - (text[i]*h)
+        t = (t * D + text[i+pattern_len]) 
+        assert(t == _get_simple_hash(text, pattern_len, i+1))
+        if t == 0:
+            print 'i= ', i
+        assert(t!= 0)
+        hashes[i+1] = t
+
+DEF TEST_SIZE = 1000 
+
+def test_rolling_hash(): 
+    """Test that rolling hashes are the same as the simple hashes"""
+    cdef unsigned char text[TEST_SIZE]
+    cdef unsigned int hashes[TEST_SIZE]
+    memset(text, 0, sizeof(text))
+    memset(hashes, 0, sizeof(hashes))
+    
+    pattern = 'abcd '
+    pattern_len = len(pattern)
+    
+    base_hashes_list = []
+    for i in range(pattern_len):
+        for j in range(pattern_len):
+            text[j] = ord(pattern[(i+j) % pattern_len])
+        _get_rolling_hash(text, pattern_len, pattern_len, hashes)
+        base_hashes_list.append(hashes[0])
+        
+    for i in range(TEST_SIZE):
+        text[i] = ord(pattern[i % pattern_len])
+    _get_rolling_hash(text, TEST_SIZE, pattern_len, hashes)
+    
+    num_hashes = TEST_SIZE - pattern_len + 1
+    hashes_list = []
+    for i in range(TEST_SIZE - pattern_len + 1):
+        hashes_list.append(hashes[i])
+        
+    print 'TEST_SIZE      =', TEST_SIZE
+    print 'pattern        =', '"'+pattern+'"', len(pattern)
+    print 'number hashes  =', num_hashes
+    print 'base hashes    =', sorted(set(base_hashes_list))
+    print 'rolling hashes =', sorted(set(hashes_list))
+
