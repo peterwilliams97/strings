@@ -49,17 +49,22 @@ def note_time(desc):
     _time_file.write(msg + '\n')
 
 # Logging and debugging flags
+
+_verbose = False
+def is_verbose():
+    return _verbose
+def set_verbose(verbose):
+    global _verbose
+    _verbose = verbose
+
 _quiet = False
+def is_quiet():
+    return _quiet
 def set_quiet(quiet):
     global _quiet
     _quiet = quiet
     if _quiet:
         _verbose = False
-
-_verbose = False
-def set_verbose(verbose):
-    global _verbose
-    _verbose = verbose
 
 _dump_dict_on = False
 def set_dump(dump):
@@ -67,12 +72,12 @@ def set_dump(dump):
     _dump_dict_on = dump
 
 _validate = False
+def is_validate():
+    return _validate
 def set_validate(validate):
     global _validate
     _validate = validate
-    
-def is_validate():
-    return _validate
+
 
 def report(message):
     """Write <message> to stdout if _verbose is enabled"""

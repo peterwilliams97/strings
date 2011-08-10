@@ -467,7 +467,7 @@ def compare_string_subsets(mask, subset_fraction, num_tests):
         test_file_names = file_names[:]
         random.shuffle(test_file_names)
         test_files_subset = test_file_names[:subset_size]
-        if not _quiet:
+        if not common.is_quiet():
             for i, name in enumerate(test_files_subset):
                 x = test_files[name]
                 print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
