@@ -180,14 +180,14 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
             # Remove parent offsets that would truncate substrings of length k+1
             if ofs_list[0] == 0:
                 del(ofs_list[0])
-            if ofs_list[-1]+k+1 == len(x['data']):
+            if ofs_list[-1]+k+1 == len(x['text']):
                 del(ofs_list[-1]) 
 
             # Create the child length k+1 substrings and add them to the child offsets dict
             # ofs1 is the offset of the k+1 substring key1 
             for ofs in ofs_list:
                 for ofs1 in [ofs-1, ofs]:
-                    key1 = x['data'][ofs1:ofs1+k+1]
+                    key1 = x['text'][ofs1:ofs1+k+1]
                     assert(len(key1) == k+1)
                     if allowed_substrings:    
                         if not key1 in allowed_substrings:
@@ -213,7 +213,7 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
         # allowed_substrings is used as a filter in all but first pass through this loop
         allowed_substrings = child_offsets_dict[name].keys() 
         common.report('  allowed_substrings=%3d,%3d,size=%7d' % 
-            (unpruned_len, len(allowed_substrings), len(x['data'])))
+            (unpruned_len, len(allowed_substrings), len(x['text'])))
 
     # Need to go back and trim the substrings lists to allowed_substrings
     # If this results in a zero length list for any file then returns
@@ -240,7 +240,7 @@ def get_offsets_from_texts(file_names, test_files, k):
     allowed_substrings = None
     for name in file_names:
         x = test_files[name]
-        substrings = get_substrings(x['data'], k, allowed_substrings)
+        substrings = get_substrings(x['text'], k, allowed_substrings)
         substrings = filter_repeats(substrings, x['repeats'])
         substrings = filter_junk_strings(substrings)
         if not substrings:
@@ -263,16 +263,16 @@ def get_offsets_from_texts(file_names, test_files, k):
         x = test_files[name]
         offsets_dict[name] = {}
         for key in substrings.keys():
-            offsets_dict[name][key] = common.get_substring_offsets(x['data'], key) 
+            offsets_dict[name][key] = common.get_substring_offsets(x['text'], key) 
 
     return [offsets_dict[name] for name in file_names] 
 
 def test_files_to_text_repeats(file_names, test_files):
-    text_list = [test_files[name]['data'] for name in file_names]
+    text_list = [test_files[name]['text'] for name in file_names]
     min_repeats_list = [test_files[name]['repeats'] for name in file_names]
     return text_list, min_repeats_list
 
-min_k = 4               # Starting substring length
+min_k = 24              # Starting substring length
 max_k = 2000            # Max substring length     
 
 if False:
@@ -286,8 +286,8 @@ def find_repeated_substrings(test_files):
     """Return the longest substring(s) s that is repeated in <test_files>
         according to rule:
             For each x in test_files:
-                s occurs at least x['repeats'] times in x['data']
-        test_files[name] = {'data':data, 'repeats':repeats}
+                s occurs at least x['repeats'] times in x['text']
+        test_files[name] = {'text':text, 'repeats':repeats}
     """ 
     common.note_time('start searching strings')
     common.report('find_repeated_substrings(%d,%d,%d)' % (len(test_files.keys()), min_k, max_k))
@@ -298,10 +298,10 @@ def find_repeated_substrings(test_files):
     # Find the substrings that are repeated >= k times in files with k repeats
     # It is important to test shorter files first
     file_names = [x for x in test_files.keys()]
-    file_names.sort(key = lambda x: len(test_files[x]['data']))
+    file_names.sort(key = lambda x: len(test_files[x]['text']))
 
     common.report('file_names:\n%s' % '\n'.join(['%8d:%3d: %s' % 
-            (len(test_files[name]['data']),test_files[name]['repeats'],name) for name in file_names]))
+            (len(test_files[name]['text']),test_files[name]['repeats'],name) for name in file_names]))
 
     # Start by finding all substrings of length min_k which is typically 4
     k = min_k
@@ -313,24 +313,25 @@ def find_repeated_substrings(test_files):
     else:
         text_list, repeats_list = test_files_to_text_repeats(file_names, test_files)
         pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k)
-        pattern_offsets_list0 = common.load_from_disk(pickle_name)
         
-        for i in range(len(pattern_offsets_list)):
-            pattern_offsets = pattern_offsets_list[i]
-            pattern_offsets0 = pattern_offsets_list0[i]
-            both_ways = [(pattern_offsets, pattern_offsets0), (pattern_offsets0, pattern_offsets)]
-            for ii,(pattern_offsets1, pattern_offsets2) in enumerate(both_ways):
-                print 'pass', ii
-                for key in pattern_offsets1.keys():
-                    if not key in pattern_offsets2.keys():
-                        print H(key)
-                for key in pattern_offsets1.keys():
-                    assert(key in pattern_offsets2.keys())
-                    vals1 = sorted(pattern_offsets[key])
-                    vals2 = sorted(pattern_offsets1[key])
-                    assert(len(vals1) == len(vals2))
-                    for j in range(len(vals1)):
-                        assert(vals1[j] == vals2[j])
+        if False:
+            pattern_offsets_list0 = common.load_from_disk(pickle_name)
+            for i in range(len(pattern_offsets_list)):
+                pattern_offsets = pattern_offsets_list[i]
+                pattern_offsets0 = pattern_offsets_list0[i]
+                both_ways = [(pattern_offsets, pattern_offsets0), (pattern_offsets0, pattern_offsets)]
+                for ii,(pattern_offsets1, pattern_offsets2) in enumerate(both_ways):
+                    print 'pass', ii
+                    for key in pattern_offsets1.keys():
+                        if not key in pattern_offsets2.keys():
+                            print H(key)
+                    for key in pattern_offsets1.keys():
+                        assert(key in pattern_offsets2.keys())
+                        vals1 = sorted(pattern_offsets[key])
+                        vals2 = sorted(pattern_offsets1[key])
+                        assert(len(vals1) == len(vals2))
+                        for j in range(len(vals1)):
+                            assert(vals1[j] == vals2[j])
         
     common.note_time('got substrings')
 
@@ -371,19 +372,19 @@ def name_to_repeats(name):
 def get_test_files(mask):
     """Return a list of dicts for for file that match <mask>
         Dict entries are 
-        test_files[name] = {'data':data, 'repeats':repeats}
+        test_files[name] = {'text':text, 'repeats':repeats}
             name: file name
             page: number of repeats in file
-            data: file contents as string
+            text: file contents as string
     """
     test_files = {}
     for name in glob.glob(mask):
         if not os.path.isdir(name):
             repeats = name_to_repeats(name)
             if repeats:
-                data = file(name, 'rb').read()
-                if data:
-                    test_files[name] = {'repeats':repeats, 'data':data}
+                text = file(name, 'rb').read()
+                if text:
+                    test_files[name] = {'repeats':repeats, 'text':text}
     return test_files
     
 def find_and_show_substrings(mask):
@@ -395,7 +396,7 @@ def find_and_show_substrings(mask):
     # Read the files matched by <mask>    
     test_files = get_test_files(mask)
     file_names = [x for x in test_files.keys()]
-    file_names.sort(key = lambda x: len(test_files[x]['data']))  
+    file_names.sort(key = lambda x: len(test_files[x]['text']))  
     
     print '%d files in mask "%s"' % (len(test_files), mask)
     if not test_files:
@@ -404,7 +405,7 @@ def find_and_show_substrings(mask):
 
     for i, name in enumerate(file_names):
         x = test_files[name]
-        print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
+        print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['text']), x['repeats'], name)
     print '-' * 60
 
     offsets_dict = find_repeated_substrings(test_files)
@@ -430,7 +431,7 @@ def find_and_show_substrings(mask):
             offsets = sorted(offsets_dict[name][substring])
             print '%40s: needed=%-2d,num=%-2d,offsets=%s' % (os.path.basename(name), 
                 x['repeats'], len(offsets), offsets)
-            offsets2 = sorted(common.get_substring_offsets(x['data'], substring)) 
+            offsets2 = sorted(common.get_substring_offsets(x['text'], substring)) 
             assert(len(offsets2) == len(offsets))
             for i in range(len(offsets)):
                 assert(offsets2[i] == offsets[i])
@@ -449,11 +450,11 @@ def compare_string_subsets(mask, subset_fraction, num_tests):
         return
 
     file_names = [x for x in test_files.keys()]
-    file_names.sort(key = lambda x: len(test_files[x]['data']))  
+    file_names.sort(key = lambda x: len(test_files[x]['text']))  
     
     for i, name in enumerate(file_names):
         x = test_files[name]
-        print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
+        print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['text']), x['repeats'], name)
     print '=' * 60
 
     subset_size = int(len(test_files)*subset_fraction)
@@ -470,7 +471,7 @@ def compare_string_subsets(mask, subset_fraction, num_tests):
         if not common.is_quiet():
             for i, name in enumerate(test_files_subset):
                 x = test_files[name]
-                print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['data']), x['repeats'], name)
+                print '%2d: size=%7d, repeats=%3d, name="%s"' % (i, len(x['text']), x['repeats'], name)
             print '-' * 60
         offsets_dict = find_repeated_substrings(test_files)
         substring_list = offsets_dict[file_names[0]].keys()
@@ -483,7 +484,7 @@ def compare_string_subsets(mask, subset_fraction, num_tests):
                 offsets = sorted(offsets_dict[name][substring])
                 print '%40s: needed=%-2d,num=%-2d,offsets=%s' % (os.path.basename(name), 
                     x['repeats'], len(offsets), offsets)
-                offsets2 = sorted(common.get_substring_offsets(x['data'], substring)) 
+                offsets2 = sorted(common.get_substring_offsets(x['text'], substring)) 
                 assert(len(offsets2) == len(offsets))
                 for i in range(len(offsets)):
                     assert(offsets2[i] == offsets[i]) 
@@ -496,7 +497,7 @@ if __name__ == '__main__':
     parser.add_option('-q', '--quiet', action="store_true", dest='quiet', default=False,
                 help='print only results to stdout')
     parser.add_option('-d', '--dump', action="store_true", dest='dump', default=False,
-                help='dump data to files')
+                help='dump text to files')
     parser.add_option('-a', '--validate', action="store_true", dest='validate', default=False,
                 help='perform validation of intermediate results')
     parser.add_option('-t', '--test', action="store_true", dest='test_subsets', default=False,

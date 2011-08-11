@@ -78,7 +78,6 @@ def set_validate(validate):
     global _validate
     _validate = validate
 
-
 def report(message):
     """Write <message> to stdout if _verbose is enabled"""
     if _verbose:
@@ -104,15 +103,15 @@ def _od_offsets_string(file_names, offsets_dict):
             string += '  %s:%3d:%s\n' % (H(key), len(val), val[:5])
     return string
 
-SEPARATOR = ','
+_SEPARATOR = ','
 def _od_offsets_matrix(file_names, offsets_dict, test_files):
     """Return matrix representation of <offsets_dict> sorted by <file_names>"""
     string = ''
-    string += SEPARATOR.join(['name'] + file_names) + '\n'
-    string += SEPARATOR.join(['repeats'] + ['%d' % test_files[name]['repeats'] for name in file_names]) + '\n'
-    string += SEPARATOR.join(['size'] + ['%d' % len(test_files[name]['data']) for name in file_names]) + '\n'
+    string += _SEPARATOR.join(['name'] + file_names) + '\n'
+    string += _SEPARATOR.join(['repeats'] + ['%d' % test_files[name]['repeats'] for name in file_names]) + '\n'
+    string += _SEPARATOR.join(['size'] + ['%d' % len(test_files[name]['data']) for name in file_names]) + '\n'
     for subs in _od_substrings(offsets_dict):
-        string += SEPARATOR.join([H(subs)] + ['%d' % len(offsets_dict[name][subs]) for name in file_names]) + '\n'
+        string += _SEPARATOR.join([H(subs)] + ['%d' % len(offsets_dict[name][subs]) for name in file_names]) + '\n'
     return string
 
 def show_offsets_dict(file_names, offsets_dict):
