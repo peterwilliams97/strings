@@ -61,7 +61,7 @@ cdef _show_stats(unsigned char ht[]):
         int(100.0 *float(count)/float(_HASH_SIZE))))
     assert(count > 0)
 
-cdef _arr2str(unsigned char text[], int offset, int length):
+cdef _arr2str(unsigned char text[], int length, int offset):
     """Convert a segment of a byte array to a Python string"""
     return ''.join([x for x in text[offset:offset+length]])   
 
@@ -113,7 +113,7 @@ cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, u
     cdef unsigned int t = _get_simple_hash(text, pattern_len, 0) 
     for i in range(text_len - pattern_len):
         if ht_in[t % _HASH_SIZE]:
-            key = _arr2str(text, i, pattern_len)
+            key = _arr2str(text, pattern_len, i)
             if not key in pattern_offsets.keys():
                 pattern_offsets[key] = set([])
             pattern_offsets[key].add(i)
@@ -123,7 +123,7 @@ cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, u
 
     if ht_in[t % _HASH_SIZE]:
         i = text_len - pattern_len
-        key = _arr2str(text, i, pattern_len)
+        key = _arr2str(text, pattern_len, i)
         if not key in pattern_offsets.keys():
             pattern_offsets[key] = set([])
         pattern_offsets[key].add(i)
