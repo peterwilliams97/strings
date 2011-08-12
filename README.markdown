@@ -5,7 +5,7 @@ Set of tools to perform text analysis
 
 ## Finding repeated substrings in a set of strings
 These programs find the longest substring that is repeated a specified minimum number of times a 
-list of  strings. The number of repeats may different for each string.
+list of strings. The number of repeats may different for each string.
 
 In the sample code, the strings are files with the minimum number of occcurrences of the substring 
 encoded in their names.
@@ -26,7 +26,7 @@ Sketch of Algorithm
 
 Performance
 -----------
-There are several aspects of the code that give good typical runtimes
+There are several aspects of the code that give good typical runtimes:
 
 * Using[rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets allow 
     the substrings to be matched in O(sum(length of strings)) See [Cython](http://cython.org/) 
@@ -37,13 +37,13 @@ There are several aspects of the code that give good typical runtimes
     character forward and back. This is 
     running_time <= 2*len(allowed_substrings)*number of strings*(K-4)*string_match(K)
 
-For typical values of 
+For typical values of: 
 
 * starting len(allowed_substrings) 100
 * number of strings 60
 * K 40
 
-this gives       
+this gives:
 * running_time <= 2 * 100 * 60 * 40 * 40 = 19,200,000 
 
 ### Accuracy
@@ -54,4 +54,4 @@ Plans for Improvement
 * Increase speed of _get_pattern_offsets()
 * Pass longer substrings in rolling hash as speed independent of substring length  
 * Possibly convert the whole thing to Suffix Arrays
-* Do approximate matching.
+* Do approximate matching
