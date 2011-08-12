@@ -46,12 +46,17 @@ cdef _get_simple_hash(unsigned char text[], int text_len, int offset):
         t = (t * _D + text[i+offset]) 
     return t
 
-cdef _show_stats(unsigned char ht[]):
-    """Print some stats about hash table <ht>"""
-    count = 0
+cdef _get_count(unsigned char ht[]):
+    """Return number of non-zero entries in hash table <ht>"""
+    cdef int count = 0
     for i in range(_HASH_SIZE):
         if ht[i]:
             count += 1
+    return count
+    
+cdef _show_stats(unsigned char ht[]):
+    """Print some stats about hash table <ht>"""
+    count = _get_count(ht)
     common.report('hash stats: %5d of %d = %d%%' % (count, _HASH_SIZE, 
         int(100.0 *float(count)/float(_HASH_SIZE))))
     assert(count > 0)
@@ -61,7 +66,7 @@ cdef _arr2str(unsigned char text[], int offset, int length):
     return ''.join([x for x in text[offset:offset+length]])   
 
 cdef _get_ht_val(unsigned char ht[], s):
-    """Return value in ht of hash of s""" 
+    """Return value of hash of string <s> in hash table <ht>""" 
     cdef unsigned int t= _get_simple_hash(s, len(s), 0)
     return ht[t % _HASH_SIZE] 
 
@@ -96,7 +101,7 @@ cdef _check_for_patterns(unsigned char text[], int text_len, int pattern_len, in
             ht_out[i] = 1
 
     _show_stats(ht_out)
-
+    
 cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, unsigned char ht_in[]):
     """Return dict of offsets of string that obey min_repeats and whose hashed are in ht_in"""
 
@@ -149,6 +154,7 @@ def _trim_to_common_keys(pattern_offsets_list):
                 del(pattern_offsets[key])
     common.report('    => %s' % [len(x) for x in pattern_offsets_list])
 
+
 def get_offsets_from_texts(text_list, min_repeats_list, pattern_len): 
     """Given a list of texts and a list of min repeats for those texts, return
         list of dicts of offsets for which min repeats are satisfied"""
@@ -162,8 +168,10 @@ def get_offsets_from_texts(text_list, min_repeats_list, pattern_len):
     # Make _check_for_patterns() check all substrings the first time it is called
     memset(ht_in, 1, _HASH_STORAGE)
 
-    # Run through the texts once and get a list of pattern_offsets
     pattern_offsets_list = []
+
+    # Run through the texts once and get a list of pattern_offsets
+   
     for i,text in enumerate(text_list):
         assert(min_repeats_list[i] <= _MAX_HASH_COUNT)
         _check_for_patterns(text, len(text), pattern_len, min_repeats_list[i], ht_in, ht_out)
@@ -171,7 +179,7 @@ def get_offsets_from_texts(text_list, min_repeats_list, pattern_len):
         #_trim_pattern_offsets(pattern_offsets, min_repeats_list[i])
         #pattern_offsets_list.append(pattern_offsets)
         common.note_time('_check_for_patterns %2d:len=%7d' % (i, len(text)))
-    
+
     for i,text in enumerate(text_list):
         pattern_offsets = _get_pattern_offsets(text, len(text), pattern_len, ht_in)
         #assert(pattern_offsets)

@@ -132,8 +132,7 @@ def _compress_name(name):
     """Return <name> compressed to 9 characters"""
     n = 0
     for c in name:
-        x = ord(c)
-        n = (n * _P1 + x) % _P2 
+        n = (n * _P1 + ord(c)) % _P2 
     return '%09d' % n
 
 def save_to_disk(name, object):
