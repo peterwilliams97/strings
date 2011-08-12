@@ -1,5 +1,7 @@
 # Set of tools to perform text analysis
 
+>Usage: python test_find_repeated_substrings.py <file mask>
+
 ## Finding repeated substrings in a set of strings
 These programs find the longest substring that is repeated a specified minimum number of times a 
 list of  strings. The number of repeats may different for each string.
@@ -22,6 +24,9 @@ encoded in their names.
 
 ### Peformance
 There are several aspects of the code that give good typical runtimes
++[rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets allow 
+the substrings to be matched in O(sum(length of strings)) See [Cython](http://cython.org/) 
+implementation in rolling_hash.pyx
 len(allowed_substrings) tends not to increase much. If the first string searched is short enough 
         then len(allowed_substrings) can start at around 100-200
 for k > 4 the length k+1 substrings are generated from the length k stings by searching 1
@@ -39,7 +44,7 @@ this gives
 The -t command line option finds the longest substring from several subsets of input texts. 
        
 ##Plans for Improvement
-+Using [rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets
-+Possibly port to [Cython](http://cython.org/)
++Increase speed of _get_pattern_offsets()
++Pass longer substrings in rolling hash as speed independent of substring length  
 +Possibly convert the whole thing to Suffix Arrays
 +Do approximate matching.
