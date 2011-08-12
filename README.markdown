@@ -13,8 +13,10 @@ encoded in their names.
 Sketch of Algorithm
 -------------------   
 
->    for k = 4 to K
->        allowed_substrings = None
+>   for k = 4 to K
+
+>       allowed_substrings = None
+
 >        for s = shortest to longest string
 >            r = number of repeats required for s
 >            all_substrings = all substrings of length k in s that occur >= r times
@@ -28,7 +30,7 @@ Performance
 -----------
 There are several aspects of the code that give good typical runtimes:
 
-* Using[rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets allow 
+* Using [rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets allow 
     the substrings to be matched in O(sum(length of strings)) See [Cython](http://cython.org/) 
     implementation in rolling_hash.pyx
 * len(allowed_substrings) tends not to increase much. If the first string searched is short enough 
