@@ -20,10 +20,10 @@ cdef extern from "stdlib.h" nogil:
     void *memset(void *str, int c, size_t n)
     void *memcpy(void *dst, void *src, size_t n)
 
-# Storing counts in bytes so stop counts from wrapping
-DEF _MAX_HASH_COUNT = 250    
+# Storing counts in bytes so we need to stop counts from wrapping
+DEF _MAX_HASH_COUNT = 250 
 # Size of the rolling hash table. Smallest 5 digit prime
-DEF _HASH_SIZE = 100003 #3 100009
+DEF _HASH_SIZE = 100003 
 # Memory storage for hash table. Round up to multiple of 32 
 DEF _HASH_STORAGE = 100032
 
