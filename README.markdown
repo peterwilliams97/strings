@@ -12,10 +12,10 @@ encoded in their names.
 
 Sketch of Algorithm
 -------------------   
-
->   for k = 4 to K
->       allowed_substrings = None
->       for s = shortest to longest string
+>
+> for k = 4 to K
+>   allowed_substrings = None
+>   for s = shortest to longest string
 >            r = number of repeats required for s
 >            all_substrings = all substrings of length k in s that occur >= r times
 >            if allowed_substrings
