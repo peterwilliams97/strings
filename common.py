@@ -16,6 +16,11 @@ def H(s):
 def unH(s):
     """Inverse of H(). y = H(x) <=> x = unH(y)"""
     return ''.join([chr(int(s[i:i+2],16)) for i in range(2, len(s),2)]) 
+    
+def is_junk(substring):
+    """Return True if we don't want to use <substring>
+        We currently reject substrings that contain nothing but space and ASCII 0s"""
+    return len(substring.strip(' \t\0')) == 0 and len(substring) > 10 
 
 def get_substring_offsets(string, substring):
     """Return set of offsets of <substring> in <string>."""

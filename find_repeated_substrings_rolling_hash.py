@@ -52,16 +52,11 @@ import common
 from common import H, unH
 import rolling_hash
 
-def is_junk(substring):
-    """Return True if we don't want to use <substring>
-        We currently reject substrings that contain nothing but space and ASCII 0s"""
-    return len(substring.strip(' \t\0')) == 0 and len(substring) > 10
-
 def filter_junk_strings(substrings):
     """Filter out miscellaneous junk strings"""
     filtered_substrings = {}
     for k,v in substrings.items():
-        if not is_junk(k):
+        if not common.is_junk(k):
             filtered_substrings[k] = v
     return filtered_substrings
 
@@ -83,7 +78,7 @@ def get_substrings(string, k, allowed_substrings):
     n = len(string)
     for i in range(n-k):
         pattern = string[i:i+k]
-        if is_junk(pattern):
+        if common.is_junk(pattern):
             continue
         if allowed_substrings: 
             if not pattern in allowed_substrings:
@@ -195,7 +190,7 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
                     if not key1[1:] in parent_substrings or not key1[:-1] in parent_substrings:
                         continue
                     # Get rid of the junk too    
-                    if is_junk(key1):
+                    if common.is_junk(key1):
                         continue
 
                     # Got through all the filters. Add the new offset to the child dict
@@ -274,7 +269,7 @@ def test_files_to_text_repeats(file_names, test_files):
     return text_list, min_repeats_list
 
 _MIN_K = 4              # Starting substring length
-_MAX_K = 2000            # Max substring length     
+_MAX_K = 2000           # Max substring length     
 
 def find_repeated_substrings(test_files):
     """Return the longest substring(s) s that is repeated in <test_files>
@@ -306,8 +301,16 @@ def find_repeated_substrings(test_files):
     else:
         print 'Cython rolling hash'
         text_list, repeats_list = test_files_to_text_repeats(file_names, test_files)
-        pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k)
-
+        pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k)    
+    if False:
+        # Does not work. !@#$ Find out why
+        while k >= _MIN_K:  
+            pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k)
+            if pattern_offsets_list[0]:
+                break
+            print 'reducing k %d=>%d' % (k, k // 2)
+            k = k // 2
+            
     common.note_time('got substrings')
 
     offsets_dict = dict(zip(file_names, pattern_offsets_list))

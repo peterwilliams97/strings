@@ -159,7 +159,7 @@ def get_offsets_from_texts(text_list, min_repeats_list, pattern_len):
     """Given a list of texts and a list of min repeats for those texts, return
         list of dicts of offsets for which min repeats are satisfied"""
 
-    common.report('get_offsets_from_texts(num texts=%d,pattern_len=%d)' % (len(text_list), 
+    common.note_time('get_offsets_from_texts(num texts=%d,pattern_len=%d)' % (len(text_list), 
         pattern_len)) 
     # Initialize all the data structurs
     cdef unsigned char ht_in[_HASH_STORAGE]
@@ -186,10 +186,14 @@ def get_offsets_from_texts(text_list, min_repeats_list, pattern_len):
         _trim_pattern_offsets(pattern_offsets, min_repeats_list[i])
         #assert(pattern_offsets)
         pattern_offsets_list.append(pattern_offsets)
-        common.note_time('_get_pattern_offsets %2d:len=%7d' % (i, len(text)))
-    
+        if not pattern_offsets:
+            break
+        common.note_time('_get_pattern_offsets %2d:len=%7d patterns=%d' % (i, len(text), 
+            len(pattern_offsets)))
+
     # Trim all the pattern_offsets to the common subset 
     _trim_to_common_keys(pattern_offsets_list)
+    common.note_time('_trim_to_common_keys %d' % len(pattern_offsets_list[0]))
     
     # We now have a list of dicts of offset lists so we can move faster
     return pattern_offsets_list
