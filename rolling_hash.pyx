@@ -115,6 +115,7 @@ cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, u
         if ht_in[t % _HASH_SIZE]:
             key = _arr2str(text, pattern_len, i)
             if not key in pattern_offsets.keys():
+                # Most time is spent here!! !@#$
                 pattern_offsets[key] = set([])
             pattern_offsets[key].add(i)
         t = t - (text[i]*h)
