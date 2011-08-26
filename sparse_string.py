@@ -125,6 +125,7 @@ class SparseString:
         chunk = self._get_first_chunk(offset0)
         return self._fragments[chunk][offset0 - chunk * _CHUNK_SIZE: offset1 - chunk * _CHUNK_SIZE]
 
+        
 def _base_test(test_string, sparse_string, gap, offset_list):
 
     general_string = GeneralString(test_string)    
@@ -172,9 +173,7 @@ def _test_general_string(test_string, gap, offset_list):
         sparse_string.add_interval(offset, offset+gap)
         
     sparse_string.sparsify()  
-    
     test_string = GeneralString(sparse_string) 
-    
     sparse_string = SparseString(test_string)
      
     for offset in offset_list:
@@ -183,7 +182,6 @@ def _test_general_string(test_string, gap, offset_list):
     sparse_string.sparsify()  
     
     _base_test(test_string, sparse_string, gap, offset_list)    
-
 
 def _offsets_test(interval, gap):
     total_size = interval * 5
@@ -194,7 +192,7 @@ def _offsets_test(interval, gap):
     
     #print 'test_string = ', len(test_string), test_string
  
-    offset_list = [offset for offset in range((len(test_string) - gap)//interval)]
+    offset_list = [offset for offset in range(0, (len(test_string) - gap), interval)]
     #print 'offset_list =', len(offset_list), offset_list
     _test(test_string, gap, offset_list)
     _test_general_string(test_string, gap, offset_list)
@@ -216,8 +214,11 @@ def _interval_gap_test():
     interval = _CHUNK_SIZE * 99
     gap = _CHUNK_SIZE // 8
     _offsets_test(interval, gap)
+   
+def _chunk_size_test():
+    global _CHUNK_SIZE
+    global _PAD
     
-if __name__ == '__main__':
     chunk_size = _CHUNK_SIZE
     pad = _PAD
     
@@ -227,5 +228,29 @@ if __name__ == '__main__':
     
     _CHUNK_SIZE = chunk_size 
     _PAD = pad
-    _interval_gap_test()
+    _interval_gap_test()    
     
+def _memory_test(num_rounds):
+    interval = 1024 * 1024
+    gap = 10 * 1024
+    total_size = interval * 100
+    
+    base = 'abcdefghi'
+    line = 'X'.join([base for i in range(interval//len(base))])
+    test_string = 'Z'.join([line for i in range(total_size//len(line))])
+    line = None
+    print 'test_string', len(test_string)
+        
+    offset_list = [offset for offset in range(0, (len(test_string) - gap), interval*11)]
+    offset_list = [0]
+    for i in range(num_rounds):
+        print 'sparsifying:', i
+        sparse_string = SparseString(test_string)
+        for offset in offset_list:
+            sparse_string.add_interval(offset, offset+gap)
+        sparse_string.sparsify() 
+        test_string = GeneralString(sparse_string) 
+    
+if __name__ == '__main__':
+    #_chunk_size_test()
+    _memory_test(1024 * 1024)
