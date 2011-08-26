@@ -12,6 +12,28 @@ import time
 import random
 import pickle
 
+class GeneralString:
+    """Common interface for python str and SparseStrings"""
+    def __init__(self, string):
+        self._string = string
+        self._is_sparse = isinstance(self._string, SparseString)
+        
+    def get(self, offset):
+        """Return character at <self._string>[offset"""
+        if self._is_sparse:
+            return self._string.get(offset)
+        else:
+            return self._string[offset]
+        
+        
+    def get_interval(self, offset0, offset1): 
+        """Return string at <self._string>[offset0:offset1]"""
+        if self._is_sparse:
+            return self._string.get_interval(offset0, offset1)
+        else:
+            return self._string[offset0:offset1]
+    
+
 _CHUNK_SIZE = 16
 _PAD = 8
 
@@ -110,16 +132,28 @@ if __name__ == '__main__':
     for offset in offset_list:
         sparse_string.add_interval(offset, offset+gap)
         
-    sparse_string.sparsify()    
+    sparse_string.sparsify()  
+
+    gen_string1 = GeneralString(test_string)
+    gen_string2 = GeneralString(sparse_string)    
     
     for offset in offset_list:
         v1 = test_string[offset]
         v2 = sparse_string.get(offset)
-        print '-- %3d' % offset, v1, v2
+        #print '-- %3d' % offset, v1, v2
         assert(v1 == v2)
-        
+        v3 = gen_string1.get(offset)
+        v4 = gen_string2.get(offset)
+        assert(v2 == v3)
+        assert(v3 == v4)
+
     for offset in range(len(test_string) - interval):
         v1 = test_string[offset:offset+gap]
         v2 = sparse_string.get_interval(offset, offset + gap)
-        print '-- %3d' % offset, v1, v2
+        #print '-- %3d' % offset, v1, v2
         assert(v1 == v2)
+        v3 = gen_string1.get_interval(offset, offset + gap)
+        v4 = gen_string2.get_interval(offset, offset + gap)
+        assert(v2 == v3)
+        assert(v3 == v4)
+        
