@@ -24,34 +24,41 @@ def _chunk_after(offset, max_len):
     return min(max_len, offset+ _CHUNK_SIZE - 1)//_CHUNK_SIZE
 
 class SparseString:
+    """String with holes in it"""
     def __init__(self, string):
         self._chunks = set([])
         self._max_len = len(string)
         self._string = string
-    
-    def add(self, offset0, offset1):
-        #print 'add(%4d,%4d)' % (offset0, offset1)
+
+    def add_interval(self, offset0, offset1):
+        """Add an interval of offsets that are to be accessible in the sparse version of the string"""
         for chunk in range(_chunk_before(offset0 - _PAD), _chunk_after(offset1 + _PAD, self._max_len)):
             self._chunks.add(chunk)
-            
-    def coallesce(self):
+
+    def add(self, offset):
+        """Add an offset that are to be accessible in the sparse version of the string"""
+        self._add_interval(offset, offset+1)        
+
+    def sparsify(self):
+        """Replace self._string with self._fragments and self._fragment_map
+            Coallesce continguous chunks in doing so"""
         if self._chunks:
             self._fragments = []
             self._fragment_map = {}
             chunk_list = sorted(self._chunks)
             
             chunk = start_chunk = chunk_list[0]
-            self._fragment_map[chunk] = (len(self._fragments), 0)
+            self._fragment_map[chunk] = len(self._fragments)
             end_chunk = start_chunk + 1     
             for chunk in chunk_list[1:]:
                 if chunk not in self._chunks:
                     self._fragments.append(self._string[start_chunk * _CHUNK_SIZE: end_chunk * _CHUNK_SIZE])
                     start_chunk = chunk
-                    self._fragment_map[chunk] = (len(self._fragments), 0)
+                    self._fragment_map[chunk] = len(self._fragments)
                     end_chunk = start_chunk +1
                     print 'a:end_chunk', end_chunk
                 else:
-                    self._fragment_map[chunk] = (len(self._fragments), chunk - start_chunk)
+                    self._fragment_map[chunk] = len(self._fragments)
                     end_chunk = chunk +1
                     print 'b:end_chunk', end_chunk
                 print chunk, start_chunk, end_chunk, len(self._fragments)
@@ -64,22 +71,22 @@ class SparseString:
         print '_fragments', ['%d:%s' % (len(f),f) for f in self._fragments]
         #exit()
     
-    def _get_entry(self, offset):
-        chunk = _chunk_before(offset)
-        return self._fragment_map[chunk]
+    def _get_first_chunk(self, offset):
+        """Return first chunk in the range of contiguous chunks containing <offset>"""
+        return self._fragment_map[_chunk_before(offset)]
         
     def get(self, offset):
-        chunk_major, chunk_minor = self._get_entry(offset)
-        chunk_minor = chunk_major
-        print 'get(%3d)' % offset, (chunk_major, chunk_minor), '%3d' % (offset - chunk_minor * _CHUNK_SIZE), 
-        val = self._fragments[chunk_major][offset - chunk_minor * _CHUNK_SIZE]
-        print val,
+        """Return character at <offset> in <self._string>"""
+        chunk = self._get_first_chunk(offset)
+        #print 'get(%3d)' % offset, (chunk_major, chunk_minor), '%3d' % (offset - chunk_minor * _CHUNK_SIZE), 
+        val = self._fragments[chunk][offset - chunk * _CHUNK_SIZE]
+        #print val,
         return val
         
     def get_interval(self, offset0, offset1): 
-        chunk_major, chunk_minor = self._get_entry(offset0)
-        chunk_minor = chunk_major
-        return self._fragments[chunk_major][offset0 - chunk_minor * _CHUNK_SIZE: offset1 - chunk_minor * _CHUNK_SIZE]
+        """Return string in <self._string>[offset0:offset1]"""
+        chunk = self._get_first_chunk(offset0)
+        return self._fragments[chunk][offset0 - chunk * _CHUNK_SIZE: offset1 - chunk * _CHUNK_SIZE]
 
 if __name__ == '__main__':
     interval = _CHUNK_SIZE * 3
@@ -101,9 +108,9 @@ if __name__ == '__main__':
     print 'offset_list =', len(offset_list), offset_list
         
     for offset in offset_list:
-        sparse_string.add(offset, offset+gap)
+        sparse_string.add_interval(offset, offset+gap)
         
-    sparse_string.coallesce()    
+    sparse_string.sparsify()    
     
     for offset in offset_list:
         v1 = test_string[offset]
