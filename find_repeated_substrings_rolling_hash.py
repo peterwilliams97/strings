@@ -324,7 +324,7 @@ def find_repeated_substrings(test_files):
         #sparsify the text
         for name in file_names:
             test_files[name]['text'] = common.sparsify_by_offsets(test_files[name]['text'], 
-                offsets_dict[name])
+                offsets_dict[name], k)
 
         common.note_time('found %3d substrings of length >= %3d' % (len(offsets_dict[file_names[0]]), k)) 
         child_offsets_dict = get_child_offsets(file_names, test_files, offsets_dict, k)
