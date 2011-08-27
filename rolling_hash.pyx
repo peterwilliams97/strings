@@ -102,13 +102,19 @@ cdef _check_for_patterns(unsigned char text[], int text_len, int pattern_len, in
 
     _show_stats(ht_out)
     
-cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, unsigned char ht_in[]):
+cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, unsigned char ht_in[],
+                            junk_key_threshold):
     """Return dict of offsets of string that obey min_repeats and whose hashed are in ht_in"""
-
+    # NOTE: junk_key_threshold is needed to protect against files made up of the same string repeated
+    #       The problem we have is that we are protecting with a slow python set rather than a fast
+    #       rolling hash
+    #
     cdef unsigned int h = _mod(_D, pattern_len-1)
-    common.report('_get_pattern_offsets(text_len=%7d, pattern_len=%3d)' % (text_len, pattern_len))
-
+    common.report('_get_pattern_offsets(text_len=%7d, pattern_len=%3d, threshold=%d)' % (text_len, 
+        pattern_len, junk_key_threshold))
+    
     pattern_offsets = {}
+    junk_keys = set([])
   
     cdef unsigned int t = _get_simple_hash(text, pattern_len, 0) 
     for i in range(text_len - pattern_len):
@@ -117,7 +123,13 @@ cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, u
             if not key in pattern_offsets.keys():
                 # Most time is spent here!! !@#$
                 pattern_offsets[key] = set([])
-            pattern_offsets[key].add(i)
+            if not key in junk_keys: 
+                pattern_offsets[key].add(i)
+                if len(pattern_offsets[key]) >= junk_key_threshold:
+                    junk_keys.add(key)
+                    del(pattern_offsets[key])
+                    # !@#$ Hope this does not have any false positives !!!
+                    ht_in[t % _HASH_SIZE] = 0
         t = t - (text[i]*h)
         t = (t * _D + text[i+pattern_len]) 
         #assert(t == _get_simple_hash(text, pattern_len, i+1))
@@ -127,7 +139,11 @@ cdef _get_pattern_offsets(unsigned char text[], int text_len, int pattern_len, u
         key = _arr2str(text, pattern_len, i)
         if not key in pattern_offsets.keys():
             pattern_offsets[key] = set([])
-        pattern_offsets[key].add(i)
+        if not key in junk_keys:    
+            pattern_offsets[key].add(i)
+            if len(pattern_offsets[key]) >= junk_key_threshold:
+                junk_keys.add(key)
+                del(pattern_offsets[key])
     
     common.report('pattern_offsets %s'% (len(pattern_offsets) if pattern_offsets else pattern_offsets))
     return pattern_offsets
@@ -155,8 +171,7 @@ def _trim_to_common_keys(pattern_offsets_list):
                 del(pattern_offsets[key])
     common.report('    => %s' % [len(x) for x in pattern_offsets_list])
 
-
-def get_offsets_from_texts(text_list, min_repeats_list, pattern_len): 
+def get_offsets_from_texts(text_list, min_repeats_list, pattern_len, junk_key_threshold): 
     """Given a list of texts and a list of min repeats for those texts, return
         list of dicts of offsets for which min repeats are satisfied"""
 
@@ -179,18 +194,23 @@ def get_offsets_from_texts(text_list, min_repeats_list, pattern_len):
         memcpy(ht_in, ht_out, _HASH_SIZE)
         #_trim_pattern_offsets(pattern_offsets, min_repeats_list[i])
         #pattern_offsets_list.append(pattern_offsets)
-        common.note_time('_check_for_patterns %2d:len=%7d' % (i, len(text)))
+        common.note_time('_check_for_patterns %2d:len=%9d, min_repeats=%2d' % (i, len(text),
+            min_repeats_list[i]))
 
     for i,text in enumerate(text_list):
-        pattern_offsets = _get_pattern_offsets(text, len(text), pattern_len, ht_in)
+        pattern_offsets = _get_pattern_offsets(text, len(text), pattern_len, ht_in, junk_key_threshold)
         #assert(pattern_offsets)
         _trim_pattern_offsets(pattern_offsets, min_repeats_list[i])
         #assert(pattern_offsets)
         pattern_offsets_list.append(pattern_offsets)
         if not pattern_offsets:
             break
+        text_list[i] = common.sparsify_by_offsets(text, pattern_offsets, pattern_len)
+  
         common.note_time('_get_pattern_offsets %2d:len=%7d patterns=%d' % (i, len(text), 
             len(pattern_offsets)))
+        #print ' pattern_offsets:', ['%s:%d' % (key, len(pattern_offsets[key])) for key in 
+        #    pattern_offsets.keys()]    
 
     # Trim all the pattern_offsets to the common subset 
     _trim_to_common_keys(pattern_offsets_list)

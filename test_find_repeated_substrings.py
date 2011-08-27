@@ -10,7 +10,7 @@ import find_repeated_substrings_rolling_hash as FRS
 
 def name_to_repeats(name):
     """Parse number of repeats from <name>"""
-    m = re.search(r'(?:\s|-)pages=(\d+)', name)
+    m = re.search(r'pages=(\d+)', name)
     return int(m.group(1)) if m else None
 
 def get_test_files(mask):

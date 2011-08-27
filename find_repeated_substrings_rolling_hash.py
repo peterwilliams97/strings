@@ -183,6 +183,8 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
             for ofs in ofs_list:
                 for ofs1 in [ofs-1, ofs]:
                     key1 = x['text'][ofs1:ofs1+k+1]
+                    if len(key1) != k+1:
+                        print 'key="%s", key1="%s"' % (key, key1)
                     assert(len(key1) == k+1)
                     if allowed_substrings:    
                         if not key1 in allowed_substrings:
@@ -268,10 +270,16 @@ def test_files_to_text_repeats(file_names, test_files):
     text_list = [test_files[name]['text'] for name in file_names]
     min_repeats_list = [test_files[name]['repeats'] for name in file_names]
     return text_list, min_repeats_list
+    
+def text_repeats_to_test_files(file_names, test_files, text_list, min_repeats_list):
+    for i,name in enumerate(file_names):
+        test_files[name]['text'] = text_list[i]
+        test_files[name]['repeats'] = min_repeats_list[i]
+   
 
-_MIN_K = 4              # Starting substring length
-_MAX_K = 2000           # Max substring length     
-
+_MIN_K = 4                  # Starting substring length
+_MAX_K = 2000               # Max substring length     
+_JUNK_KEY_THRESHOLD = 500   # Substrings that occur this many times in a file are considered junk
 def find_repeated_substrings(test_files):
     """Return the longest substring(s) s that is repeated in <test_files>
         according to rule:
@@ -302,13 +310,22 @@ def find_repeated_substrings(test_files):
     else:
         print 'Cython rolling hash'
         text_list, repeats_list = test_files_to_text_repeats(file_names, test_files)
-        pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k)    
+        # Get rid of expensive references to big strings
+        for name in file_names:
+            test_files[name]['text'] = None
+        
+        pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k, 
+            _JUNK_KEY_THRESHOLD)
 
+        text_repeats_to_test_files(file_names, test_files, text_list, repeats_list)    
+        text_list = None
+        min_repeats_list = None
         
     if False:
         # Does not work. !@#$ Find out why
         while k >= _MIN_K:  
-            pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k)
+            pattern_offsets_list = rolling_hash.get_offsets_from_texts(text_list, repeats_list, k, 
+                _JUNK_KEY_THRESHOLD)
             if pattern_offsets_list[0]:
                 break
             print 'reducing k %d=>%d' % (k, k // 2)

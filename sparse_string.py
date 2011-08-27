@@ -16,13 +16,16 @@ Typical Usage:
 NOTES:
     Sparse strings can be sparsified, provided they don't access offsets that are not saved in the
     orginial sparse string
+    
+TODO:
+    Don't sparsify if strings are not sparse
 """
 
 # Granularity of sparse string
 _CHUNK_SIZE = 1024
 # Room around a marked region of a string that is stored. Allows for future expansion of marked
 #regions
-_PAD = 128
+_PAD = 64
 
 def _chunk_before(offset):
     """Chunk containing offset"""
@@ -42,7 +45,7 @@ class SparseString:
     
     # Public member functions 
 
-    def get_efficiency(self):
+    def get_occupancy(self):
         """Space saving, assuming negligle per-string overhead"""
         return (len(self._fragment_map) * _CHUNK_SIZE)/self._max_len
 
@@ -176,8 +179,8 @@ if __name__ == '__main__':
         for offset in offset_list:
             sparse_string.add_interval(offset, offset+gap)
         sparse_string.sparsify()  
-        print 'len = %d, offset_list = %d, efficiency = %d%%' % (len(test_string), len(offset_list),
-            int(sparse_string.get_efficiency() *100.0))
+        print 'len = %d, offset_list = %d, occupancy = %d%%' % (len(test_string), len(offset_list),
+            int(sparse_string.get_occupancy() *100.0))
         _base_test(test_string, sparse_string, gap, offset_list)
 
     def _offsets_test(interval, gap):
@@ -250,7 +253,7 @@ if __name__ == '__main__':
             for offset in offset_list:
                 sparse_string.add_interval(offset, offset+gap)
             sparse_string.sparsify() 
-            test_string = GeneralString(sparse_string) 
+            test_string = sparse_string 
             
     def _test_special_funcs(obj, key):
         print '_test_special(obj=%s,key=%s)' % (obj,key)
