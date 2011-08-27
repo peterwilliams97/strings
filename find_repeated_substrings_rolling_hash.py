@@ -51,7 +51,7 @@ import random
 import common
 from common import H, unH
 import rolling_hash
-import sparse_string
+
 
 def filter_junk_strings(substrings):
     """Filter out miscellaneous junk strings"""
@@ -317,22 +317,15 @@ def find_repeated_substrings(test_files):
     common.note_time('got substrings')
 
     offsets_dict = dict(zip(file_names, pattern_offsets_list))
-    
-    
-    
+
     # Work in increasing length of substrings, +1 per round    
     for k in range(_MIN_K, _MAX_K):
     
         #sparsify the text
         for name in file_names:
-            pattern_offsets = offsets_dict[name]
-            sparse_text = sparse_string.SparseString(test_files[name]['text'])
-            for offset_list in pattern_offsets.values():
-                for offset in offset_list:
-                    sparse_text.add_interval(offset, offset+k)
-            sparse_text.sparsify()
-            test_files[name]['text'] = sparse_text
-            
+            test_files[name]['text'] = common.sparsify_by_offsets(test_files[name]['text'], 
+                offsets_dict[name])
+
         common.note_time('found %3d substrings of length >= %3d' % (len(offsets_dict[file_names[0]]), k)) 
         child_offsets_dict = get_child_offsets(file_names, test_files, offsets_dict, k)
         if not child_offsets_dict:

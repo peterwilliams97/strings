@@ -157,6 +157,19 @@ def load_from_disk(name):
     pkl_file.close()
     return object
 
+def sparsify_by_offsets(text, pattern_offsets, verbose = False):
+    """Return <text> sparsified to offsets in <pattern_offsets>"""
+    import sparse_string
+    sparse_text = sparse_string.SparseString(test_files[name]['text'])
+    for offset_list in pattern_offsets.values():
+        for offset in offset_list:
+            sparse_text.add_interval(offset, offset+k)
+    sparse_text.sparsify()
+    if verbose:
+        print 'sparsify_by_offsets(%d) efficiency = %d%%' % (len(text), 
+            int(sparse_text.get_efficiency() *100.0))
+    return sparse_text
+    
 if __name__ == '__main__':
     object = 'A string'
     pickle_name = 'A pickle'
