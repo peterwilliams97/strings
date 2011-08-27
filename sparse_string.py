@@ -2,14 +2,30 @@ from __future__ import division
 """
 A sparse string class
 
+For use with string searching functions that narrow down search regions to parts of large 
+strings.
+
+Strings are broken into chunks of _CHUNK_SIZE
+
+Typical Usage:
+    Instatiate a SparseString: sparse_string = SparseString(string) 
+    sparse_string.add_interval(offset0, offset1) for all regions that will be used
+    sparse_string.sparsify() to replace string with sparse representation
+    From now use sparse_string instead of string
+
+NOTES:
+    Sparse strings can be sparsified, provided they don't access offsets that are not saved in the
+    orginial sparse string
 """
 
-_CHUNK_SIZE= 1024
+# Granularity of sparse string
+_CHUNK_SIZE = 1024
+# Room around a marked region of a string that is stored. Allows for future expansion of marked
+#regions
 _PAD = 128
 
-print '_CHUNK_SIZE', _CHUNK_SIZE
-
 def _chunk_before(offset):
+    """Chunk containing offset"""
     return max(0, offset)//_CHUNK_SIZE
     
 def _chunk_after(offset, max_chunk):
@@ -18,11 +34,18 @@ def _chunk_after(offset, max_chunk):
 class SparseString:
     """String with holes in it"""
     def __init__(self, string):
+        """<string> can be a regular python string or a SparseString"""
+        self._string = string       
         self._chunks = set([])
-        self._string = string #GeneralString(string)
-        self._max_len = len(self._string) #self._string.get_len()
+        self._max_len = len(self._string) 
         self._max_chunk = (self._max_len + _CHUNK_SIZE - 1)//_CHUNK_SIZE
-        
+    
+    # Public member functions 
+
+    def get_efficiency(self):
+        """Space saving, assuming negligle per-string overhead"""
+        return (len(self._fragment_map) * _CHUNK_SIZE)/self._max_len
+
     def __repr__(self):
         if self._string:
             return self._string.__repr__()
@@ -38,15 +61,13 @@ class SparseString:
         elif isinstance(key, int):
             return self._get(key)
         elif isinstance(key, slice):
-            #print 'key =', key
             return self._get_interval(key.start, key.stop)
-        
+
     def find(self, substring, offset):
         if self._string:
             return self._string.find(substring, offset)
         else:
             return self._find(substring, offset)
-
 
     def add_interval(self, offset0, offset1):
         """Add an interval of offsets that are to be accessible in the sparse version of the string"""
@@ -80,24 +101,17 @@ class SparseString:
                     start_chunk = chunk
                     self._fragment_map[chunk] = len(self._fragments)
                     end_chunk = start_chunk +1
-                    #print 'a:end_chunk', end_chunk
                 else:
                     self._fragment_map[chunk] = len(self._fragments)
                     end_chunk = chunk +1
-                    #print 'b:end_chunk', end_chunk
-                #print chunk, start_chunk, end_chunk, len(self._fragments)
-            #print 'c:end_chunk', end_chunk
             self._fragments.append(self._string[start_chunk * _CHUNK_SIZE:end_chunk * _CHUNK_SIZE])
-            #self._fragments.append(self._string.get_interval(start_chunk * _CHUNK_SIZE, end_chunk * _CHUNK_SIZE))
-            
             self._string = None
-        else:
-            raise Exception
-        if False:
+        if False:               # Set True for debugging
             print '_chunks', self._chunks
             print '_fragment_map', self._fragment_map
             print '_fragments', ['%d:%s' % (len(f),f) for f in self._fragments]
     
+    # Private memeber functions
     def _get_first_chunk(self, offset):
         """Return first chunk in the range of contiguous chunks containing <offset>"""
         return self._fragment_map[_chunk_before(offset)]
@@ -136,9 +150,12 @@ class SparseString:
             
         return -1
 
-
 if __name__ == '__main__':
     # Unit tests 
+    
+    print '_CHUNK_SIZE', _CHUNK_SIZE
+    print '_PAD', _PAD
+    
     def _base_test(test_string, sparse_string, gap, offset_list):
          
         for offset in offset_list:
@@ -159,16 +176,21 @@ if __name__ == '__main__':
         for offset in offset_list:
             sparse_string.add_interval(offset, offset+gap)
         sparse_string.sparsify()  
+        print 'len = %d, offset_list = %d, efficiency = %d%%' % (len(test_string), len(offset_list),
+            int(sparse_string.get_efficiency() *100.0))
         _base_test(test_string, sparse_string, gap, offset_list)
 
     def _offsets_test(interval, gap):
+        
+        print '_offsets_test(interval=%d, gap=%d)' % (interval, gap)
+        
         total_size = interval * 5
         
         base = 'abcdefgh'
         line = 'X'.join([base for i in range(interval//len(base))])
         test_string = 'Z'.join([line for i in range(total_size//len(line))])
         
-        print '_offsets_test(interval=%d, gap=%d) test_string = %d' % (interval, gap, len(test_string))
+        print 'test_string = %d' % (len(test_string))
      
         offset_list = [offset for offset in range(0, (len(test_string) - gap), interval)]
         #print 'offset_list =', len(offset_list), offset_list
@@ -179,6 +201,9 @@ if __name__ == '__main__':
         _test(test_string, gap, offset_list)
         
     def _interval_gap_test():
+        
+        print '_interval_gap_test() _CHUNK_SIZE=%d, _PAD=%d' % (_CHUNK_SIZE, _PAD)
+        
         interval = _CHUNK_SIZE * 10
         gap = _CHUNK_SIZE // 8
         _offsets_test(interval, gap)
