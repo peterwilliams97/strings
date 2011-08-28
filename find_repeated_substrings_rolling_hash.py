@@ -183,8 +183,8 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
             for ofs in ofs_list:
                 for ofs1 in [ofs-1, ofs]:
                     key1 = x['text'][ofs1:ofs1+k+1]
-                    if len(key1) != k+1:
-                        print 'key="%s", key1="%s"' % (key, key1)
+                    #if len(key1) != k+1:
+                    #    print 'key="%s", key1="%s"' % (key, key1)
                     assert(len(key1) == k+1)
                     if allowed_substrings:    
                         if not key1 in allowed_substrings:
@@ -201,7 +201,7 @@ def get_child_offsets(file_names, test_files, offsets_dict, k):
                         child_offsets_dict[name][key1] = set([])
                     child_offsets_dict[name][key1].add(ofs1)
  
-        # Prume the entries with insufficient repeats
+        # Prune the entries with insufficient repeats
         unpruned_len = len(child_offsets_dict[name].keys())
         for key, ofs_set in child_offsets_dict[name].items():            
             if len(ofs_set) < x['repeats']:
@@ -336,6 +336,9 @@ def find_repeated_substrings(test_files):
     offsets_dict = dict(zip(file_names, pattern_offsets_list))
 
     # Work in increasing length of substrings, +1 per round    
+    
+    offsets_dict_dict = {}
+    k_list = []
     for k in range(_MIN_K, _MAX_K):
     
         #sparsify the text
@@ -343,12 +346,49 @@ def find_repeated_substrings(test_files):
             test_files[name]['text'] = common.sparsify_by_offsets(test_files[name]['text'], 
                 offsets_dict[name], k)
 
+        offsets_dict_dict[k] = offsets_dict
+        k_list.append(k)
+        
         common.note_time('found %3d substrings of length >= %3d' % (len(offsets_dict[file_names[0]]), k)) 
         child_offsets_dict = get_child_offsets(file_names, test_files, offsets_dict, k)
         if not child_offsets_dict:
             break
         offsets_dict = child_offsets_dict 
-
+    
+    # The offsets dict may have too many repeats 
+    # Walk back through the offsets list to find the first one without excess repeats
+    k_list.reverse()
+    
+    print '$' * 60
+    print 'k_list', k_list
+    
+    for k in k_list:
+        print '-' * 60
+        offsets_dict = offsets_dict_dict[k]
+        for key in sorted(offsets_dict[file_names[0]].keys()):
+            print '%s:' % H(key), 
+            for name in file_names:
+                if len(offsets_dict[name][key]) != test_files[name]['repeats']:
+                    print '"%s":%d,%d' % (name, len(offsets_dict[name][key]), test_files[name]['repeats']),
+            print
+        for name in file_names:
+            for key, ofs_set in offsets_dict[name].items():            
+                if len(ofs_set) > test_files[name]['repeats']:
+                    for n in file_names:
+                        del(offsets_dict[n][key])
+        #for name in file_names:                
+        #    if not offsets_dict[name]:
+        #        del(offsets_dict[name])
+        
+        print 'k=%d, offsets_dict=' % (k)
+        for name in file_names:
+            print ' ', name, ['"%s":%d'%(key, len(val)) for (key,val) in offsets_dict[name].items()]
+            
+        if all(offsets_dict.values()):
+            break
+   
+            
+    exit()
     # return last non-empty dict of offsets    
     return offsets_dict
 

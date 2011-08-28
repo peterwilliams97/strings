@@ -160,7 +160,10 @@ def load_from_disk(name):
 def sparsify_by_offsets(text, pattern_offsets, width, verbose = True):
     """Return <text> sparsified to [offset,offest+<width>) for offsets in <pattern_offsets>"""
     import sparse_string
+
+    # !@#$ Not sparsifying text for now!!!
     return text
+
     num_offsets = 0
     sparse_text = sparse_string.SparseString(text)
     for offset_list in pattern_offsets.values():
@@ -172,7 +175,7 @@ def sparsify_by_offsets(text, pattern_offsets, width, verbose = True):
         print '  sparsify_by_offsets(text=%d,offsets=%d) occupancy = %d%%' % (len(text), num_offsets, 
             int(sparse_text.get_occupancy() *100.0))
     return sparse_text
-    
+
 if __name__ == '__main__':
     object = 'A string'
     pickle_name = 'A pickle'
