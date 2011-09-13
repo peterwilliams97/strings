@@ -52,7 +52,6 @@ import common
 from common import H, unH
 import rolling_hash
 
-
 def filter_junk_strings(substrings):
     """Filter out miscellaneous junk strings"""
     filtered_substrings = {}
@@ -275,8 +274,7 @@ def text_repeats_to_test_files(file_names, test_files, text_list, min_repeats_li
     for i,name in enumerate(file_names):
         test_files[name]['text'] = text_list[i]
         test_files[name]['repeats'] = min_repeats_list[i]
-   
-
+  
 _MIN_K = 4                  # Starting substring length
 _MAX_K = 2000               # Max substring length     
 _JUNK_KEY_THRESHOLD = 500   # Substrings that occur this many times in a file are considered junk
