@@ -1,24 +1,24 @@
 from __future__ import division
 """
-A sparse string class
+    A sparse string class
 
-For use with string searching functions that narrow down search regions to parts of large 
-strings.
+    For use with string searching functions that narrow down search regions to parts of large 
+    strings.
 
-Strings are broken into chunks of _CHUNK_SIZE
+    Strings are broken into chunks of _CHUNK_SIZE
 
-Typical Usage:
-    Instatiate a SparseString: sparse_string = SparseString(string) 
-    sparse_string.add_interval(offset0, offset1) for all regions that will be used
-    sparse_string.sparsify() to replace string with sparse representation
-    From now use sparse_string instead of string
+    Typical Usage:
+        Instatiate a SparseString: sparse_string = SparseString(string) 
+        sparse_string.add_interval(offset0, offset1) for all regions that will be used
+        sparse_string.sparsify() to replace string with sparse representation
+        From now use sparse_string instead of string
 
-NOTES:
-    Sparse strings can be sparsified, provided they don't access offsets that are not saved in the
-    orginial sparse string
-    
-TODO:
-    Don't sparsify if strings are not sparse
+    NOTES:
+        Sparse strings can be sparsified, provided they don't access offsets that are not saved in the
+        orginial sparse string
+        
+    TODO:
+        Don't sparsify if strings are not sparse
 """
 
 # Granularity of sparse string
