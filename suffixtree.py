@@ -1,5 +1,9 @@
 """
-    Suffix Tree implementation based on http://marknelson.us/1996/08/01/suffix-trees/
+    I have lost the name of the website I copied the original version of this from. Will add it as
+    soon as I find it.
+    
+    It will become a   
+        Suffix Tree implementation based on http://marknelson.us/1996/08/01/suffix-trees/ 
 """
 import string
 
