@@ -100,7 +100,7 @@ class SuffixTree:
         self.alphabet = alphabet
         self.nodes = [Node()]
         self.edge_lookup = {} # by  source_node, first_char
-        
+
         self.active_point = Suffix(self, 0, 0, -1)
         for i in range(len(string)):
             add_prefix(i, self.active_point, self)
@@ -110,13 +110,35 @@ class SuffixTree:
 
     def remove_edge(self, edge):
         del self.edge_lookup[edge.src_node_idx, self.string[edge.first_char_idx]]
-        
+
     def get_substring(self, first_index, last_index):
         """Strings are typially first_index to last_index inclusive
             Otherwise they terminate at end of string"""
         if last_index >= first_index:
             return self.string[first_index : last_index+1]
         return self.string[first_index:]
+ 
+    def find_substring(self, substring):
+        """Returns the index of substring in string or -1 if it is not found."""
+        if not substring:
+            return -1
+        #if self.case_insensitive:
+        #    substring = substring.lower()
+        curr_node = 0
+        i = 0
+        while i < len(substring):
+            print '**', i, len(substring), substring
+            edge = self.edge_lookup[curr_node, substring[i]]
+            if not edge:
+                return -1
+            ln = min(len(edge) + 1, len(substring) - i)
+            print edge, len(edge), ln
+            if substring[i:i + ln] != self.string[edge.first_char_idx:edge.first_char_idx + ln]:
+                return -1
+            i += len(edge) + 1
+            curr_node = edge.dst_node_idx
+        print 'node=', curr_node 
+        return edge.first_char_idx - len(substring) + ln
 
 def add_prefix(last_char_idx, active_point, suffix_tree):
     """Add string prefix suffix_tree.string[:last_char_idx+1] to suffix tree
@@ -277,6 +299,7 @@ def show_nodes_tree(suffix_tree):
     show_nodes(0, 0, '')
     
     assert(suffixes_found[0] == all_suffixes)
+    print '+++++++++++++++' + '-' * 40
 
 def show_all_suffixes(suffix_tree):
     print 'suffix_tree.edge_lookup' + '-' * 60
@@ -288,7 +311,12 @@ if __name__ == '__main__':
     import sys
     test_str = 'abaababaabaab$'#'mississippi$'
     test_str = 'abcab$'
-    test_str = sys.argv[1]
+    if len(sys.argv) < 2:
+        print 'usage: python %s <string> <substring>' % sys.argv[0]
+        exit()
+        
+    test_str = sys.argv[1] + '$'
+    substring = sys.argv[2]
     POSITIVE_INFINITY = len(test_str) - 1
     suffix_tree = SuffixTree(test_str)
     is_valid = is_valid_suffix_tree(suffix_tree)
@@ -296,3 +324,8 @@ if __name__ == '__main__':
 
     show_all_suffixes(suffix_tree)
     show_nodes_tree(suffix_tree)
+    
+    idx = suffix_tree.find_substring(substring)
+    if idx >= 0:
+        print substring
+        print test_str[idx:idx+len(substring)]
