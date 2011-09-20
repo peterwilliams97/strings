@@ -27,7 +27,7 @@ class Edge:
         #print self
 
     def split(self, suffix, suffix_tree):
-        print '  split(%s,%s)' % (self, suffix)
+        #print '  split(%s,%s)' % (self, suffix)
         return split_edge(self, suffix, suffix_tree)
 
     def __len__(self):
@@ -126,28 +126,31 @@ class SuffixTree:
         """Returns the index of substring in string or -1 if it is not found."""
         if not substring:
             return -1
+        #print 'find_substring(%s, %s)' % (self.string, substring)    
         #if self.case_insensitive:
         #    substring = substring.lower()
         curr_node = 0
         i = 0
         while i < len(substring):
-            print '**', i, len(substring), substring
+            #print '** i=%d, curr_node=%s, char=%s' % (i, curr_node, substring[i])
             edge = self.edge_lookup[curr_node, substring[i]]
             if not edge:
+                print 'not an edge'
                 return -1
-            ln = min(len(edge) + 1, len(substring) - i)
-            print edge, len(edge), ln
+            # ln is length of substring segment along current edge    
+            ln = min(len(edge), len(substring) - i)
+            #print '  ', edge, len(edge), ln
             if substring[i:i + ln] != self.string[edge.first_char_idx:edge.first_char_idx + ln]:
                 return -1
-            i += len(edge) + 1
+            i += len(edge)
             curr_node = edge.dst_node_idx
-        print 'node=', curr_node 
+        #print '   matching node=', curr_node 
         return edge.first_char_idx - len(substring) + ln
 
 def add_prefix(last_char_idx, active_point, suffix_tree):
     """Add string prefix suffix_tree.string[:last_char_idx+1] to suffix tree
         active_point is a suffix """
-    print '***add_prefix(%d, %s)' % (last_char_idx, active_point)
+    #print '***add_prefix(%d, %s)' % (last_char_idx, active_point)
     last_parent_node_idx = -1
     while True:
         parent_node_idx = active_point.src_node_idx
@@ -311,8 +314,41 @@ def show_all_suffixes(suffix_tree):
     for key in sorted(suffix_tree.edge_lookup.keys()):
         print ' %s : %s' % (key, suffix_tree.edge_lookup[key]) 
     
+def test(filename):
+    def assert_test(string, substring):
+        suffix_tree = SuffixTree(string)
+        position = string.find(substring)
+        idx = suffix_tree.find_substring(substring)
+        if idx != position:
+            print '   string = "%s"' % string
+            print 'substring = "%s"' % substring
+            print ' position = %d' % position
+            print '      idx = %d' % idx 
+        assert(idx == position)
+    
+    tests = [
+        ('hello', 'lo'),
+        ('a very long sentence', 'sentence')
+    ]
+    
+    for string,substring in tests:
+        assert_test(string, substring)
+
+    lines_tested = 0
+    lines = file(filename, 'rt').readlines()
+    for ln in lines:
+        string = ln.rstrip('\n')
+        if string:
+            substring = string[len(string)//3:2*len(string)//3]
+            if substring:
+                assert_test(string, substring)
+                lines_tested += 1
+                
+    print '%d lines tested' % lines_tested
+    
 if __name__ == '__main__':
     import sys
+    test(sys.argv[0])
     test_str = 'abaababaabaab$'#'mississippi$'
     test_str = 'abcab$'
     if len(sys.argv) < 2:
@@ -330,6 +366,7 @@ if __name__ == '__main__':
     show_nodes_tree(suffix_tree)
     
     idx = suffix_tree.find_substring(substring)
+    print 'idx=%d' % idx
     if idx >= 0:
         print substring
         print test_str[idx:idx+len(substring)]
