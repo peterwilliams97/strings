@@ -88,14 +88,36 @@ def is_explicit_suffix(suffix):
 def is_implicit_suffix(suffix):
     return not is_explicit_suffix(suffix)
 
-def canonize_suffix(suffix, suffix_tree):
-    if not suffix.is_explicit():
-        edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
-        if (len(edge) <= len(suffix)):
+if False:    
+    def _canonize_suffix(suffix, suffix_tree, depth =0):
+        if not suffix.is_explicit():
+            edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+            if len(edge) <= len(suffix):
+                suffix.first_char_idx += len(edge)
+                suffix.src_node_idx = edge.dst_node_idx
+                canonize_suffix(suffix, suffix_tree, depth + 1)
+else:
+    num_calls = 0
+    def canonize_suffix(suffix, suffix_tree):
+        global num_calls
+        num_calls += 1
+        if num_calls % 1000 == 0:
+            print 'num_calls = %7d' % num_calls, len(suffix_tree.string), [suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+        num_loops = 0
+        while True:
+            if suffix.is_explicit():
+                break
+            edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+            if len(edge) > len(suffix):
+                break
             suffix.first_char_idx += len(edge)
             suffix.src_node_idx = edge.dst_node_idx
-            canonize_suffix(suffix, suffix_tree)
-
+            num_loops += 1
+            if num_loops % 1000 == 0:
+                print 'num_loops = %7d' % num_loops, [suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+            
+            assert(num_loops < 100000)
+                                     
 class SuffixTree:
     def __init__(self, string, alphabet=None):
         self.string = string
@@ -355,8 +377,13 @@ if __name__ == '__main__':
         print 'usage: python %s <string> <substring>' % sys.argv[0]
         exit()
         
-    test_str = sys.argv[1] + '$'
-    substring = sys.argv[2]
+    if False:    
+        test_str = sys.argv[1] + '$'
+        substring = sys.argv[2]
+    else:
+        test_str = file(sys.argv[1], 'rb').read()[:999999] + '$'
+        substring = test_str[len(test_str)//3:2*len(test_str)//3]
+    
     POSITIVE_INFINITY = len(test_str) - 1
     suffix_tree = SuffixTree(test_str)
     is_valid = is_valid_suffix_tree(suffix_tree)
