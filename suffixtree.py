@@ -79,8 +79,13 @@ class Suffix:
             self.suffix_tree.get_substring(self.first_char_idx, self.last_char_idx)) 
 
     def __len__(self):
-        return self.last_char_idx - self.first_char_idx + 1
+        ln = self.last_char_idx - self.first_char_idx + 1
+        return max(0, ln)
 
+# There are 3 types of suffix,
+#   Leaf
+#   Explicit
+#   Implicit        
 def is_explicit_suffix(suffix):
     """Terminates on a node or end of a leaf"""
     return suffix.first_char_idx > suffix.last_char_idx
@@ -97,33 +102,85 @@ if False:
                 suffix.src_node_idx = edge.dst_node_idx
                 canonize_suffix(suffix, suffix_tree, depth + 1)
 else:
+    """
+        // A suffix in the tree is denoted by a Suffix structure
+        // that denotes its last character.  The canonical
+        // representation of a suffix for this algorithm requires
+        // that the origin_node by the closest node to the end
+        // of the tree.  To force this to be true, we have to
+        // slide down every edge in our current path until we
+        // reach the final node.
+
+        void Suffix::Canonize()
+        {
+            if ( !Explicit() ) {
+                Edge edge = Edge::Find( origin_node, T[ first_char_index ] );
+                int edge_span = edge.last_char_index - edge.first_char_index;
+                while ( edge_span <= ( last_char_index - first_char_index ) ) {
+                    first_char_index = first_char_index + edge_span + 1;
+                    origin_node = edge.end_node;
+                    if ( first_char_index <= last_char_index ) {
+                       edge = Edge::Find( edge.end_node, T[ first_char_index ] );
+                       edge_span = edge.last_char_index - edge.first_char_index;
+                    };
+                }
+            }
+        }
+    """
     num_calls = 0
     def canonize_suffix(suffix, suffix_tree):
+        """ Ukkonen's algorithm requires that we work with these Suffix definitions in canonical form. 
+            The Canonize() function is called to perform this transformation any time a Suffix object 
+            is modified. The canonical representation of the suffix simply requires that the origin_node 
+            in the Suffix object be the closest parent to the end point of the string.
+        """
         global num_calls
         num_calls += 1
-        if num_calls % 1000 == 0:
-            print 'num_calls = %7d' % num_calls, len(suffix_tree.string), [suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+        if num_calls % 10000 == 0:
+            if suffix.first_char_idx < len(suffix_tree.string):
+                first_char = suffix_tree.string[suffix.first_char_idx] 
+            else:
+                first_char = '***'
+            print 'num_calls = %7d len = %7d (%3d%%)' % (num_calls, len(suffix_tree.string), 
+                int(100.0 * num_calls/len(suffix_tree.string))), \
+                [suffix.src_node_idx, first_char, suffix.first_char_idx]
+        original_length = len(suffix)        
         num_loops = 0
-        while True:
-            if suffix.is_explicit():
-                break
+        edge_count = 0
+        if not suffix.is_explicit():
             edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
-            if len(edge) > len(suffix):
-                break
-            suffix.first_char_idx += len(edge)
-            suffix.src_node_idx = edge.dst_node_idx
-            num_loops += 1
-            if num_loops % 1000 == 0:
-                print 'num_loops = %7d' % num_loops, [suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
-            
-            assert(num_loops < 100000)
-                                     
+            while len(edge) <= len(suffix):
+                suffix.first_char_idx += len(edge)
+                suffix.src_node_idx = edge.dst_node_idx
+                if suffix.first_char_idx <= suffix.last_char_idx:
+                    edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]] 
+                    edge_count += 1        
+                num_loops += 1
+                if num_loops % 10000 == 0:
+                    print 'num_loops = %7d' % num_loops, edge_count, [suffix.src_node_idx, 
+                        suffix_tree.string[suffix.first_char_idx]], original_length, len(suffix), \
+                        [ord(c) for c in suffix_tree.string[suffix.first_char_idx:suffix.first_char_idx+20]], \
+                        suffix.first_char_idx
+                      
+                assert(num_loops <= len(suffix_tree.string))
+
 class SuffixTree:
     def __init__(self, string, alphabet=None):
-        self.string = string
+       
         if alphabet == None:
             alphabet = set(string)
-        self.alphabet = alphabet
+        print 'alphabet=', len(alphabet), sorted(alphabet)
+        for i in range(256):
+            if chr(i) not in sorted(alphabet):
+                terminator = chr(i)
+                break
+        print 'terminator=', terminator        
+        string += terminator        
+        alphabet.add(terminator)
+        if len(alphabet) > 200:
+            exit()
+        self.string = string    
+        self.alphabet = alphabet    
         self.nodes = [Node()]
         self.edge_lookup = {} # by  source_node, first_char
 
@@ -370,18 +427,19 @@ def test(filename):
     
 if __name__ == '__main__':
     import sys
-    test(sys.argv[0])
-    test_str = 'abaababaabaab$'#'mississippi$'
-    test_str = 'abcab$'
-    if len(sys.argv) < 2:
-        print 'usage: python %s <string> <substring>' % sys.argv[0]
-        exit()
+    if False:
+        test(sys.argv[0])
+        test_str = 'abaababaabaab$'#'mississippi$'
+        test_str = 'abcab$'
+        if len(sys.argv) < 2:
+            print 'usage: python %s <string> <substring>' % sys.argv[0]
+            exit()
         
     if False:    
-        test_str = sys.argv[1] + '$'
+        test_str = sys.argv[1]
         substring = sys.argv[2]
     else:
-        test_str = file(sys.argv[1], 'rb').read()[:999999] + '$'
+        test_str = file(sys.argv[1], 'rb').read()[:999999]
         substring = test_str[len(test_str)//3:2*len(test_str)//3]
     
     POSITIVE_INFINITY = len(test_str) - 1
