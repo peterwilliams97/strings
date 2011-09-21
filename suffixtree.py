@@ -93,76 +93,72 @@ def is_explicit_suffix(suffix):
 def is_implicit_suffix(suffix):
     return not is_explicit_suffix(suffix)
 
-if False:    
-    def _canonize_suffix(suffix, suffix_tree, depth =0):
-        if not suffix.is_explicit():
-            edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
-            if len(edge) <= len(suffix):
-                suffix.first_char_idx += len(edge)
-                suffix.src_node_idx = edge.dst_node_idx
-                canonize_suffix(suffix, suffix_tree, depth + 1)
-else:
-    """
-        // A suffix in the tree is denoted by a Suffix structure
-        // that denotes its last character.  The canonical
-        // representation of a suffix for this algorithm requires
-        // that the origin_node by the closest node to the end
-        // of the tree.  To force this to be true, we have to
-        // slide down every edge in our current path until we
-        // reach the final node.
+"""
+    // A suffix in the tree is denoted by a Suffix structure
+    // that denotes its last character.  The canonical
+    // representation of a suffix for this algorithm requires
+    // that the origin_node by the closest node to the end
+    // of the tree.  To force this to be true, we have to
+    // slide down every edge in our current path until we
+    // reach the final node.
 
-        void Suffix::Canonize()
-        {
-            if ( !Explicit() ) {
-                Edge edge = Edge::Find( origin_node, T[ first_char_index ] );
-                int edge_span = edge.last_char_index - edge.first_char_index;
-                while ( edge_span <= ( last_char_index - first_char_index ) ) {
-                    first_char_index = first_char_index + edge_span + 1;
-                    origin_node = edge.end_node;
-                    if ( first_char_index <= last_char_index ) {
-                       edge = Edge::Find( edge.end_node, T[ first_char_index ] );
-                       edge_span = edge.last_char_index - edge.first_char_index;
-                    };
-                }
+    void Suffix::Canonize()
+    {
+        if ( !Explicit() ) {
+            Edge edge = Edge::Find( origin_node, T[ first_char_index ] );
+            int edge_span = edge.last_char_index - edge.first_char_index;
+            while ( edge_span <= ( last_char_index - first_char_index ) ) {
+                first_char_index = first_char_index + edge_span + 1;
+                origin_node = edge.end_node;
+                if ( first_char_index <= last_char_index ) {
+                   edge = Edge::Find( edge.end_node, T[ first_char_index ] );
+                   edge_span = edge.last_char_index - edge.first_char_index;
+                };
             }
         }
+    }
+"""
+# Track this inner loops to see if it is O(N) as claimed
+num_calls = 0
+total_loops = 0
+def canonize_suffix(suffix, suffix_tree):
+    """ Ukkonen's algorithm requires that we work with these Suffix definitions in canonical form. 
+        The Canonize() function is called to perform this transformation any time a Suffix object 
+        is modified. The canonical representation of the suffix simply requires that the origin_node 
+        in the Suffix object be the closest parent to the end point of the string.
     """
-    num_calls = 0
-    def canonize_suffix(suffix, suffix_tree):
-        """ Ukkonen's algorithm requires that we work with these Suffix definitions in canonical form. 
-            The Canonize() function is called to perform this transformation any time a Suffix object 
-            is modified. The canonical representation of the suffix simply requires that the origin_node 
-            in the Suffix object be the closest parent to the end point of the string.
-        """
-        global num_calls
-        num_calls += 1
-        if num_calls % 10000 == 0:
-            if suffix.first_char_idx < len(suffix_tree.string):
-                first_char = suffix_tree.string[suffix.first_char_idx] 
-            else:
-                first_char = '***'
-            print 'num_calls = %7d len = %7d (%3d%%)' % (num_calls, len(suffix_tree.string), 
-                int(100.0 * num_calls/len(suffix_tree.string))), \
-                [suffix.src_node_idx, first_char, suffix.first_char_idx]
-        original_length = len(suffix)        
-        num_loops = 0
-        edge_count = 0
-        if not suffix.is_explicit():
-            edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
-            while len(edge) <= len(suffix):
-                suffix.first_char_idx += len(edge)
-                suffix.src_node_idx = edge.dst_node_idx
-                if suffix.first_char_idx <= suffix.last_char_idx:
-                    edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]] 
-                    edge_count += 1        
-                num_loops += 1
-                if num_loops % 10000 == 0:
-                    print 'num_loops = %7d' % num_loops, edge_count, [suffix.src_node_idx, 
-                        suffix_tree.string[suffix.first_char_idx]], original_length, len(suffix), \
-                        [ord(c) for c in suffix_tree.string[suffix.first_char_idx:suffix.first_char_idx+20]], \
-                        suffix.first_char_idx
-                      
-                assert(num_loops <= len(suffix_tree.string))
+    global num_calls
+    global total_loops
+    num_calls += 1
+    if num_calls % 10000 == 0:
+        if suffix.first_char_idx < len(suffix_tree.string):
+            first_char = suffix_tree.string[suffix.first_char_idx] 
+        else:
+            first_char = '***'
+        print 'num_calls=%7d len=%7d(%3d%%) total_loops=%8d(%3d%%)' % (num_calls, 
+            len(suffix_tree.string),  int(100.0 * num_calls/len(suffix_tree.string)), 
+            total_loops, int(100.0 * total_loops/len(suffix_tree.string))), \
+            [suffix.src_node_idx, first_char, suffix.first_char_idx]
+    original_length = len(suffix)        
+    num_loops = 0
+    edge_count = 0
+    if not suffix.is_explicit():
+        edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+        while len(edge) <= len(suffix):
+            suffix.first_char_idx += len(edge)
+            suffix.src_node_idx = edge.dst_node_idx
+            if suffix.first_char_idx <= suffix.last_char_idx:
+                edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]] 
+                edge_count += 1        
+            num_loops += 1
+            total_loops +=1
+            if num_loops % 10000 == 0:
+                print 'num_loops = %7d,%7d,%8d' % (num_loops, edge_count, total_loops), [suffix.src_node_idx, 
+                    suffix_tree.string[suffix.first_char_idx]], original_length, len(suffix), \
+                    [ord(c) for c in suffix_tree.string[suffix.first_char_idx:suffix.first_char_idx+20]], \
+                    suffix.first_char_idx
+                  
+            assert(num_loops <= len(suffix_tree.string))
 
 class SuffixTree:
     def __init__(self, string, alphabet=None):
@@ -424,6 +420,9 @@ def test(filename):
                 lines_tested += 1
                 
     print '%d lines tested' % lines_tested
+
+def q(s):
+    return '"' + s + '"'
     
 if __name__ == '__main__':
     import sys
@@ -440,18 +439,25 @@ if __name__ == '__main__':
         substring = sys.argv[2]
     else:
         test_str = file(sys.argv[1], 'rb').read()[:999999]
-        substring = test_str[len(test_str)//3:2*len(test_str)//3]
+        substring = test_str[len(test_str)//3:len(test_str)//3 + 10]
+    
     
     POSITIVE_INFINITY = len(test_str) - 1
     suffix_tree = SuffixTree(test_str)
-    is_valid = is_valid_suffix_tree(suffix_tree)
-    print 'is_valid_suffix_tree:', is_valid
-
-    show_all_suffixes(suffix_tree)
-    show_nodes_tree(suffix_tree)
     
-    idx = suffix_tree.find_substring(substring)
-    print 'idx=%d' % idx
-    if idx >= 0:
-        print substring
-        print test_str[idx:idx+len(substring)]
+    if False:
+        is_valid = is_valid_suffix_tree(suffix_tree)
+        print 'is_valid_suffix_tree:', is_valid
+        
+    if False:
+        show_all_suffixes(suffix_tree)
+        show_nodes_tree(suffix_tree)
+        
+    idx0 = test_str.find(substring)
+    idx1 = suffix_tree.find_substring(substring)
+    print 'idx0=%d, idx1=%d' % (idx0, idx1)
+    if idx1 >= 0:
+        print q(substring)
+        print q(test_str[idx1:idx1+len(substring)])
+    assert(substring == test_str[idx1:idx1+len(substring)])
+    assert(idx0 == idx1)
