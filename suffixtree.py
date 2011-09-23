@@ -19,8 +19,7 @@ class Node:
 
 class Edge:
     """Links 2 nodes in a suffix tree"""
-    def __init__(self, suffix_tree, src_node_idx, dst_node_idx, first_char_idx, last_char_idx):
-        self.suffix_tree = suffix_tree          # For debugging !@#$
+    def __init__(self, src_node_idx, dst_node_idx, first_char_idx, last_char_idx):
         self.src_node_idx = src_node_idx
         self.dst_node_idx = dst_node_idx
         self.first_char_idx = first_char_idx
@@ -48,7 +47,7 @@ def split_edge(edge, suffix, suffix_tree):
     suffix_tree.nodes.append(new_node)
     new_node_idx = len(suffix_tree.nodes) - 1
     #alloc new edge
-    new_edge = Edge(suffix_tree, new_node_idx, edge.dst_node_idx, edge.first_char_idx + len(suffix), edge.last_char_idx)
+    new_edge = Edge(new_node_idx, edge.dst_node_idx, edge.first_char_idx + len(suffix), edge.last_char_idx)
     suffix_tree.insert_edge(new_edge)
     #shorten existing edge
     edge.last_char_idx = edge.first_char_idx + len(suffix) - 1
@@ -59,8 +58,7 @@ class Suffix:
     """Suffix is represented by a node (as an index into a node list) and indices of first and last 
         character of suffix in containing string.
     """
-    def __init__(self, suffix_tree, src_node_idx, first_char_idx, last_char_idx):
-        self.suffix_tree = suffix_tree      # For debugging
+    def __init__(self, src_node_idx, first_char_idx, last_char_idx):
         self.src_node_idx = src_node_idx
         self.first_char_idx = first_char_idx
         self.last_char_idx = last_char_idx
@@ -200,7 +198,7 @@ class SuffixTree:
         self.nodes = [Node()]
         self.edge_lookup = {} # by  source_node, first_char
 
-        self.active_point = Suffix(self, 0, 0, -1)
+        self.active_point = Suffix(0, 0, -1)
         for i in range(len(string)):
             add_prefix(i, self.active_point, self)
 
@@ -263,7 +261,7 @@ def add_prefix(last_char_idx, active_point, suffix_tree):
                 parent_node_idx = edge.split(active_point, suffix_tree)
         # Add new node and edge        
         suffix_tree.nodes.append(Node(-1))
-        new_edge = Edge(suffix_tree, parent_node_idx, len(suffix_tree.nodes) - 1, last_char_idx, POSITIVE_INFINITY)##################
+        new_edge = Edge(parent_node_idx, len(suffix_tree.nodes) - 1, last_char_idx, POSITIVE_INFINITY)##################
         suffix_tree.insert_edge(new_edge)
         #add suffix link
         if last_parent_node_idx > 0:
@@ -487,8 +485,8 @@ def test_file(filename):
         print 'alphabet too long', len(alphabet), 'skipping'
         return
         
-    num_tests = 100
-    length = 50
+    num_tests = 10
+    length = 30
     substrings = make_test_substrings(string, num_tests, length)
     #for i, ss in enumerate(substrings):
     #    print i, string.find(ss), ss
