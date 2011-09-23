@@ -131,7 +131,7 @@ def canonize_suffix(suffix, suffix_tree):
     global num_calls
     global total_loops
     num_calls += 1
-    if num_calls % 100000 == 0:
+    if False and num_calls % 100000 == 0:
         if suffix.first_char_idx < len(suffix_tree.string):
             first_char = suffix_tree.string[suffix.first_char_idx] 
         else:
@@ -153,7 +153,7 @@ def canonize_suffix(suffix, suffix_tree):
                 edge_count += 1        
             num_loops += 1
             total_loops +=1
-            if num_loops % 10000 == 0:
+            if False and num_loops % 10000 == 0:
                 print 'num_loops = %7d,%7d,%8d' % (num_loops, edge_count, total_loops), [suffix.src_node_idx, 
                     suffix_tree.string[suffix.first_char_idx]], original_length, len(suffix), \
                     [ord(c) for c in suffix_tree.string[suffix.first_char_idx:suffix.first_char_idx+20]], \
@@ -161,7 +161,7 @@ def canonize_suffix(suffix, suffix_tree):
                   
             assert(num_loops <= len(suffix_tree.string))
     assert(total_loops <= 3 * len(suffix_tree.string))
-    assert(num_calls <= 3 * len(suffix_tree.string))
+    assert(num_calls <= 4 * len(suffix_tree.string))
 
 class SuffixTree:
     def __init__(self, string, alphabet=None):
@@ -465,8 +465,8 @@ def make_test_substrings(string, num, length):
 def test_file(filename):
     string = file(filename, 'rb').read()[:999999]
         
-    num_tests = 100
-    length = 20
+    num_tests = 10
+    length = 50
     substrings = make_test_substrings(string, num_tests, length)
     #for i, ss in enumerate(substrings):
     #    print i, string.find(ss), ss
