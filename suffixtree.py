@@ -120,26 +120,45 @@ def is_implicit_suffix(suffix):
     }
 """
 # Track this inner loops to see if it is O(N) as claimed
-num_calls = 0
-total_loops = 0
+_ops_counts = {'num calls': 0, 'total loops': 0}
+_ops_string_len = 1
+_OPS_MULTIPLIER = 3
+def _reset_ops_counts(string_len):
+    global _ops_string_len
+    global _ops_counts
+    _ops_string_len = string_len
+    _ops_counts = {'num calls': 0, 'total loops': 0}
+
+def _count_op(key):
+    global _ops_counts
+    _ops_counts[key] += 1
+    
+def _ops_counts_strings():
+    def get_one(key):
+        return '%s=%7d (%3d%%)' % (key, _ops_counts[key], int(100.0 * _ops_counts[key]/_ops_string_len))
+    return 'string len=%7d:{' % _ops_string_len + ','.join([get_one(key) for key in sorted(_ops_counts.keys())]) + '}'
+
+def _check_ops_counts():
+    if _ops_counts['total loops'] > _OPS_MULTIPLIER * _ops_string_len or \
+        _ops_counts['num calls'] > _OPS_MULTIPLIER * _ops_string_len:
+        print _ops_counts_strings()
+    assert(_ops_counts['total loops'] <= _OPS_MULTIPLIER * _ops_string_len)
+    assert(_ops_counts['num calls'] <= _OPS_MULTIPLIER * _ops_string_len)
+  
 def canonize_suffix(suffix, suffix_tree):
     """ Ukkonen's algorithm requires that we work with these Suffix definitions in canonical form. 
         The Canonize() function is called to perform this transformation any time a Suffix object 
         is modified. The canonical representation of the suffix simply requires that the origin_node 
         in the Suffix object be the closest parent to the end point of the string.
     """
-    global num_calls
-    global total_loops
-    num_calls += 1
-    if False and num_calls % 100000 == 0:
+    _count_op('num calls')
+    if False and _ops_counters['num calls'] % 100000 == 0:
         if suffix.first_char_idx < len(suffix_tree.string):
             first_char = suffix_tree.string[suffix.first_char_idx] 
         else:
             first_char = '***'
-        print 'num_calls=%7d len=%7d(%3d%%) total_loops=%8d(%3d%%)' % (num_calls, 
-            len(suffix_tree.string),  int(100.0 * num_calls/len(suffix_tree.string)), 
-            total_loops, int(100.0 * total_loops/len(suffix_tree.string))), \
-            [suffix.src_node_idx, first_char, suffix.first_char_idx]
+        print _ops_counts_strings(),[suffix.src_node_idx, first_char, suffix.first_char_idx]
+    
     original_length = len(suffix)        
     num_loops = 0
     edge_count = 0
@@ -152,20 +171,20 @@ def canonize_suffix(suffix, suffix_tree):
                 edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]] 
                 edge_count += 1        
             num_loops += 1
-            total_loops +=1
+            _count_op('total loops')
             if False and num_loops % 10000 == 0:
-                print 'num_loops = %7d,%7d,%8d' % (num_loops, edge_count, total_loops), [suffix.src_node_idx, 
+                print 'num_loops = %7d,%7d,%8d' % (num_loops, edge_count, _ops_counters['total loops']), [suffix.src_node_idx, 
                     suffix_tree.string[suffix.first_char_idx]], original_length, len(suffix), \
                     [ord(c) for c in suffix_tree.string[suffix.first_char_idx:suffix.first_char_idx+20]], \
                     suffix.first_char_idx
                   
             assert(num_loops <= len(suffix_tree.string))
-    assert(total_loops <= 3 * len(suffix_tree.string))
-    assert(num_calls <= 4 * len(suffix_tree.string))
+    _check_ops_counts()
 
 class SuffixTree:
     def __init__(self, string, alphabet=None):
        
+        _reset_ops_counts(len(string))
         if alphabet == None:
             alphabet = set(string)
         print 'alphabet=', len(alphabet), sorted(alphabet)
@@ -176,8 +195,6 @@ class SuffixTree:
         print 'terminator=', terminator        
         string += terminator        
         alphabet.add(terminator)
-        if len(alphabet) > 200:
-            exit()
         self.string = string    
         self.alphabet = alphabet    
         self.nodes = [Node()]
@@ -439,7 +456,7 @@ def make_test_substrings(string, num, length):
     #exit()    
     
     def add_substring(region):
-        for i in range(1000//(len(region['substrings']) + 1)):
+        for i in range(1000//min(100,(len(region['substrings'])**2 + 1))):
             k = random.randint(region['start'], region['end'] - length)
             s = string[k: k + length]
             if string.find(s) > region['start'] and s not in region['substrings']:
@@ -465,7 +482,12 @@ def make_test_substrings(string, num, length):
 def test_file(filename):
     string = file(filename, 'rb').read()[:999999]
         
-    num_tests = 10
+    alphabet = set(string)
+    if len(alphabet) >= 256:
+        print 'alphabet too long', len(alphabet), 'skipping'
+        return
+        
+    num_tests = 100
     length = 50
     substrings = make_test_substrings(string, num_tests, length)
     #for i, ss in enumerate(substrings):
@@ -473,7 +495,6 @@ def test_file(filename):
     #exit()
    
     suffix_tree = SuffixTree(string)
-    
    
     for i in range(num_tests):
         substring = substrings[i]
@@ -492,6 +513,7 @@ def test_file(filename):
         assert(idx0 == idx1)   
 if __name__ == '__main__':
     import sys
+    import os
     if False:
         test(sys.argv[0])
         string = 'abaababaabaab$'#'mississippi$'
@@ -505,9 +527,16 @@ if __name__ == '__main__':
         substring = sys.argv[2]
     else:
         import glob
-        for filename in glob.glob(sys.argv[1]): 
-            print filename
+        file_list = [filename for filename in glob.glob(sys.argv[1])]
+        file_list.sort(key = lambda x: os.path.getsize(x))
+        print len(file_list), file_list
+        
+        for i, filename in enumerate(file_list):
+            print filename, os.path.getsize(filename)
             test_file(filename)
+            print '-' * 60
+            print 'tested %d of %d: %s (%d)' % (i, len(file_list), filename, os.path.getsize(filename))
+            print '-' * 60
         exit()
         
     POSITIVE_INFINITY = len(string) - 1
