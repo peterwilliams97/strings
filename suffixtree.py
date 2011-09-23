@@ -1,3 +1,4 @@
+from __future__ import division
 """
     I have lost the name of the website I copied the original version of this from. Will add it as
     soon as I find it.
@@ -130,7 +131,7 @@ def canonize_suffix(suffix, suffix_tree):
     global num_calls
     global total_loops
     num_calls += 1
-    if num_calls % 10000 == 0:
+    if num_calls % 100000 == 0:
         if suffix.first_char_idx < len(suffix_tree.string):
             first_char = suffix_tree.string[suffix.first_char_idx] 
         else:
@@ -159,6 +160,8 @@ def canonize_suffix(suffix, suffix_tree):
                     suffix.first_char_idx
                   
             assert(num_loops <= len(suffix_tree.string))
+    assert(total_loops <= 2 * len(suffix_tree.string))
+    assert(num_calls <= 2 * len(suffix_tree.string))
 
 class SuffixTree:
     def __init__(self, string, alphabet=None):
@@ -424,26 +427,68 @@ def test(filename):
 def q(s):
     return '"' + s + '"'
     
+import random
+import math    
+def make_test_substrings(string, num, length):
+    """Make a list of <num> substrings of length <lenght> of <string> as evenly divided as possible"""
+    region_list = []
+    n = len(string)
+    for i in range(num):
+        region_list.append({'start':int(i*n/num), 'end':int((i+1)*n/num), 'substrings':set([])})
+        #print region_list[-1]
+    #exit()    
+    
+    def add_substring(region):
+        for i in range(1000):
+            k = random.randint(region['start'], region['end'] - length)
+            s = string[k: k + length]
+            if string.find(s) > region['start'] and s not in region['substrings']:
+                region['substrings'].add(s)
+                break
+
+    done = False            
+    while not done:
+        region_list.sort(key = lambda x: len(x['substrings']))
+        for region in region_list:
+            add_substring(region)
+            if sum([len(x['substrings']) for x in region_list]) >= num:
+                done = True
+                break
+        print num, sum([len(x['substrings']) for x in region_list]), [len(x['substrings']) for x in region_list[-10:]] 
+                
+    substrings = set(sum([list(x['substrings']) for x in region_list], []))
+    #print len(substrings), substrings
+    
+    assert(len(substrings) == num)
+    return sorted(substrings, key = lambda x: string.find(x))
+        
 if __name__ == '__main__':
     import sys
     if False:
         test(sys.argv[0])
-        test_str = 'abaababaabaab$'#'mississippi$'
-        test_str = 'abcab$'
+        string = 'abaababaabaab$'#'mississippi$'
+        string = 'abcab$'
         if len(sys.argv) < 2:
             print 'usage: python %s <string> <substring>' % sys.argv[0]
             exit()
         
     if False:    
-        test_str = sys.argv[1]
+        string = sys.argv[1]
         substring = sys.argv[2]
     else:
-        test_str = file(sys.argv[1], 'rb').read()[:999999]
-        substring = test_str[len(test_str)//3:len(test_str)//3 + 10]
-    
-    
-    POSITIVE_INFINITY = len(test_str) - 1
-    suffix_tree = SuffixTree(test_str)
+        string = file(sys.argv[1], 'rb').read()[:999999]
+            
+        
+        num_tests = 100
+        length = 20
+        substrings = make_test_substrings(string, num_tests, length)
+        #for i, ss in enumerate(substrings):
+        #    print i, string.find(ss), ss
+        #exit()
+        
+        
+    POSITIVE_INFINITY = len(string) - 1
+    suffix_tree = SuffixTree(string)
     
     if False:
         is_valid = is_valid_suffix_tree(suffix_tree)
@@ -452,12 +497,20 @@ if __name__ == '__main__':
     if False:
         show_all_suffixes(suffix_tree)
         show_nodes_tree(suffix_tree)
-        
-    idx0 = test_str.find(substring)
-    idx1 = suffix_tree.find_substring(substring)
-    print 'idx0=%d, idx1=%d' % (idx0, idx1)
-    if idx1 >= 0:
-        print q(substring)
-        print q(test_str[idx1:idx1+len(substring)])
-    assert(substring == test_str[idx1:idx1+len(substring)])
-    assert(idx0 == idx1)
+    
+   
+    for i in range(num_tests):
+        substring = substrings[i]
+        idx0 = string.find(substring)
+        idx1 = suffix_tree.find_substring(substring)
+        if idx0 == idx1:
+            print 'idx0=%5d (%2d%%)'% (idx0, int(100.0 * idx0 / len(string)))
+            if idx0 >= 0:
+                print ', substring=%s' % q(substring)
+        else:
+            print 'idx0=%d, idx1=%d' % (idx0, idx1)
+            if idx0 >= 0:
+                print q(substring)
+                print q(string[idx1:idx1+len(substring)])
+        assert(substring == string[idx1:idx1+len(substring)])
+        assert(idx0 == idx1)
