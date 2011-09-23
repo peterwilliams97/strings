@@ -160,8 +160,8 @@ def canonize_suffix(suffix, suffix_tree):
                     suffix.first_char_idx
                   
             assert(num_loops <= len(suffix_tree.string))
-    assert(total_loops <= 2 * len(suffix_tree.string))
-    assert(num_calls <= 2 * len(suffix_tree.string))
+    assert(total_loops <= 3 * len(suffix_tree.string))
+    assert(num_calls <= 3 * len(suffix_tree.string))
 
 class SuffixTree:
     def __init__(self, string, alphabet=None):
@@ -439,7 +439,7 @@ def make_test_substrings(string, num, length):
     #exit()    
     
     def add_substring(region):
-        for i in range(1000):
+        for i in range(1000//(len(region['substrings']) + 1)):
             k = random.randint(region['start'], region['end'] - length)
             s = string[k: k + length]
             if string.find(s) > region['start'] and s not in region['substrings']:
@@ -461,42 +461,18 @@ def make_test_substrings(string, num, length):
     
     assert(len(substrings) == num)
     return sorted(substrings, key = lambda x: string.find(x))
+
+def test_file(filename):
+    string = file(filename, 'rb').read()[:999999]
         
-if __name__ == '__main__':
-    import sys
-    if False:
-        test(sys.argv[0])
-        string = 'abaababaabaab$'#'mississippi$'
-        string = 'abcab$'
-        if len(sys.argv) < 2:
-            print 'usage: python %s <string> <substring>' % sys.argv[0]
-            exit()
-        
-    if False:    
-        string = sys.argv[1]
-        substring = sys.argv[2]
-    else:
-        string = file(sys.argv[1], 'rb').read()[:999999]
-            
-        
-        num_tests = 100
-        length = 20
-        substrings = make_test_substrings(string, num_tests, length)
-        #for i, ss in enumerate(substrings):
-        #    print i, string.find(ss), ss
-        #exit()
-        
-        
-    POSITIVE_INFINITY = len(string) - 1
+    num_tests = 100
+    length = 20
+    substrings = make_test_substrings(string, num_tests, length)
+    #for i, ss in enumerate(substrings):
+    #    print i, string.find(ss), ss
+    #exit()
+   
     suffix_tree = SuffixTree(string)
-    
-    if False:
-        is_valid = is_valid_suffix_tree(suffix_tree)
-        print 'is_valid_suffix_tree:', is_valid
-        
-    if False:
-        show_all_suffixes(suffix_tree)
-        show_nodes_tree(suffix_tree)
     
    
     for i in range(num_tests):
@@ -513,4 +489,37 @@ if __name__ == '__main__':
                 print q(substring)
                 print q(string[idx1:idx1+len(substring)])
         assert(substring == string[idx1:idx1+len(substring)])
-        assert(idx0 == idx1)
+        assert(idx0 == idx1)   
+if __name__ == '__main__':
+    import sys
+    if False:
+        test(sys.argv[0])
+        string = 'abaababaabaab$'#'mississippi$'
+        string = 'abcab$'
+        if len(sys.argv) < 2:
+            print 'usage: python %s <string> <substring>' % sys.argv[0]
+            exit()
+        
+    if False:    
+        string = sys.argv[1]
+        substring = sys.argv[2]
+    else:
+        import glob
+        for filename in glob.glob(sys.argv[1]): 
+            print filename
+            test_file(filename)
+        exit()
+        
+    POSITIVE_INFINITY = len(string) - 1
+    suffix_tree = SuffixTree(string)
+    
+    if False:
+        is_valid = is_valid_suffix_tree(suffix_tree)
+        print 'is_valid_suffix_tree:', is_valid
+        
+    if False:
+        show_all_suffixes(suffix_tree)
+        show_nodes_tree(suffix_tree)
+    
+   
+   
