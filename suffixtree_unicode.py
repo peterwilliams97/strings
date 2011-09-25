@@ -473,7 +473,7 @@ def make_test_substrings(string, num, length):
     #exit()    
     
     def add_substring(region):
-        for i in range(1000//min(100,(len(region['substrings'])**2 + 1))):
+        for i in range(1000//min(500,(len(region['substrings'])**2 + 1))):
             k = random.randint(region['start'], region['end'] - length)
             s = string[k: k + length]
             if string.find(s) > region['start'] and s not in region['substrings']:
@@ -525,13 +525,13 @@ def test_file(filename):
         idx0 = string.find(substring)
         idx1 = suffix_tree.find_substring(substring)
         if idx0 == idx1:
-            print 'idx0=%5d (%2d%%)'% (idx0, int(100.0 * idx0 / len(string))),
+            print 'idx0=%7d (%2d%%)'% (idx0, int(100.0 * idx0 / len(string))),
             if idx0 >= 0:
                 print ', substring=%s' % q(substring)
             else:
                 print
         else:
-            print 'idx0=%d, idx1=%d' % (idx0, idx1)
+            print 'idx0=%7d, idx1=%7d' % (idx0, idx1)
             if idx0 >= 0:
                 print q(substring)
                 print q(string[idx1:idx1+len(substring)])

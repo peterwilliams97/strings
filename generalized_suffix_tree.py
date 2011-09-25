@@ -1,14 +1,52 @@
+# -*- coding: utf-8 -*-
 from __future__ import division
 """
+    Unicode (binary) generalized suffix tree
+    
+    Goal: 
+        Find longest patterns(s) that occur M[k] times in text[k] for k = 0..K-1
+    
+    Notes:
+        Let N = sum(len(text[k])) over k = 0..K-1
+        
+    Method:
+        1. Create generalized suffix tree for texts. O(N) time and space 
+        2. Annotate each node with number of occurences in text[k]. 
+            Requires bottom-up traversal of suffix tree O(N) with O(K) annotations/node.
+            Total O(N*K)
+        3. Traverse suffix tree to find nodes satisfing M[k] occurrences for for k = 0..K-1 and
+            take longest
+        
+    
+    Unicode is being used as a simple way of coding binary data while allowing unique termination 
+    characters. 
+        - Chars 0-255 are bytes from some binary lump
+        - Chars >255 are termination characters
+    
+    This allows encoding of binary data for a doubling of string storage size which seems like a
+    good trade-off that saves me trying to figure how to reprensent string endings in the various
+    suffix tree classes
+    
     I have lost the name of the website I copied the original version of this from. Will add it as
     soon as I find it.
     
     It will become a   
         Suffix Tree implementation based on http://marknelson.us/1996/08/01/suffix-trees/ 
 """
-import string
 
-POSITIVE_INFINITY = 1 << 30
+_POSITIVE_INFINITY = 1 << 30
+
+def _infi(n):
+    if n == _POSITIVE_INFINITY:
+        return ''
+    return str(n)
+    
+def _uc(s):
+    return ','.join(['%02x'%ord(c) for c in s])
+    return s.decode('utf8', errors='replace')
+    
+def _q(s):
+    return '<' + _uc(s) + '>'    
 
 class Node:
     def __init__(self, suffix_link=None):
@@ -18,37 +56,48 @@ class Node:
         return 'Node(%s)' % self.suffix_link
 
 class Edge:
-    """Links 2 nodes in a suffix tree"""
-    def __init__(self, src_node_idx, dst_node_idx, first_char_idx, last_char_idx):
+    """Links 2 nodes in a suffix tree
+        src_node_idx, dst_node_idx are nodes that edge links
+        string_idx, first_char_idx, last_char_idx specify the string segment that edge encodes 
+    """
+    def __init__(self, suffix_tree, src_node_idx, dst_node_idx, string_idx, first_char_idx, last_char_idx):
+        assert(string_idx >= 0)
+        self.suffix_tree = suffix_tree # for debugging
         self.src_node_idx = src_node_idx
         self.dst_node_idx = dst_node_idx
+        self.string_idx = string_idx
         self.first_char_idx = first_char_idx
         self.last_char_idx = last_char_idx
-        #print self
+        print self
 
-    def split(self, suffix, suffix_tree):
+    def split(self, suffix, suffix_tree, string_idx):
         #print '  split(%s,%s)' % (self, suffix)
-        return split_edge(self, suffix, suffix_tree)
-
+        return split_edge(self, suffix, suffix_tree, string_idx)
+    
     def __len__(self):
-        return self.last_char_idx - self.first_char_idx + 1
+        return len(self.get_string()) # Inefficient !@#$
         
     def get_string(self):
-        return self.suffix_tree.string[self.first_char_idx:self.last_char_idx +1]
+        #print 'self.string_idx', self.string_idx
+        s = self.suffix_tree.string_list[self.string_idx]
+        if self.last_char_idx <  self.first_char_idx:
+            return s[self.first_char_idx:]
+        return s[self.first_char_idx:self.last_char_idx +1]
 
     def __repr__(self):
-        return 'Edge(%d,%d, %d:%d "%s")' % (self.src_node_idx, self.dst_node_idx, self.first_char_idx,
-            self.last_char_idx, self.get_string())
-
-def split_edge(edge, suffix, suffix_tree):
+        return 'Edge(%d,%d, %d:%s %s)' % (self.src_node_idx, self.dst_node_idx, self.first_char_idx,
+            _infi(self.last_char_idx),  _q(self.get_string()))
+            
+def split_edge(edge, suffix, suffix_tree, string_idx):
     """Split edge to insert a new suffix. Old edge spans two edges after split."""
     #alloc new node
     new_node = Node()           #suffix.src_node_idx
     suffix_tree.nodes.append(new_node)
     new_node_idx = len(suffix_tree.nodes) - 1
     #alloc new edge
-    new_edge = Edge(new_node_idx, edge.dst_node_idx, edge.first_char_idx + len(suffix), edge.last_char_idx)
-    suffix_tree.insert_edge(new_edge)
+
+    new_edge = Edge(suffix_tree, new_node_idx, edge.dst_node_idx, string_idx, edge.first_char_idx + len(suffix), edge.last_char_idx)
+    suffix_tree.insert_edge(new_edge, -1)
     #shorten existing edge
     edge.last_char_idx = edge.first_char_idx + len(suffix) - 1
     edge.dst_node_idx = new_node_idx
@@ -70,8 +119,8 @@ class Suffix:
     def is_implicit(self):
         return is_implicit_suffix(self)
 
-    def canonize(self, suffix_tree):
-        canonize_suffix(self, suffix_tree)
+    def canonize(self, suffix_tree, string_idx):
+        canonize_suffix(self, suffix_tree, string_idx)
 
     def __repr__(self):
         return 'Suffix(%d,%d:%d"%s")' % (self.src_node_idx, self.first_char_idx, self.last_char_idx,
@@ -82,8 +131,8 @@ class Suffix:
         return max(0, ln)
 
 # There are 3 types of suffix,
-#   Leaf
-#   Explicit
+#   Leaf        Ends in a terminator
+#   Explicit    
 #   Implicit        
 def is_explicit_suffix(suffix):
     """Terminates on a node or end of a leaf"""
@@ -140,16 +189,20 @@ def _check_ops_counts():
     if _ops_counts['total loops'] > _OPS_MULTIPLIER * _ops_string_len or \
         _ops_counts['num calls'] > _OPS_MULTIPLIER * _ops_string_len:
         print _ops_counts_strings()
-    assert(_ops_counts['total loops'] <= _OPS_MULTIPLIER * _ops_string_len)
-    assert(_ops_counts['num calls'] <= _OPS_MULTIPLIER * _ops_string_len)
+    if _ops_counts['total loops'] > 1000:
+        assert(_ops_counts['total loops'] <= _OPS_MULTIPLIER * _ops_string_len)
+    if _ops_counts['num calls'] > 1000:    
+        ssert(_ops_counts['num calls'] <= _OPS_MULTIPLIER * _ops_string_len)
   
-def canonize_suffix(suffix, suffix_tree):
+def canonize_suffix(suffix, suffix_tree, string_idx):
     """ Ukkonen's algorithm requires that we work with these Suffix definitions in canonical form. 
         The Canonize() function is called to perform this transformation any time a Suffix object 
         is modified. The canonical representation of the suffix simply requires that the origin_node 
         in the Suffix object be the closest parent to the end point of the string.
     """
+    string = suffix_tree.string_list[string_idx]
     _count_op('num calls')
+    
     if False and _ops_counters['num calls'] % 100000 == 0:
         if suffix.first_char_idx < len(suffix_tree.string):
             first_char = suffix_tree.string[suffix.first_char_idx] 
@@ -157,16 +210,20 @@ def canonize_suffix(suffix, suffix_tree):
             first_char = '***'
         print _ops_counts_strings(),[suffix.src_node_idx, first_char, suffix.first_char_idx]
     
-    original_length = len(suffix)        
+    original_length = len(suffix)
     num_loops = 0
     edge_count = 0
     if not suffix.is_explicit():
-        edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]]
+        # Debug code !@#$
+        if (suffix.src_node_idx, string[suffix.first_char_idx]) not in suffix_tree.edge_lookup.keys():
+            print string_idx
+            print len(suffix_tree.string_list)
+        edge = suffix_tree.edge_lookup[suffix.src_node_idx, string[suffix.first_char_idx]]
         while len(edge) <= len(suffix):
             suffix.first_char_idx += len(edge)
             suffix.src_node_idx = edge.dst_node_idx
             if suffix.first_char_idx <= suffix.last_char_idx:
-                edge = suffix_tree.edge_lookup[suffix.src_node_idx, suffix_tree.string[suffix.first_char_idx]] 
+                edge = suffix_tree.edge_lookup[suffix.src_node_idx, string[suffix.first_char_idx]] 
                 edge_count += 1        
             num_loops += 1
             _count_op('total loops')
@@ -176,37 +233,53 @@ def canonize_suffix(suffix, suffix_tree):
                     [ord(c) for c in suffix_tree.string[suffix.first_char_idx:suffix.first_char_idx+20]], \
                     suffix.first_char_idx
                   
-            assert(num_loops <= len(suffix_tree.string))
+            assert(num_loops <= len(string))
     _check_ops_counts()
 
+_TERMINATOR_BASE = 0x1000
+
 class SuffixTree:
-    def __init__(self, string, alphabet=None):
-       
+    def __init__(self):
+
+        self.string_list = []
+        self.terminator_list = []
+        self.alphabet = set([])
+        self.nodes = [Node()]
+        self.edge_lookup = {} # by  source_node, first_char
+        self.active_point = Suffix(0, 0, -1)
+
+    def add_string(self, string, alphabet=None):
         _reset_ops_counts(len(string))
+        
+        terminator = unichr(_TERMINATOR_BASE + len(self.string_list))
+        print 'terminator=%s' % [terminator]        
+
+        string += terminator
+        self.string_list.append(string)    
+        
         if alphabet == None:
             alphabet = set(string)
         print 'alphabet=', len(alphabet), sorted(alphabet)
-        for i in range(256):
-            if chr(i) not in sorted(alphabet):
-                terminator = chr(i)
-                break
-        print 'terminator=', terminator        
-        string += terminator        
-        alphabet.add(terminator)
-        self.string = string    
-        self.alphabet = alphabet    
-        self.nodes = [Node()]
-        self.edge_lookup = {} # by  source_node, first_char
-
+  
+        self.alphabet |= alphabet    
+ 
         self.active_point = Suffix(0, 0, -1)
         for i in range(len(string)):
+            print ' === add_prefix(%d) ===' % i
             add_prefix(i, self.active_point, self)
+            show_all_suffixes(self)
 
-    def insert_edge(self, edge):
-        self.edge_lookup[edge.src_node_idx, self.string[edge.first_char_idx]] = edge
+        print '-' * 60
+        print 'string added'
+        print '-' * 60
 
-    def remove_edge(self, edge):
-        del self.edge_lookup[edge.src_node_idx, self.string[edge.first_char_idx]]
+    def insert_edge(self, edge, string_idx):
+        string = self.string_list[string_idx]
+        self.edge_lookup[edge.src_node_idx, string[edge.first_char_idx]] = edge
+
+    def remove_edge(self, edge, string_idx):
+        string = self.string_list[string_idx]
+        del self.edge_lookup[edge.src_node_idx, string[edge.first_char_idx]]
 
     def get_substring(self, first_index, last_index):
         """Strings are typially first_index to last_index inclusive
@@ -219,50 +292,54 @@ class SuffixTree:
         """Returns the index of substring in string or -1 if it is not found."""
         if not substring:
             return -1
-        #print 'find_substring(%s, %s)' % (self.string, substring)    
+        print 'find_substring(%s)' % (substring)    
         #if self.case_insensitive:
         #    substring = substring.lower()
         curr_node = 0
         i = 0
         while i < len(substring):
-            #print '** i=%d, curr_node=%s, char=%s' % (i, curr_node, substring[i])
+            print '** i=%d, curr_node=%s, char=%s' % (i, curr_node, substring[i])
             edge = self.edge_lookup[curr_node, substring[i]]
             if not edge:
                 print 'not an edge'
                 return -1
             # ln is length of substring segment along current edge    
             ln = min(len(edge), len(substring) - i)
-            #print '  ', edge, len(edge), ln
-            if substring[i:i + ln] != self.string[edge.first_char_idx:edge.first_char_idx + ln]:
+            print '  ', edge, len(edge), ln
+            if substring[i:i + ln] != self.string_list[edge.string_idx][edge.first_char_idx:edge.first_char_idx + ln]:
                 return -1
             i += len(edge)
             curr_node = edge.dst_node_idx
-        #print '   matching node=', curr_node 
+        print '   matching node=', curr_node 
         return edge.first_char_idx - len(substring) + ln
 
 def add_prefix(last_char_idx, active_point, suffix_tree):
     """Add string prefix suffix_tree.string[:last_char_idx+1] to suffix tree
         active_point is a suffix """
     #print '***add_prefix(%d, %s)' % (last_char_idx, active_point)
+    # Add prefix for the last string
+    string_idx = len(suffix_tree.string_list) - 1
+    string = suffix_tree.string_list[-1]
     last_parent_node_idx = -1
+    
     while True:
         parent_node_idx = active_point.src_node_idx
         if active_point.is_explicit():
-            if (active_point.src_node_idx, suffix_tree.string[last_char_idx]) in suffix_tree.edge_lookup: 
+            if (active_point.src_node_idx, string[last_char_idx]) in suffix_tree.edge_lookup: 
                 #already in tree
                 break
         else:
             # edge of active_point
-            edge = suffix_tree.edge_lookup[active_point.src_node_idx, suffix_tree.string[active_point.first_char_idx]]
-            if suffix_tree.string[edge.first_char_idx + len(active_point)] == suffix_tree.string[last_char_idx]: 
+            edge = suffix_tree.edge_lookup[active_point.src_node_idx, string[active_point.first_char_idx]]
+            if string[edge.first_char_idx + len(active_point)] == string[last_char_idx]: 
                 #the given prefix is already in the tree, do nothing
                 break
             else:
-                parent_node_idx = edge.split(active_point, suffix_tree)
+                parent_node_idx = edge.split(active_point, suffix_tree, string_idx)
         # Add new node and edge        
         suffix_tree.nodes.append(Node(-1))
-        new_edge = Edge(parent_node_idx, len(suffix_tree.nodes) - 1, last_char_idx, POSITIVE_INFINITY)##################
-        suffix_tree.insert_edge(new_edge)
+        new_edge = Edge(suffix_tree, parent_node_idx, len(suffix_tree.nodes) - 1, string_idx, last_char_idx, _POSITIVE_INFINITY)##################
+        suffix_tree.insert_edge(new_edge, -1)
         #add suffix link
         if last_parent_node_idx > 0:
             suffix_tree.nodes[last_parent_node_idx].suffix_link = parent_node_idx
@@ -272,13 +349,13 @@ def add_prefix(last_char_idx, active_point, suffix_tree):
             active_point.first_char_idx += 1
         else:
             active_point.src_node_idx = suffix_tree.nodes[active_point.src_node_idx].suffix_link
-        active_point.canonize(suffix_tree)
+        active_point.canonize(suffix_tree, -1)
         
     if last_parent_node_idx > 0:
         suffix_tree.nodes[last_parent_node_idx].suffix_link = parent_node_idx
     #last_parent_node_idx = parent_node_idx
     active_point.last_char_idx += 1
-    active_point.canonize(suffix_tree)
+    active_point.canonize(suffix_tree, -1)
 
 #validation code
 import collections
@@ -357,7 +434,6 @@ def show_node(node_idx):
             pass
     print str(node_idx) + ' -> ' + str(suffix_tree.nodes[node_idx])
 
-        
 # !@#$ Peter code starts here    
 def get_node_child_dict(suffix_tree):
     """Returns a dict of nodes and their children"""
@@ -378,35 +454,48 @@ def get_node_child_dict(suffix_tree):
 def show_nodes_tree(suffix_tree):
     print 'show_nodes_tree' + '-' * 40
     node_dict = get_node_child_dict(suffix_tree)
-    print '+++++++++++++++' + '-' * 40
-    print ' %4d %20s' % (len(suffix_tree.string), suffix_tree.string)
-    all_suffixes = set([i+1 for i in range(len(suffix_tree.string))])
-    suffixes_found = [set([])]
-
-    def show_nodes(node_idx, indent, string):
+    #print '+++++++++++++++' + '-' * 40
+    for i, string in enumerate(suffix_tree.string_list):
+        print ' string %3d: len=%4d %20s   <--- The string' % (i, len(string), _q(string))
+    print '===============' + '-' * 40
+    all_suffixes = [i+1 for i in range(len(string)) for string in suffix_tree.string_list]
+    suffixes_found = [[]]
     
+    for node_idx in sorted(node_dict.keys()):
+        for first_char in sorted(node_dict[node_idx].keys()):
+            print '> %4d %s : %s' % (node_idx, _q(first_char), node_dict[node_idx][first_char])
+    print '***************' + '-' * 40
+            
+    def show_nodes(node_idx, indent, string):
+
         for first_char in sorted(node_dict[node_idx].keys()): 
             edge = node_dict[node_idx][first_char]
             new_string = string + edge.get_string()
+            #print 'xxx', new_string
+            #print 'yyy', first_char
             
             if edge.dst_node_idx in node_dict.keys():
                 print ' %4s %20s %s%3d %s %-25s' % ('', '', '    ' * indent, node_idx, first_char, edge)
                 show_nodes(edge.dst_node_idx, indent + 1, new_string)
             else:
-                print ' %4d %20s %s%3d %s %-25s' % (len(new_string), new_string, '    ' * indent, node_idx, first_char, edge)
-                suffixes_found[0].add(len(new_string))
+                print ' %4d %20s %s%3d %s %-25s' % (len(new_string), _q(new_string), '    ' * indent, 
+                    node_idx, _q(first_char), edge)  
+                suffixes_found[0].append(len(new_string))
 
     show_nodes(0, 0, '')
     
-    assert(suffixes_found[0] == all_suffixes)
+    print '  all_suffixes:', len(all_suffixes), sorted(all_suffixes)    
+    print 'suffixes_found:', len(suffixes_found[0]), sorted(suffixes_found[0])
+    assert(sorted(suffixes_found[0]) == sorted(all_suffixes))
     print '+++++++++++++++' + '-' * 40
 
 def show_all_suffixes(suffix_tree):
-    print 'suffix_tree.edge_lookup' + '-' * 60
-    print suffix_tree.string
+    print '-' * 20 + ' show_all_suffixes ' +  '-' * 20 
+    print suffix_tree.string_list
     for key in sorted(suffix_tree.edge_lookup.keys()):
-        print ' %s : %s' % (key, suffix_tree.edge_lookup[key]) 
-    
+        print ' %s : %s' % (key, suffix_tree.edge_lookup[key])
+    print '-' * 20 + ' ||||||||||||||||| ' + '-' * 20
+
 def test(filename):
     def assert_test(string, substring):
         suffix_tree = SuffixTree(string)
@@ -418,12 +507,12 @@ def test(filename):
             print ' position = %d' % position
             print '      idx = %d' % idx 
         assert(idx == position)
-    
+
     tests = [
         ('hello', 'lo'),
         ('a very long sentence', 'sentence')
     ]
-    
+
     for string,substring in tests:
         assert_test(string, substring)
 
@@ -439,8 +528,7 @@ def test(filename):
                 
     print '%d lines tested' % lines_tested
 
-def q(s):
-    return '"' + s + '"'
+
     
 import random
 import math    
@@ -454,7 +542,7 @@ def make_test_substrings(string, num, length):
     #exit()    
     
     def add_substring(region):
-        for i in range(1000//min(100,(len(region['substrings'])**2 + 1))):
+        for i in range(1000//min(500,(len(region['substrings'])**2 + 1))):
             k = random.randint(region['start'], region['end'] - length)
             s = string[k: k + length]
             if string.find(s) > region['start'] and s not in region['substrings']:
@@ -477,76 +565,91 @@ def make_test_substrings(string, num, length):
     assert(len(substrings) == num)
     return sorted(substrings, key = lambda x: string.find(x))
 
-def test_file(filename):
-    string = file(filename, 'rb').read()[:999999]
+def to_unicode(string):
+    bytes = [ord(c) for c in string]
+    unicd = u''.join([unichr(i) for i in bytes])
+    return unicd
+    
+def test_generalized_suffix_tree(num_strings, length, num_repetitions):
+    suffix_tree = SuffixTree()
+
+    if False: # unit test for edge
+        edge = Edge(suffix_tree, 0, 0, 0, 0, 0)
+        print edge
+
+    def make_string(length, n):
+        return to_unicode(''.join([chr((ord('A')+i+n)%256) 
+            for j in range(num_repetitions)
+                for i in range(length) 
+            ]))
+
+    #string_list = [make_string(length, n*num_repetitions*length) for n in range(num_strings)]
+    string_list = [make_string(length, 0) for n in range(num_strings)]
+
+    for string in string_list:
+        print 'string =', _q(string), '^' * 20
+        suffix_tree.add_string(string)
         
-    alphabet = set(string)
-    if len(alphabet) >= 256:
-        print 'alphabet too long', len(alphabet), 'skipping'
-        return
-        
-    num_tests = 10
-    length = 30
-    substrings = make_test_substrings(string, num_tests, length)
-    #for i, ss in enumerate(substrings):
-    #    print i, string.find(ss), ss
-    #exit()
+    show_all_suffixes(suffix_tree)
+    show_nodes_tree(suffix_tree)    
+
+    for string in string_list:    
+        substring = string[length//4:(3*length)//4]
+        idx0 = string.find(substring)
+        idx1 = suffix_tree.find_substring(substring)
+        print 'idx0=%d,idx1=%d' % (idx0, idx1)
+        print 'substring:  ', _q(substring)
+        print ' original:', idx0, _q(string[idx0:idx0+len(substring)])
+        print '   suffix:', idx1, _q(string[idx1:idx1+len(substring)])
+
+def test_file_list(file_list):
+    """Construct a generalized suffix tree whose strings are the contents of the files in 
+        <file_list>
+    """
+    total_length = sum([os.path.getsize(filename) for filename in file_list])
+    _reset_ops_counts(total_length)
+
+    # Create tests
+    if False:
+        num_tests = 10
+        length = 30
+        substrings = []
+        for filename in file_list:
+            string = file(filename, 'rb').read()[:999999]
+            string = to_unicode(string)
+            substrings += make_test_substrings(string, num_tests, length)
+        string = None
+        #for i, ss in enumerate(substrings):
+        #    print i, string.find(ss), ss
+        #exit()
    
-    suffix_tree = SuffixTree(string)
+    # Create suffix tree
+    suffix_tree = SuffixTree()
    
+    for filename in file_list:
+        string = file(filename, 'rb').read()[:999999]
+        string = to_unicode(string)
+        suffix_tree.add_string(string)
+    string = None
+    
+    # Run tests
     for i in range(num_tests):
         substring = substrings[i]
         idx0 = string.find(substring)
         idx1 = suffix_tree.find_substring(substring)
         if idx0 == idx1:
-            print 'idx0=%5d (%2d%%)'% (idx0, int(100.0 * idx0 / len(string)))
+            print 'idx0=%7d (%2d%%)'% (idx0, int(100.0 * idx0 / len(string))),
             if idx0 >= 0:
-                print ', substring=%s' % q(substring)
+                print ', substring=%s' % _q(substring)
+            else:
+                print
         else:
-            print 'idx0=%d, idx1=%d' % (idx0, idx1)
+            print 'idx0=%7d, idx1=%7d' % (idx0, idx1)
             if idx0 >= 0:
-                print q(substring)
-                print q(string[idx1:idx1+len(substring)])
+                print _q(substring)
+                print _q(string[idx1:idx1+len(substring)])
         assert(substring == string[idx1:idx1+len(substring)])
         assert(idx0 == idx1)   
+
 if __name__ == '__main__':
-    import sys
-    import os
-    if False:
-        test(sys.argv[0])
-        string = 'abaababaabaab$'#'mississippi$'
-        string = 'abcab$'
-        if len(sys.argv) < 2:
-            print 'usage: python %s <string> <substring>' % sys.argv[0]
-            exit()
-        
-    if True:    
-        string = sys.argv[1]
-        substring = sys.argv[2]
-    else:
-        import glob
-        file_list = [filename for filename in glob.glob(sys.argv[1])]
-        file_list.sort(key = lambda x: os.path.getsize(x))
-        print len(file_list), file_list
-        
-        for i, filename in enumerate(file_list):
-            print filename, os.path.getsize(filename)
-            test_file(filename)
-            print '-' * 60
-            print 'tested %d of %d: %s (%d)' % (i, len(file_list), filename, os.path.getsize(filename))
-            print '-' * 60
-        exit()
-        
-    POSITIVE_INFINITY = len(string) - 1
-    suffix_tree = SuffixTree(string)
-    
-    if False:
-        is_valid = is_valid_suffix_tree(suffix_tree)
-        print 'is_valid_suffix_tree:', is_valid
-        
-    if True:
-        show_all_suffixes(suffix_tree)
-        show_nodes_tree(suffix_tree)
-    
-   
-   
+    test_generalized_suffix_tree(num_strings = 2, length = 3, num_repetitions=1)
