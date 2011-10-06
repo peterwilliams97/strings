@@ -37,7 +37,6 @@ void free_matches(MATCHES list)
   freelist = list;
 }
 
-
 int print_matches(STRING *string, STRING **strings, int num_strings,
                   MATCHES list, int num_matches)
 {

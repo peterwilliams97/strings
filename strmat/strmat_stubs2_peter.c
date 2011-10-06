@@ -37,7 +37,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int build_policy,
     if (strings == NULL)
         return 0;
 
-    /*
+   /*
     * Find the total and maximum length of the input strings.
     */
     max_length = -1;
@@ -280,22 +280,19 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings,
  *
  * Returns:  non-zero on success, zero on error
  */
-static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node,
-                            STREE_NODE *nodemap);
-int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,
-                         int build_threshold, int print_stats, LCA_TYPE type);
+static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node,                STREE_NODE *nodemap);
+int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,  int build_threshold, int print_stats, LCA_TYPE type);
 
-int strmat_stree_lca(STRING **strings, int num_strings, int build_policy,
-                     int build_threshold, int print_stats)
-{  return int_strmat_stree_lca(strings, num_strings, build_policy,
-                               build_threshold, print_stats, LCA_LINEAR);  }
-int strmat_stree_naive_lca(STRING **strings, int num_strings, int build_policy,
-                           int build_threshold, int print_stats)
-{  return int_strmat_stree_lca(strings, num_strings, build_policy,
-                               build_threshold, print_stats, LCA_NAIVE);  }
+int strmat_stree_lca(STRING **strings, int num_strings, int build_policy, int build_threshold, int print_stats)
+{  
+    return int_strmat_stree_lca(strings, num_strings, build_policy, build_threshold, print_stats, LCA_LINEAR);  
+}
+int strmat_stree_naive_lca(STRING **strings, int num_strings, int build_policy,  int build_threshold, int print_stats)
+{  
+    return int_strmat_stree_lca(strings, num_strings, build_policy, build_threshold, print_stats, LCA_NAIVE);  
+}
 
-int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,
-                         int build_threshold, int print_stats, LCA_TYPE type)
+int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,  int build_threshold, int print_stats, LCA_TYPE type)
 {
   int i, num_nodes, num1, num2, len, num_lcas, max_length;
   char *s, *line, buffer[64];

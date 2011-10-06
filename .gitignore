@@ -5,3 +5,4 @@ Debug/
 *.csv
 *.class
 *.jar
+*.stackdump

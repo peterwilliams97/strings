@@ -172,7 +172,6 @@ char rawmapchar(int alpha, char ch)
     return alpha_tables[alpha].rawmap[(int) ch];
 }
 
-
 char mapchar(int alpha, char ch)
 {
   if (alpha_tables == NULL)

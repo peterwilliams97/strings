@@ -20,20 +20,15 @@
 #include "stree.h"
 #endif
 #include "stree_lca.h"
-
-
 /*
  *
  * Forward References.
  *
  */
 static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node);
-static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
-                      unsigned int Amask);
+static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node, unsigned int Amask);
 static unsigned int h(unsigned int number);
 static unsigned int MSB(unsigned int number);
-
-
 
 /*
  *
@@ -45,7 +40,6 @@ static unsigned int MSB(unsigned int number);
  * assume that the numbers are 32 bits or less, and are implemented
  * using an 8 bit table and checking successive bytes of each number.
  */
-
 static unsigned int msb_table[256], lsb_table[256];
 static int init_flag = 0;
 
@@ -78,7 +72,6 @@ static void init_tables(void)
 
   init_flag = 1;
 }
-
 
 /*
  * h

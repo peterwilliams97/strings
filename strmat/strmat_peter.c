@@ -20,7 +20,7 @@ static int stree_build_threshold = 10;
 static int stree_print_flag = ON;
 static int stats_flag = ON;
 
-FILE     *fpout = (FILE *)1; // stdout; // !@#$
+//FILE     *fpout = (FILE *)1; // stdout; // !@#$
 
 /*
  * Forward prototypes.

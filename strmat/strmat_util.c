@@ -34,54 +34,54 @@ int set_marks_from_list(char *);
 *       *)         Go to the utilities menu         
 *
 *********************************************************************/
-STRING *get_string(char *label) 
-{
-  int seq_index, num_seqs;
-  STRING *s;
-
-  while (1)  {
-    num_seqs = get_num_sequences();
-    if (num_seqs == 0) 
-      printf("\nCommands (None");
-    else
-      printf("\nCommands (1-%d", num_seqs);
-    printf(" - sequences, ! - list sequences, * - utilities menu,\n");
-    printf("          r - read formatted file, t - create new sequence,");
-    printf(" Ctl-D - cancel)\n");
-    printf("Enter %s: ", label);
-
-    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return NULL;
-    }
-
-    switch (inbuf[0]) {
-    case 't':
-      type_in_seq();
-      break;
-
-    //case 'r':
-    //  fread_formatted();
-    //  break;
-
-    //case '*':
-    //  util_menu();
-    //  break;
-
-    case '!':
-      list_sequences(3);
-      break;
-
-    default:
-      if (sscanf(inbuf, "%d", &seq_index) == 1 &&
-          (s = get_element(seq_index)) != NULL)
-        return s;
-      else
-        printf("That is not a choice.  Please select from those shown\n");
-      break;
-    }
-  }
-}
+//STRING *get_string(char *label) 
+//{
+//  int seq_index, num_seqs;
+//  STRING *s;
+//
+//  while (1)  {
+//    num_seqs = get_num_sequences();
+//    if (num_seqs == 0) 
+//      printf("\nCommands (None");
+//    else
+//      printf("\nCommands (1-%d", num_seqs);
+//    printf(" - sequences, ! - list sequences, * - utilities menu,\n");
+//    printf("          r - read formatted file, t - create new sequence,");
+//    printf(" Ctl-D - cancel)\n");
+//    printf("Enter %s: ", label);
+//
+//    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return NULL;
+//    }
+//
+//    switch (inbuf[0]) {
+//    case 't':
+//      type_in_seq();
+//      break;
+//
+//    //case 'r':
+//    //  fread_formatted();
+//    //  break;
+//
+//    //case '*':
+//    //  util_menu();
+//    //  break;
+//
+//    case '!':
+//      list_sequences(3);
+//      break;
+//
+//    default:
+//      if (sscanf(inbuf, "%d", &seq_index) == 1 &&
+//          (s = get_element(seq_index)) != NULL)
+//        return s;
+//      else
+//        printf("That is not a choice.  Please select from those shown\n");
+//      break;
+//    }
+//  }
+//}
 
 /*********************************************************************
 *  Function get_string_ary
@@ -99,34 +99,33 @@ STRING *get_string(char *label)
 *       !)         Go to the utilities menu         
 *
 *********************************************************************/
-
-STRING **get_string_ary(char *label, int *len_out)
-{
-  int  i, j, len, num_seqs;
-  STRING **s;
-
-  len = select_sequences(label, 1);
-  if (len <= 0) {
-    *len_out = 0;
-    return NULL;
-  }
-  else {
-    if ((s = malloc((len + 1) * sizeof(STRING *))) == NULL) {
-      fprintf(stderr, "Ran out of memory.  Unable to select sequences.\n");
-      *len_out = 0;
-      return NULL;
-    }
-
-    num_seqs = get_num_sequences();
-    for (i=1,j=0; i <= num_seqs; i++)
-      if (get_mark(i) == 1)
-        s[j++] = get_element(i);
-    s[j] = NULL;
-
-    *len_out = j;
-    return s;
-  }
-}
+//STRING **get_string_ary(char *label, int *len_out)
+//{
+//  int  i, j, len, num_seqs;
+//  STRING **s;
+//
+//  len = select_sequences(label, 1);
+//  if (len <= 0) {
+//    *len_out = 0;
+//    return NULL;
+//  }
+//  else {
+//    if ((s = malloc((len + 1) * sizeof(STRING *))) == NULL) {
+//      fprintf(stderr, "Ran out of memory.  Unable to select sequences.\n");
+//      *len_out = 0;
+//      return NULL;
+//    }
+//
+//    num_seqs = get_num_sequences();
+//    for (i=1,j=0; i <= num_seqs; i++)
+//      if (get_mark(i) == 1)
+//        s[j++] = get_element(i);
+//    s[j] = NULL;
+//
+//    *len_out = j;
+//    return s;
+//  }
+//}
 
 /*********************************************************************
 *  Function get_bounded
@@ -141,31 +140,31 @@ STRING **get_string_ary(char *label, int *len_out)
 *
 *********************************************************************/
 
-int get_bounded(char *label, int low, int high, int def)
-{
-  int value;
-
-  while (1) {
-    printf("\nCommands (%d-%d - enter number, RET - default,"
-           " Ctl-D - cancel)\n", low, high);
-
-    printf("Enter %s [%d]: ", label, def);
-
-    if ((inbuf = my_getline(stdin, &buf_len)) == NULL)
-      return low - 1;
-    else if (inbuf[0] == '\0')
-      return def;
-
-    if (sscanf(inbuf, "%d", &value) != 1)
-      printf("\nThat is not a number."
-             "  Please select from the choices shown.\n");
-    else if (value < low || high < value)
-      printf("\nThat number is out of range."
-             "  Please select from the choices shown.\n");
-    else 
-      return value;
-  }
-}
+//int get_bounded(char *label, int low, int high, int def)
+//{
+//  int value;
+//
+//  while (1) {
+//    printf("\nCommands (%d-%d - enter number, RET - default,"
+//           " Ctl-D - cancel)\n", low, high);
+//
+//    printf("Enter %s [%d]: ", label, def);
+//
+//    if ((inbuf = my_getline(stdin, &buf_len)) == NULL)
+//      return low - 1;
+//    else if (inbuf[0] == '\0')
+//      return def;
+//
+//    if (sscanf(inbuf, "%d", &value) != 1)
+//      printf("\nThat is not a number."
+//             "  Please select from the choices shown.\n");
+//    else if (value < low || high < value)
+//      printf("\nThat number is out of range."
+//             "  Please select from the choices shown.\n");
+//    else 
+//      return value;
+//  }
+//}
 
 /********************************************************************** 
  *  Function: list_sequences()
@@ -179,28 +178,28 @@ int get_bounded(char *label, int low, int high, int def)
  *
  * 
  **********************************************************************/
-void list_sequences(int num_lines_after)
-{
-  int i, num_seqs, status;
-  STRING *spt;
-
-  num_seqs = get_num_sequences();
-  if (num_seqs == 0) {
-    printf("\nThere are no sequences to list.\n");
-    return;
-  }
-
-  mstart(stdin, stdout, OK, OK, 5, NULL);
-  status = 1;
-  for (i=1; i <= num_seqs && status; i++)  {
-    spt = get_element(i);
-
-   // mprintf("\n%d)\tTYPE: %s\tTITLE: %s\n", i, db_names[spt->db_type], spt->title);
-    //status = mprintf("\tLENGTH: %d\tALPHA: %s\n",  spt->length, alpha_names[spt->raw_alpha]);
-  }
-  mputc('\n');
-  mend(num_lines_after);
-}
+//void list_sequences(int num_lines_after)
+//{
+//  int i, num_seqs, status;
+//  STRING *spt;
+//
+//  num_seqs = get_num_sequences();
+//  if (num_seqs == 0) {
+//    printf("\nThere are no sequences to list.\n");
+//    return;
+//  }
+//
+//  mstart(stdin, stdout, OK, OK, 5, NULL);
+//  status = 1;
+//  for (i=1; i <= num_seqs && status; i++)  {
+//    spt = get_element(i);
+//
+//   // mprintf("\n%d)\tTYPE: %s\tTITLE: %s\n", i, db_names[spt->db_type], spt->title);
+//    //status = mprintf("\tLENGTH: %d\tALPHA: %s\n",  spt->length, alpha_names[spt->raw_alpha]);
+//  }
+//  mputc('\n');
+//  mend(num_lines_after);
+//}
   
 /********************************************************************** 
  *  Function: print_seq()
@@ -214,22 +213,22 @@ void list_sequences(int num_lines_after)
  *
  * 
  **********************************************************************/
-void print_seq(int num_lines_after)
-{
-  STRING *spt;
-
-  if (get_num_sequences() == 0) {
-    printf("\nThere are no sequences to print.\n");
-    return;
-  }
-
-  if ((spt = get_string("sequence to print")))  {
-    mstart(stdin, fpout, OK, OK, 5, NULL);
-    mputs("\n\n");
-    print_string(spt);
-    mend(num_lines_after);
-  }
-}
+//void print_seq(int num_lines_after)
+//{
+//    STRING *spt;
+//
+//    if (get_num_sequences() == 0) {
+//        printf("\nThere are no sequences to print.\n");
+//        return;
+//    }
+//
+//    if ((spt = get_string("sequence to print")))  {
+//        mstart(stdin, fpout, OK, OK, 5, NULL);
+//        mputs("\n\n");
+//        print_string(spt);
+//        mend(num_lines_after);
+//    }
+//}
 
 /********************************************************************** 
  *  Function: type_in_seq()                                           
@@ -242,139 +241,139 @@ void print_seq(int num_lines_after)
  *
  * 
  **********************************************************************/
-void type_in_seq(void)
-{
-  int i, elem_num, seqlen, seqsize, alpha, orig_seqlen, otherflag;
-  char ch, newline_ch, *s, *sequence, *seq2, title[TITLE_LENGTH+1];
-  STRING *sptr;
-
-  printf("\nEnter sequence title (Ctl-D to cancel): ");
-  if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-    printf("\n\n");
-    return;
-  }
-  title[TITLE_LENGTH] = '\0';
-  if (*inbuf != '\0')
-    strncpy(title, inbuf, TITLE_LENGTH);
-
-  alpha = -1;
-  while (alpha == -1) {
-    printf("Alphabets (1 - DNA, 2 - RNA, 3 - PROTEIN, 4 - ASCII, Ctl-D - Cancel)\n");
-    printf("Enter alphabet: ");
-
-    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return;
-    }
-
-    switch(*inbuf)  {
-    case '1':
-      alpha = ALPHA_DNA;
-      break;
-
-    case '2':
-      alpha = ALPHA_RNA;
-      break;
-
-    case '3':
-      alpha = ALPHA_PROTEIN;
-      break;
-
-    case '4':
-      alpha = ALPHA_ASCII;
-      break;
-
-    default:
-      printf("\nThat is not a choice.\n");
-    }
-  }
-  newline_ch = rawmapchar(alpha, '\n');
-  if (newline_ch == -1)
-    return;
-
-  seqsize = 256;
-  if ((sequence = malloc(seqsize)) == NULL) {
-    fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
-    return;
-  }
-
-  printf("\nEnter sequence (To end sequence, type Ctl-D at the beginning of a line):\n");
-
-  seqlen = 0;
-  while ((inbuf = my_getline(stdin, &buf_len)) != NULL) {
-    if (seqlen + buf_len >= seqsize) {
-      seqsize += seqlen + buf_len;
-      if ((sequence = realloc(sequence, seqsize)) == NULL) {
-        fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
-        return;
-      }
-    }
-
-    orig_seqlen = seqlen;
-    otherflag = 0;
-    for (i=0,s=inbuf; i < buf_len; i++,s++) {
-      ch = rawmapchar(alpha, *s);
-      if (ch == -1)
-        return;
-      else if (ch != '\0')
-        sequence[seqlen++] = ch;
-      else if (!isspace((int)(*s)))
-        otherflag = 1;
-    }
-    if (newline_ch != '\0')
-      sequence[seqlen++] = newline_ch;
-
-    if (otherflag) {
-      printf("\nError:  This line contains characters not in the alphabet.\n");
-      while (1) {
-        printf("Remove this line from the sequence (default: y)? ");
-        while ((inbuf = my_getline(stdin, &buf_len)) == NULL) ;
-
-        if (toupper(inbuf[0]) == 'Y' || inbuf[0] == '\0') {
-          seqlen = orig_seqlen;
-          break;
-        }
-        else if (toupper(inbuf[0]) == 'N')
-          break;
-
-        printf("Answer y or n please.\n");
-      }
-      putchar('\n');
-    }   
-  }
-  sequence[seqlen] = '\0';
-  if (seqlen > 0 && sequence[seqlen-1] == newline_ch)
-    sequence[--seqlen] = '\0';
-
-  if (seqlen == 0) {
-    printf("\nNo sequence entered.  Did not create a sequence structure.\n");
-    free(sequence);
-    return;
-  }
-
-  ;
-  if ((seq2 = malloc(seqlen + 1)) == NULL) {
-    fprintf(stderr, "Ran out of memory.  Unable to add new sequence.\n");
-    free(sequence);
-    return;
-  }
-
-  if ((elem_num = add_element()) == -1) {
-    free(sequence);
-    free(seq2);
-    return;
-  }
-    
-  sptr = get_element(elem_num);
-  sptr->db_type = 0;
-  sptr->raw_alpha = alpha;
-  sptr->raw_seq = sequence;
-  sptr->sequence = seq2;
-  sptr->length = seqlen;
-  strcpy(sptr->title, title);
-
-  printf("\n\n");
-}
+//void type_in_seq(void)
+//{
+//  int i, elem_num, seqlen, seqsize, alpha, orig_seqlen, otherflag;
+//  char ch, newline_ch, *s, *sequence, *seq2, title[TITLE_LENGTH+1];
+//  STRING *sptr;
+//
+//  printf("\nEnter sequence title (Ctl-D to cancel): ");
+//  if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//    printf("\n\n");
+//    return;
+//  }
+//  title[TITLE_LENGTH] = '\0';
+//  if (*inbuf != '\0')
+//    strncpy(title, inbuf, TITLE_LENGTH);
+//
+//  alpha = -1;
+//  while (alpha == -1) {
+//    printf("Alphabets (1 - DNA, 2 - RNA, 3 - PROTEIN, 4 - ASCII, Ctl-D - Cancel)\n");
+//    printf("Enter alphabet: ");
+//
+//    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return;
+//    }
+//
+//    switch(*inbuf)  {
+//    case '1':
+//      alpha = ALPHA_DNA;
+//      break;
+//
+//    case '2':
+//      alpha = ALPHA_RNA;
+//      break;
+//
+//    case '3':
+//      alpha = ALPHA_PROTEIN;
+//      break;
+//
+//    case '4':
+//      alpha = ALPHA_ASCII;
+//      break;
+//
+//    default:
+//      printf("\nThat is not a choice.\n");
+//    }
+//  }
+//  newline_ch = rawmapchar(alpha, '\n');
+//  if (newline_ch == -1)
+//    return;
+//
+//  seqsize = 256;
+//  if ((sequence = malloc(seqsize)) == NULL) {
+//    fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
+//    return;
+//  }
+//
+//  printf("\nEnter sequence (To end sequence, type Ctl-D at the beginning of a line):\n");
+//
+//  seqlen = 0;
+//  while ((inbuf = my_getline(stdin, &buf_len)) != NULL) {
+//    if (seqlen + buf_len >= seqsize) {
+//      seqsize += seqlen + buf_len;
+//      if ((sequence = realloc(sequence, seqsize)) == NULL) {
+//        fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
+//        return;
+//      }
+//    }
+//
+//    orig_seqlen = seqlen;
+//    otherflag = 0;
+//    for (i=0,s=inbuf; i < buf_len; i++,s++) {
+//      ch = rawmapchar(alpha, *s);
+//      if (ch == -1)
+//        return;
+//      else if (ch != '\0')
+//        sequence[seqlen++] = ch;
+//      else if (!isspace((int)(*s)))
+//        otherflag = 1;
+//    }
+//    if (newline_ch != '\0')
+//      sequence[seqlen++] = newline_ch;
+//
+//    if (otherflag) {
+//      printf("\nError:  This line contains characters not in the alphabet.\n");
+//      while (1) {
+//        printf("Remove this line from the sequence (default: y)? ");
+//        while ((inbuf = my_getline(stdin, &buf_len)) == NULL) ;
+//
+//        if (toupper(inbuf[0]) == 'Y' || inbuf[0] == '\0') {
+//          seqlen = orig_seqlen;
+//          break;
+//        }
+//        else if (toupper(inbuf[0]) == 'N')
+//          break;
+//
+//        printf("Answer y or n please.\n");
+//      }
+//      putchar('\n');
+//    }   
+//  }
+//  sequence[seqlen] = '\0';
+//  if (seqlen > 0 && sequence[seqlen-1] == newline_ch)
+//    sequence[--seqlen] = '\0';
+//
+//  if (seqlen == 0) {
+//    printf("\nNo sequence entered.  Did not create a sequence structure.\n");
+//    free(sequence);
+//    return;
+//  }
+//
+//  ;
+//  if ((seq2 = malloc(seqlen + 1)) == NULL) {
+//    fprintf(stderr, "Ran out of memory.  Unable to add new sequence.\n");
+//    free(sequence);
+//    return;
+//  }
+//
+//  if ((elem_num = add_element()) == -1) {
+//    free(sequence);
+//    free(seq2);
+//    return;
+//  }
+//    
+//  sptr = get_element(elem_num);
+//  sptr->db_type = 0;
+//  sptr->raw_alpha = alpha;
+//  sptr->raw_seq = sequence;
+//  sptr->sequence = seq2;
+//  sptr->length = seqlen;
+//  strcpy(sptr->title, title);
+//
+//  printf("\n\n");
+//}
 
 /********************************************************************** 
  *  Function: make_seq() by Peter                                           
@@ -463,23 +462,22 @@ STRING *make_seq(const char *title, const char *cstring)
 * the current list in memory.
 *
 ****************************************************************/
-
-void delete_seq(void)
-{
-  int i, num_seqs;
-
-  num_seqs = get_num_sequences();
-  if (num_seqs == 0) {
-    printf("\nThere are no sequences to delete.\n");
-    return;
-  }
-
-  if (select_sequences("sequences to delete", 0) > 0) {
-    for (i=num_seqs; i > 0; i--)
-      if (get_mark(i) == 1)
-        delete_element(i);
-  }
-}
+//void delete_seq(void)
+//{
+//  int i, num_seqs;
+//
+//  num_seqs = get_num_sequences();
+//  if (num_seqs == 0) {
+//    printf("\nThere are no sequences to delete.\n");
+//    return;
+//  }
+//
+//  if (select_sequences("sequences to delete", 0) > 0) {
+//    for (i=num_seqs; i > 0; i--)
+//      if (get_mark(i) == 1)
+//        delete_element(i);
+//  }
+//}
  
 /*
  *  Function get_seq_numbers 
@@ -492,148 +490,148 @@ void delete_seq(void)
  *  menu.
  *
  */
-int select_sequences(char* label, int mode)
-{
-  int len, num_seqs, flag;
+//int select_sequences(char* label, int mode)
+//{
+//  int len, num_seqs, flag;
+//
+//  flag = 1;
+//  while (1) {
+//    if (flag) {
+//      printf("\nList sequences separated by spaces, "
+//             "or for a range separated by '-'.\n");
+//      printf("Note that for a range the second number "
+//             "must be greater than the first.\n");
+//      printf("All duplicate entries are ignored.\n");
+//      printf("Example:  1 3-5 7 9-10\n");
+//      flag = 0;
+//    }
+//
+//    num_seqs = get_num_sequences();
+//    if (num_seqs == 0) 
+//      printf("\nCommands (None");
+//    else
+//      printf("\nCommands (1-%d", num_seqs);
+//    printf(" - sequences, ! - list sequences, * - utilities menu,\n");
+//    if (mode == 1)
+//      printf("          r - read formatted file, t - create new sequence,\n");
+//    printf("          ? - help, Ctl-D - cancel)\n");
+//    printf("Enter %s: ", label);
+//
+//    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return 0;
+//    }
+//
+//    switch(inbuf[0]) {
+//    case 't':
+//      if (mode == 1)
+//        type_in_seq();
+//      else
+//        printf("\nThat is not a valid choice."
+//               "  Please select from those shown.\n");
+//      break;
+//
+//    //case 'r':
+//    //  if (mode == 1)
+//    //    fread_formatted();
+//    //  else
+//    //    printf("\nThat is not a valid choice."
+//    //           "  Please select from those shown.\n");
+//    //  break;
+//
+//    //case '*':
+//    //  util_menu();
+//    //  break;
+//
+//    case '!':
+//      list_sequences((mode == 1 ? 4 : 3));
+//      break;
+//
+//      
+//    case '?':
+//      printf("\nList sequences separated by spaces, "
+//             "or for a range separated by '-'.\n");
+//      printf("Note that for a range the second number "
+//             "must be greater than the first.\n");
+//      printf("All duplicate entries are ignored.\n");
+//      printf("Example:  1 3-5 7 9-10\n");
+//      break;
+//      
+//    default:
+//      if (num_seqs == 0)
+//        printf("\nThere are no sequences to select.\n");
+//      else {
+//        len = set_marks_from_list(inbuf);
+//        if (len > 0)
+//          return len;
+//      }
+//    }
+//  }
+//}
 
-  flag = 1;
-  while (1) {
-    if (flag) {
-      printf("\nList sequences separated by spaces, "
-             "or for a range separated by '-'.\n");
-      printf("Note that for a range the second number "
-             "must be greater than the first.\n");
-      printf("All duplicate entries are ignored.\n");
-      printf("Example:  1 3-5 7 9-10\n");
-      flag = 0;
-    }
-
-    num_seqs = get_num_sequences();
-    if (num_seqs == 0) 
-      printf("\nCommands (None");
-    else
-      printf("\nCommands (1-%d", num_seqs);
-    printf(" - sequences, ! - list sequences, * - utilities menu,\n");
-    if (mode == 1)
-      printf("          r - read formatted file, t - create new sequence,\n");
-    printf("          ? - help, Ctl-D - cancel)\n");
-    printf("Enter %s: ", label);
-
-    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return 0;
-    }
-
-    switch(inbuf[0]) {
-    case 't':
-      if (mode == 1)
-        type_in_seq();
-      else
-        printf("\nThat is not a valid choice."
-               "  Please select from those shown.\n");
-      break;
-
-    //case 'r':
-    //  if (mode == 1)
-    //    fread_formatted();
-    //  else
-    //    printf("\nThat is not a valid choice."
-    //           "  Please select from those shown.\n");
-    //  break;
-
-    //case '*':
-    //  util_menu();
-    //  break;
-
-    case '!':
-      list_sequences((mode == 1 ? 4 : 3));
-      break;
-
-      
-    case '?':
-      printf("\nList sequences separated by spaces, "
-             "or for a range separated by '-'.\n");
-      printf("Note that for a range the second number "
-             "must be greater than the first.\n");
-      printf("All duplicate entries are ignored.\n");
-      printf("Example:  1 3-5 7 9-10\n");
-      break;
-      
-    default:
-      if (num_seqs == 0)
-        printf("\nThere are no sequences to select.\n");
-      else {
-        len = set_marks_from_list(inbuf);
-        if (len > 0)
-          return len;
-      }
-    }
-  }
-}
-
-int set_marks_from_list(char *s)
-{
-  int i, len, num1, num2, num_seqs;
-  
-  num_seqs = get_num_sequences();
-  for (i=0; i < num_seqs; i++)
-    set_mark(i, 0);
-
-  len = 0;
-  while (*s) {
-    while (*s && isspace((int)(*s))) s++;
-    if (!*s)
-      break;
-
-    if (sscanf(s, "%d", &num1) == 0) {
-      printf("\nThat is not a valid list of sequences."
-             "  Type ? for the correct format.\n");
-      return -1;
-    }
-    else if (num1 <= 0 || num1 > num_seqs) {
-      printf("\n%d is out of the range of current sequences.\n", num1);
-      printf("Please select from the range of 1 - %d.\n", num_seqs);
-      return -1;
-    }
-    while (*s && isdigit((int)(*s))) s++;
-
-    if (!*s || isspace((int)(*s))) {
-      set_mark(num1, 1);
-      len++;
-    }
-    else if (*s == '-') {
-      if (sscanf(++s, "%d", &num2) == 0) {
-        printf("\nThat is not a valid list of sequences."
-               "  Type ? for the correct format.\n");
-        return -1;
-      }
-      else if (num2 <= 0 || num2 > num_seqs) {
-        printf("%d is out of the range of current sequences.\n", num2);
-        printf("Please select from the range of 1 - %d.\n", num_seqs);
-        return -1;
-      }
-
-      if (num1 > num2) {
-        printf("\n%d-%d is an invalid range.\n", num1, num2);
-        printf("A range's first number must be less than the second.\n");
-        return -1;
-      }
-      
-      for (i=num1; i <= num2; i++) {
-        set_mark(i, 1);
-        len++;
-      }
-      while (*s && isdigit((int)(*s))) s++;
-    }
-    else {
-      printf("\nThat is not a valid list of sequences."
-             "  Type ? for the correct format.\n");
-      return -1;
-    }
-  }  
-
-  return len;    
-}
+//int set_marks_from_list(char *s)
+//{
+//  int i, len, num1, num2, num_seqs;
+//  
+//  num_seqs = get_num_sequences();
+//  for (i=0; i < num_seqs; i++)
+//    set_mark(i, 0);
+//
+//  len = 0;
+//  while (*s) {
+//    while (*s && isspace((int)(*s))) s++;
+//    if (!*s)
+//      break;
+//
+//    if (sscanf(s, "%d", &num1) == 0) {
+//      printf("\nThat is not a valid list of sequences."
+//             "  Type ? for the correct format.\n");
+//      return -1;
+//    }
+//    else if (num1 <= 0 || num1 > num_seqs) {
+//      printf("\n%d is out of the range of current sequences.\n", num1);
+//      printf("Please select from the range of 1 - %d.\n", num_seqs);
+//      return -1;
+//    }
+//    while (*s && isdigit((int)(*s))) s++;
+//
+//    if (!*s || isspace((int)(*s))) {
+//      set_mark(num1, 1);
+//      len++;
+//    }
+//    else if (*s == '-') {
+//      if (sscanf(++s, "%d", &num2) == 0) {
+//        printf("\nThat is not a valid list of sequences."
+//               "  Type ? for the correct format.\n");
+//        return -1;
+//      }
+//      else if (num2 <= 0 || num2 > num_seqs) {
+//        printf("%d is out of the range of current sequences.\n", num2);
+//        printf("Please select from the range of 1 - %d.\n", num_seqs);
+//        return -1;
+//      }
+//
+//      if (num1 > num2) {
+//        printf("\n%d-%d is an invalid range.\n", num1, num2);
+//        printf("A range's first number must be less than the second.\n");
+//        return -1;
+//      }
+//      
+//      for (i=num1; i <= num2; i++) {
+//        set_mark(i, 1);
+//        len++;
+//      }
+//      while (*s && isdigit((int)(*s))) s++;
+//    }
+//    else {
+//      printf("\nThat is not a valid list of sequences."
+//             "  Type ? for the correct format.\n");
+//      return -1;
+//    }
+//  }  
+//
+//  return len;    
+//}
 
 /*
  *  FUNCTION fread_formatted()
@@ -931,153 +929,153 @@ void terse_print_string(STRING *spt)
 *  with a continue to read even though errors where found.
 *
 ****************************************************************/
-void fread_unformatted(void)
-{
-  int elem_num, other_chars, seqlen, seqsize, alpha;
-  char ch, mapch, *filename, *sequence, *seq2, title[TITLE_LENGTH+1];
-  STRING *sptr;  
-  FILE* fp;
-
-  printf("\nEnter sequence title (Ctl-D to cancel): ");
-  if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-    printf("\n\n");
-    return;
-  }
-  title[0] = title[TITLE_LENGTH] = '\0';
-  if (*inbuf != '\0')
-    strncpy(title, inbuf, TITLE_LENGTH);
-
-  alpha = -1;
-  while (alpha == -1) {
-    printf("Alphabets "
-           "(1 - DNA, 2 - RNA, 3 - PROTEIN, 4 - ASCII, Ctl-D - Cancel)\n");
-    printf("Enter alphabet: ");
-
-    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return;
-    }
-
-    switch(*inbuf)  {
-    case '1':
-      alpha = ALPHA_DNA;
-      break;
-
-    case '2':
-      alpha = ALPHA_RNA;
-      break;
-
-    case '3':
-      alpha = ALPHA_PROTEIN;
-      break;
-
-    case '4':
-      alpha = ALPHA_ASCII;
-      break;
-
-    default:
-      printf("\nThat is not a choice.\n");
-    }
-  }
-
-  do  {
-    printf("\nEnter file name (Ctl-D to cancel): ");
-    if((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return;
-    }
-  } while (*inbuf == '\0');
-
-  if ((filename = malloc(buf_len + 1)) == NULL)  {
-    fprintf(stderr, "\nError: malloc failed in fread_unformatted().\n");
-    return;
-  }
-  strcpy(filename, inbuf);
-
-  printf("\nOpening file %s for input...\n", filename);
-  if ((fp = fopen(filename, "r")) == NULL)  {
-    fprintf(stderr, "Error: could not open file %s for input.\n", filename);
-    free(filename);
-    return;
-  }
-  
-  seqsize = 256;
-  if ((sequence = malloc(seqsize)) == NULL) {
-    fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
-    free(filename);
-    return;
-  }
-
-  seqlen = 0;
-  other_chars = 0;
-  while ((ch = getc(fp)) != EOF) {
-    mapch = rawmapchar(alpha, ch);
-    if (mapch == -1) {
-      free(filename);
-      free(sequence);
-      return;
-    }
-    else if (mapch != '\0') {
-      if (seqlen == seqsize) {
-        seqsize += seqsize;
-        if ((sequence = realloc(sequence, seqsize)) == NULL) {
-          fprintf(stderr,
-                  "Call to realloc failed.  Unable to add the sequence.\n");
-          free(filename);
-          free(sequence);
-          return;
-        }
-      }
-      sequence[seqlen++] = mapch;
-    }
-    else if (!isspace((int)ch))
-      other_chars = 1;
-  }
-  fclose(fp);
-  free(filename);
-
-  if (other_chars) {
-    printf("\nError:  This file contains characters not in the alphabet.\n");
-    while (1) {
-      printf("Abort the new sequence creation (default: y)?");
-      while ((inbuf = my_getline(stdin, &buf_len)) == NULL) ;
-
-      if (toupper(inbuf[0]) == 'Y' || inbuf[0] == '\0') {
-        free(filename);
-        free(sequence);
-        return;
-      }
-      else if (toupper(inbuf[0]) == 'N')
-        break;
-
-      printf("Answer y or n please.\n");
-    }
-  }    
-
-  sequence[seqlen] = '\0';
-  if (seqlen == 0) {
-    printf("\nNo sequence entered.  Did not create a sequence structure.\n");
-    free(sequence);
-    return;
-  }
-
-  if ((seq2 = malloc(seqlen + 1)) == NULL) {
-    fprintf(stderr, "Ran out of memory.  Unable to add new sequence.\n");
-    free(sequence);
-    return;
-  }
-
-  if ((elem_num = add_element()) == -1) {
-    free(sequence);
-    free(seq2);
-    return;
-  }
-    
-  sptr = get_element(elem_num);
-  sptr->db_type = 0;
-  sptr->raw_alpha = alpha;
-  sptr->raw_seq = sequence;
-  sptr->sequence = seq2;
-  sptr->length = seqlen;
-  strcpy(sptr->title, title);
-}
+//void fread_unformatted(void)
+//{
+//  int elem_num, other_chars, seqlen, seqsize, alpha;
+//  char ch, mapch, *filename, *sequence, *seq2, title[TITLE_LENGTH+1];
+//  STRING *sptr;  
+//  FILE* fp;
+//
+//  printf("\nEnter sequence title (Ctl-D to cancel): ");
+//  if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//    printf("\n\n");
+//    return;
+//  }
+//  title[0] = title[TITLE_LENGTH] = '\0';
+//  if (*inbuf != '\0')
+//    strncpy(title, inbuf, TITLE_LENGTH);
+//
+//  alpha = -1;
+//  while (alpha == -1) {
+//    printf("Alphabets "
+//           "(1 - DNA, 2 - RNA, 3 - PROTEIN, 4 - ASCII, Ctl-D - Cancel)\n");
+//    printf("Enter alphabet: ");
+//
+//    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return;
+//    }
+//
+//    switch(*inbuf)  {
+//    case '1':
+//      alpha = ALPHA_DNA;
+//      break;
+//
+//    case '2':
+//      alpha = ALPHA_RNA;
+//      break;
+//
+//    case '3':
+//      alpha = ALPHA_PROTEIN;
+//      break;
+//
+//    case '4':
+//      alpha = ALPHA_ASCII;
+//      break;
+//
+//    default:
+//      printf("\nThat is not a choice.\n");
+//    }
+//  }
+//
+//  do  {
+//    printf("\nEnter file name (Ctl-D to cancel): ");
+//    if((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return;
+//    }
+//  } while (*inbuf == '\0');
+//
+//  if ((filename = malloc(buf_len + 1)) == NULL)  {
+//    fprintf(stderr, "\nError: malloc failed in fread_unformatted().\n");
+//    return;
+//  }
+//  strcpy(filename, inbuf);
+//
+//  printf("\nOpening file %s for input...\n", filename);
+//  if ((fp = fopen(filename, "r")) == NULL)  {
+//    fprintf(stderr, "Error: could not open file %s for input.\n", filename);
+//    free(filename);
+//    return;
+//  }
+//  
+//  seqsize = 256;
+//  if ((sequence = malloc(seqsize)) == NULL) {
+//    fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
+//    free(filename);
+//    return;
+//  }
+//
+//  seqlen = 0;
+//  other_chars = 0;
+//  while ((ch = getc(fp)) != EOF) {
+//    mapch = rawmapchar(alpha, ch);
+//    if (mapch == -1) {
+//      free(filename);
+//      free(sequence);
+//      return;
+//    }
+//    else if (mapch != '\0') {
+//      if (seqlen == seqsize) {
+//        seqsize += seqsize;
+//        if ((sequence = realloc(sequence, seqsize)) == NULL) {
+//          fprintf(stderr,
+//                  "Call to realloc failed.  Unable to add the sequence.\n");
+//          free(filename);
+//          free(sequence);
+//          return;
+//        }
+//      }
+//      sequence[seqlen++] = mapch;
+//    }
+//    else if (!isspace((int)ch))
+//      other_chars = 1;
+//  }
+//  fclose(fp);
+//  free(filename);
+//
+//  if (other_chars) {
+//    printf("\nError:  This file contains characters not in the alphabet.\n");
+//    while (1) {
+//      printf("Abort the new sequence creation (default: y)?");
+//      while ((inbuf = my_getline(stdin, &buf_len)) == NULL) ;
+//
+//      if (toupper(inbuf[0]) == 'Y' || inbuf[0] == '\0') {
+//        free(filename);
+//        free(sequence);
+//        return;
+//      }
+//      else if (toupper(inbuf[0]) == 'N')
+//        break;
+//
+//      printf("Answer y or n please.\n");
+//    }
+//  }    
+//
+//  sequence[seqlen] = '\0';
+//  if (seqlen == 0) {
+//    printf("\nNo sequence entered.  Did not create a sequence structure.\n");
+//    free(sequence);
+//    return;
+//  }
+//
+//  if ((seq2 = malloc(seqlen + 1)) == NULL) {
+//    fprintf(stderr, "Ran out of memory.  Unable to add new sequence.\n");
+//    free(sequence);
+//    return;
+//  }
+//
+//  if ((elem_num = add_element()) == -1) {
+//    free(sequence);
+//    free(seq2);
+//    return;
+//  }
+//    
+//  sptr = get_element(elem_num);
+//  sptr->db_type = 0;
+//  sptr->raw_alpha = alpha;
+//  sptr->raw_seq = sequence;
+//  sptr->sequence = seq2;
+//  sptr->length = seqlen;
+//  strcpy(sptr->title, title);
+//}

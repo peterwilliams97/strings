@@ -1,4 +1,5 @@
 #include <string.h>
+#include <conio.h>
 #include "strmat.h"
 #include "strmat_util.h"
 //#include "sary_match.h"
@@ -19,7 +20,7 @@ static int stats_flag = ON;
 
 int main(int argc, char *argv[])
 {
-    int i;
+    int i, ok = 1;
     STRING *strings[NUM_STRINGS];
 
     for (i = 0; i < NUM_STRINGS; i++) {
@@ -47,9 +48,15 @@ int main(int argc, char *argv[])
         strings[i] = make_seq(title, dstring);
     }
 
-    strmat_ukkonen_build(strings, NUM_STRINGS, stree_build_policy,
+    ok = strmat_ukkonen_build(strings, NUM_STRINGS, stree_build_policy,
                              stree_build_threshold, stats_flag, stree_print_flag);
 
-   // getch();
+    if (!ok) {
+        fprintf(stderr, "strmat_ukkonen_build failed\n");
+        return 1;
+    }
+
+    printf("Print any key to exit...");
+    _getch();
 
 }

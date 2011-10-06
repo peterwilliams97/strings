@@ -17,7 +17,6 @@
 //#include "strmat.h"
 #include "stree_strmat.h"
 #include "stree_ukkonen.h"
-
 /*
  * stree_ukkonen_add_string
  *
@@ -42,7 +41,6 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
     id = int_stree_insert_string(tree, S, Sraw, M, strid);
     if (id == -1)
         return 0;
-
   /*
    * Run Ukkonen's algorithm to add the string to the suffix tree.
    *
@@ -133,8 +131,9 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
                         return 0;
                 }
 
-                if (lastnode != root && lastnode->suffix_link == NULL)
+                if (lastnode != root && lastnode->suffix_link == NULL) {
                     lastnode->suffix_link = node;
+                }
                 lastnode = node;
             } else {
                 /*
@@ -163,8 +162,9 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
                 if (i < M) {
                     if ((leaf = int_stree_new_leaf(tree, id, i, j)) == NULL 
                         || (node = int_stree_connect(tree, node, (STREE_NODE) leaf)) == NULL) {
-                        if (leaf != NULL)
+                        if (leaf != NULL) {
                             int_stree_free_leaf(tree, leaf);
+                        }
                         return 0;
                     }
                     tree->num_nodes++;
@@ -317,8 +317,7 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string, int build_policy,  int build_thr
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings,
-                                    int build_policy, int build_threshold)
+SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, int build_policy, int build_threshold)
 {
     int i;
     SUFFIX_TREE tree;
