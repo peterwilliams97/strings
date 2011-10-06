@@ -1,0 +1,90 @@
+
+STRMAT -  Version 1.5 Notes.
+
+
+   IMPORTANT NOTE:  This software is for internal use only.  This is
+   --------------   NOT a completed software product available for
+                    distribution.  Copies should only be made for 
+                    personal or class use.
+
+                    Also, there are most likely a number of bugs
+                    and undocumented (or incompletely documented)
+                    features in this program.  That is because this
+                    is not a finished product, and is only the current
+                    version of an ongoing production. 
+
+
+Getting Started:  To run this program all you need to type "strmat".
+                  If strmat does not exist then type "make" to get
+                  this file.
+
+General conventions:
+  To simplify using the interface I have included the following 
+  conventions:
+
+    Typing 0 (when available) will return you to the previous menu.
+
+    Typing * (when available) will bring you to the utilities menu.
+
+    Typing Control-D (when available) during an operation will abort
+    the operation and return you to the last menu.
+
+    Strmat keeps a list of sequences which can be used as input to
+    the various algorithms.  The utilities menu contains operations
+    to add, delete and print the sequences in the list.
+
+    Output is pipelined though a more interface developed by
+    James Knight.  When given the -More- prompt:
+	Type 'q' to stop printing.
+	Type <space> to display next page.
+       	Type <return> to display next line.
+
+
+Selecting Algorithm at Main Menu:
+  The algorithms are grouped into categories.  Select a number 
+  corresponding with the type of algorithms you wish to execute.  
+
+
+Selecting Algorithm:
+  Select an algorithm by number (and optionally a letter).
+
+  You will then be asked to select the input sequences (i.e., a 
+  single sequence, a pattern plus a text, a set of patterns plus
+  a text, ...). During the selection, you are also able to access the
+  utilities menu as well as read in files and list the current
+  sequences that are available.
+
+
+Using Utilites Menu:
+  Here you are given a list of utilites:
+  1) Reads a formatted file created by strmat.  (Look in the "doc"
+     sub-directory for a description of the file format.)
+  2) Reads an the sequence from a file after prompting you for
+     the name and type of alphabet.  If the alphabet is ASCII, all of
+     the characters are assumed to be part of the sequence.  If not,
+     only the file characters in the alphabet are considered part of
+     the sequence.
+  3) Creates a new sequence.  Same as option 2, but here you
+     are prompted to type in the sequence.
+  4) Lists title, length, alphabet and identification number of
+     all the sequences.
+  5) Print out the sequence of your choice.
+  6) Saves sequences to a file.  Enter sequences numbers as you do 
+     for option 3 and 5.
+  7) Delete sequences from the list in memory.  Enter sequence
+     numbers as you would for option 3.
+  8) Allows you to set display options.  Here you can opt to 
+     suppress the printing of statistics as well as redirect 
+     the output to a file.
+
+
+Warning about cross alphabet matching:
+  Strmat allows you to compare sequences that contain different
+  alphabets by mapping all the sequences to the union of the
+  characters in the different alphabets.
+
+  This has not been tested thoroughly.
+
+
+If you have any problems, questions or suggestions please e-mail:
+   knight@cs.ucdavis.edu

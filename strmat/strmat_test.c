@@ -1,6 +1,7 @@
+#include <string.h>
 #include "strmat.h"
 #include "strmat_util.h"
-#include "sary_match.h"
+//#include "sary_match.h"
 #include "stree_ukkonen.h"
 #include "strmat_alpha.h"
 #include "strmat_stubs2.h"
@@ -49,6 +50,6 @@ int main(int argc, char *argv[])
     strmat_ukkonen_build(strings, NUM_STRINGS, stree_build_policy,
                              stree_build_threshold, stats_flag, stree_print_flag);
 
-    getch();
+   // getch();
 
 }

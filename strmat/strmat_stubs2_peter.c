@@ -8,9 +8,9 @@
 #include "strmat_print.h"
 #include "stree_strmat.h"
 #include "stree_ukkonen.h"
-#include "stree_weiner.h"
+//#include "stree_weiner.h"
 #include "stree_lca.h"
-#include "stree_decomposition.h"
+//#include "stree_decomposition.h"
 //#include "strmat_stubs2.h"
 
 /*

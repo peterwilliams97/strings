@@ -60,9 +60,9 @@ STRING *get_string(char *label)
       type_in_seq();
       break;
 
-    case 'r':
-      fread_formatted();
-      break;
+    //case 'r':
+    //  fread_formatted();
+    //  break;
 
     //case '*':
     //  util_menu();
@@ -195,10 +195,8 @@ void list_sequences(int num_lines_after)
   for (i=1; i <= num_seqs && status; i++)  {
     spt = get_element(i);
 
-    mprintf("\n%d)\tTYPE: %s\tTITLE: %s\n", 
-            i, db_names[spt->db_type], spt->title);
-    status = mprintf("\tLENGTH: %d\tALPHA: %s\n",
-                     spt->length, alpha_names[spt->raw_alpha]);
+   // mprintf("\n%d)\tTYPE: %s\tTITLE: %s\n", i, db_names[spt->db_type], spt->title);
+    //status = mprintf("\tLENGTH: %d\tALPHA: %s\n",  spt->length, alpha_names[spt->raw_alpha]);
   }
   mputc('\n');
   mend(num_lines_after);
@@ -535,13 +533,13 @@ int select_sequences(char* label, int mode)
                "  Please select from those shown.\n");
       break;
 
-    case 'r':
-      if (mode == 1)
-        fread_formatted();
-      else
-        printf("\nThat is not a valid choice."
-               "  Please select from those shown.\n");
-      break;
+    //case 'r':
+    //  if (mode == 1)
+    //    fread_formatted();
+    //  else
+    //    printf("\nThat is not a valid choice."
+    //           "  Please select from those shown.\n");
+    //  break;
 
     //case '*':
     //  util_menu();
@@ -649,94 +647,94 @@ int set_marks_from_list(char *s)
  *  with a continue to read even though errors where found.
  *
  */
-void fread_formatted(void)
-{
-  int elem_num, status;
-  char *filename;
-  FILE *fp;
-  STRING *new_string;  
-
-  do {
-    printf("\nEnter file name (Ctl-D to cancel): ");
-    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return;
-    }
-  } while(*inbuf == '\0');
-
-  if ((filename = malloc(buf_len + 1)) == NULL)  {
-    fprintf(stderr,
-            "\nRan out of memory.  Unable to read specified file.\n\n");
-    return;
-  }
-  strcpy(filename, inbuf);
-
-  printf("\nOpening file %s for input...", filename);
-  fflush(stdout);
-  if ((fp = fopen(filename, "r")) == NULL)  {
-    fprintf(stderr, "\nError: Unable to open file %s.\n\n", filename);
-    free(filename);
-    return;
-  } 
-
-  new_string = NULL;
-  while (1) {
-    status = find_next_sequence(fp);
-    if (status == ERROR)
-      break;
-    else if (status == FORMAT_ERROR) {
-      fprintf(stderr, "\nError: Format error found while reading file %s.\n\n",
-              filename);
-      free(filename);
-      fclose(fp);
-      return;
-    }
-
-    printf("\nReading sequence...");
-    fflush(stdout);
-    if ((elem_num = add_element()) == 0)  {
-      fprintf(stderr,
-              "\nError: could not allocate space for new element.\n\n");
-      free(filename);
-      fclose(fp);
-      return;
-    }
-    new_string = get_element(elem_num);
-
-    switch (read_sequence(fp, new_string)) {
-    case OK:
-      if (new_string->title[0] != '\0')
-        printf("%s...", new_string->title);
-      printf("done.");
-      break;
-
-    case (int)NULL:         // !@#$
-      delete_element(elem_num);
-      break;
-
-    case PREMATURE_EOF:
-      printf("\nError: file %s ended prematurely.\n", filename);
-      delete_element(elem_num);
-      break;
-
-    case FORMAT_ERROR:
-      if (new_string->length == 0)
-        fprintf(stderr, "\nError: header for sequence incomplete.\n");
-      else
-        fprintf(stderr, "\nError: format error found in sequence %s.\n",
-               new_string->title);
-      delete_element(elem_num);
-      break;
-
-    case MISMATCH:
-      printf("\nWarning: found characters in %s that do not match alphabet.",
-             new_string->title);
-    }
-  }
-  printf("\nClosing %s.\n\n", filename);
-  fclose(fp);
-  free(filename);
-}
+//void fread_formatted(void)
+//{
+//  int elem_num, status;
+//  char *filename;
+//  FILE *fp;
+//  STRING *new_string;  
+//
+//  do {
+//    printf("\nEnter file name (Ctl-D to cancel): ");
+//    if ((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return;
+//    }
+//  } while(*inbuf == '\0');
+//
+//  if ((filename = malloc(buf_len + 1)) == NULL)  {
+//    fprintf(stderr,
+//            "\nRan out of memory.  Unable to read specified file.\n\n");
+//    return;
+//  }
+//  strcpy(filename, inbuf);
+//
+//  printf("\nOpening file %s for input...", filename);
+//  fflush(stdout);
+//  if ((fp = fopen(filename, "r")) == NULL)  {
+//    fprintf(stderr, "\nError: Unable to open file %s.\n\n", filename);
+//    free(filename);
+//    return;
+//  } 
+//
+//  new_string = NULL;
+//  while (1) {
+//    status = find_next_sequence(fp);
+//    if (status == ERROR)
+//      break;
+//    else if (status == FORMAT_ERROR) {
+//      fprintf(stderr, "\nError: Format error found while reading file %s.\n\n",
+//              filename);
+//      free(filename);
+//      fclose(fp);
+//      return;
+//    }
+//
+//    printf("\nReading sequence...");
+//    fflush(stdout);
+//    if ((elem_num = add_element()) == 0)  {
+//      fprintf(stderr,
+//              "\nError: could not allocate space for new element.\n\n");
+//      free(filename);
+//      fclose(fp);
+//      return;
+//    }
+//    new_string = get_element(elem_num);
+//
+//    switch (read_sequence(fp, new_string)) {
+//    case OK:
+//      if (new_string->title[0] != '\0')
+//        printf("%s...", new_string->title);
+//      printf("done.");
+//      break;
+//
+//    case (int)NULL:         // !@#$
+//      delete_element(elem_num);
+//      break;
+//
+//    case PREMATURE_EOF:
+//      printf("\nError: file %s ended prematurely.\n", filename);
+//      delete_element(elem_num);
+//      break;
+//
+//    case FORMAT_ERROR:
+//      if (new_string->length == 0)
+//        fprintf(stderr, "\nError: header for sequence incomplete.\n");
+//      else
+//        fprintf(stderr, "\nError: format error found in sequence %s.\n",
+//               new_string->title);
+//      delete_element(elem_num);
+//      break;
+//
+//    case MISMATCH:
+//      printf("\nWarning: found characters in %s that do not match alphabet.",
+//             new_string->title);
+//    }
+//  }
+//  printf("\nClosing %s.\n\n", filename);
+//  fclose(fp);
+//  free(filename);
+//}
 
 /**************************************************************************
  *
@@ -752,69 +750,69 @@ void fread_formatted(void)
  *  with a continue to read even though errors where found.
  *
  ***************************************************************************/
-void fwrite_formatted(void)
-{
-  int i, len, num_seqs;
-  char *filename;
-  STRING *new_string;
-  FILE* fp;
-
-  do {
-    printf("\nEnter file name (Ctl-D to cancel): ");
-    if((inbuf = my_getline(stdin, &buf_len)) == NULL) {
-      printf("\n\n");
-      return;
-    }
-  } while(*inbuf == '\0');
-
-  if ((filename = malloc(buf_len + 1)) == NULL)  {
-    fprintf(stderr, "\nError: malloc failed in fwrite_formatted().\n");
-    return;
-  }
-  strcpy(filename, inbuf);
-
-  len = select_sequences("sequences to save to file", 0);
-  if (len <= 0) {
-    free(filename);
-    return;
-  }
-  putchar ('\n');
-
-  printf("\nOpening file %s for output...", filename);
-  if ((fp = fopen(filename, "w")) == NULL)   {
-    printf("\nError: could not open file %s for output.\n", filename);
-    free(filename);
-    return;
-  }
-  putchar('\n');
-
-  num_seqs = get_num_sequences();
-  for (i=1; i <= num_seqs; i++) {
-    if (get_mark(i) == 1) {
-      new_string = get_element(i);
-      printf("Writing sequence %s...", new_string->title);
-      fflush(stdout);
-      switch (write_sequence(fp, new_string)) {
-      case OK:
-        printf("done.\n");
-        break;
-
-      case FORMAT_ERROR:
-        fprintf(stderr, "\nError: sequence format for %s is incorrect.\n",
-                new_string->title);
-        break;
-
-      case (int)NULL:   // !@#$
-      case MISMATCH:
-        break;
-      }
-    }
-  }
-
-  printf("Closing %s.\n", filename);
-  fclose(fp);
-  free(filename);
-}
+//void fwrite_formatted(void)
+//{
+//  int i, len, num_seqs;
+//  char *filename;
+//  STRING *new_string;
+//  FILE* fp;
+//
+//  do {
+//    printf("\nEnter file name (Ctl-D to cancel): ");
+//    if((inbuf = my_getline(stdin, &buf_len)) == NULL) {
+//      printf("\n\n");
+//      return;
+//    }
+//  } while(*inbuf == '\0');
+//
+//  if ((filename = malloc(buf_len + 1)) == NULL)  {
+//    fprintf(stderr, "\nError: malloc failed in fwrite_formatted().\n");
+//    return;
+//  }
+//  strcpy(filename, inbuf);
+//
+//  len = select_sequences("sequences to save to file", 0);
+//  if (len <= 0) {
+//    free(filename);
+//    return;
+//  }
+//  putchar ('\n');
+//
+//  printf("\nOpening file %s for output...", filename);
+//  if ((fp = fopen(filename, "w")) == NULL)   {
+//    printf("\nError: could not open file %s for output.\n", filename);
+//    free(filename);
+//    return;
+//  }
+//  putchar('\n');
+//
+//  num_seqs = get_num_sequences();
+//  for (i=1; i <= num_seqs; i++) {
+//    if (get_mark(i) == 1) {
+//      new_string = get_element(i);
+//      printf("Writing sequence %s...", new_string->title);
+//      fflush(stdout);
+//      switch (write_sequence(fp, new_string)) {
+//      case OK:
+//        printf("done.\n");
+//        break;
+//
+//      case FORMAT_ERROR:
+//        fprintf(stderr, "\nError: sequence format for %s is incorrect.\n",
+//                new_string->title);
+//        break;
+//
+//      case (int)NULL:   // !@#$
+//      case MISMATCH:
+//        break;
+//      }
+//    }
+//  }
+//
+//  printf("Closing %s.\n", filename);
+//  fclose(fp);
+//  free(filename);
+//}
 
 /********************************************************************
 *  Function print_string
@@ -833,10 +831,10 @@ void print_string(STRING* string)
   int ascii;
   char *s;
 
-  mprintf("TYPE: %s\n", db_names[string->db_type]);
+  //mprintf("TYPE: %s\n", db_names[string->db_type]);
   mprintf("IDENT: %s\n", string->ident);
   mprintf("TITLE: %s\n", string->title);
-  mprintf("ALPHA: %s\n", alpha_names[string->raw_alpha]); 
+ // mprintf("ALPHA: %s\n", alpha_names[string->raw_alpha]); 
   mprintf("LENGTH: %d\n", string->length);
   mprintf("SEQUENCE:\n");
 
@@ -901,14 +899,14 @@ void terse_print_string(STRING *spt)
   int i;
   char *s, *t, buffer[51];
   
-  mprintf("\tTYPE: %s\t", db_names[spt->db_type]);
+//  mprintf("\tTYPE: %s\t", db_names[spt->db_type]);
   mprintf("TITLE: ");
   if (*(spt->title))
     mputs(spt->title);
   mputc('\n');
 
   mprintf("\tLENGTH: %d\t",spt->length);
-  mprintf("ALPHA: %s\n",alpha_names[spt->raw_alpha]);
+ // mprintf("ALPHA: %s\n",alpha_names[spt->raw_alpha]);
 
   buffer[50] = '\0';
   mprintf("\tSEQUENCE:  ");
