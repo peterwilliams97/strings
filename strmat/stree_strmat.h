@@ -1,6 +1,9 @@
 #ifndef _STREE_STRMAT_H_
 #define _STREE_STRMAT_H_
 
+#define ON 1
+#define OFF 0
+
 #define ALPHABET_SIZE 256
 
 typedef struct stree_intleaf {

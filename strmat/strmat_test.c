@@ -6,9 +6,7 @@
 #include "stree_ukkonen.h"
 #include "strmat_stubs2.h"
 
-#define ON 1
-#define OFF 0
-static int ch_len;
+
 static int stree_print_flag = ON;
 static int stats_flag = ON;
 
