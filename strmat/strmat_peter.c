@@ -13,12 +13,12 @@
 #define ON 1
 #define OFF 0
 
-static char *choice;
-static int ch_len;
-static int stree_build_policy = SORTED_LIST;
-static int stree_build_threshold = 10;
-static int stree_print_flag = ON;
-static int stats_flag = ON;
+//static char *choice;
+//static int ch_len;
+//static int stree_build_policy = SORTED_LIST;
+//static int stree_build_threshold = 10;
+//static int stree_print_flag = ON;
+//static int stats_flag = ON;
 
 //FILE     *fpout = (FILE *)1; // stdout; // !@#$
 

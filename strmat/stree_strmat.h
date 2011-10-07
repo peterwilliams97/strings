@@ -1,9 +1,6 @@
 #ifndef _STREE_STRMAT_H_
 #define _STREE_STRMAT_H_
 
-#define LINKED_LIST 0
-#define SORTED_LIST 1
-#define LIST_THEN_ARRAY 2
 #define COMPLETE_ARRAY 3
 
 typedef struct stree_intleaf {
@@ -35,8 +32,6 @@ typedef struct stree_node {
   struct stree_node *next;
 
   struct stree_node *suffix_link;
-
-  int isanarray;
   struct stree_node *children;
 
   STREE_INTLEAF leaves;
@@ -52,7 +47,6 @@ typedef struct {
   int nextslot, strsize, copyflag;
 
   int alpha_size;
-  int build_type, build_threshold;
   int idents_dirty;
 
   int tree_size;
@@ -60,7 +54,7 @@ typedef struct {
   int child_cost, nodes_created, creation_cost;
 } STREE_STRUCT, *SUFFIX_TREE;
 
-SUFFIX_TREE stree_new_tree(int alphasize, int copyflag, int build_type, int build_threshold);
+SUFFIX_TREE stree_new_tree(int alphasize, int copyflag);
 void stree_delete_tree(SUFFIX_TREE tree);
 
 void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(),  int (*postorder_fn)());
@@ -123,7 +117,7 @@ STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node);
 #define int_stree_get_length(tree,id)  ((tree)->lengths[(id)])
 #define int_stree_get_strid(tree,id)  ((tree)->ids[(id)])
 
-STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent,  STREE_NODE child);
+STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE child);
 void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchild, STREE_NODE newchild);
 void int_stree_disc_from_parent(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE child);
 void int_stree_disconnect(SUFFIX_TREE tree, STREE_NODE node);

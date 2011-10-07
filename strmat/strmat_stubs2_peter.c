@@ -21,15 +21,12 @@
  *
  * Parameters:   strings          -  the input strings
  *               num_strings      -  the number of input strings
- *               build_policy     -  suffix tree build policy
- *               build_threshold  -  threshold used by LIST_THEN_ARRAY
  *               print_stats      -  flag telling whether to print the stats
  *               print_tree       -  flag telling whether to print the tree
  *
  * Returns:  non-zero on success, zero on error
  */
-int strmat_ukkonen_build(STRING **strings, int num_strings, int build_policy,
-                         int build_threshold, int print_stats, int print_tree)
+int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int print_tree)
 {
     int i, max_length, total_length;
     SUFFIX_TREE tree;
@@ -51,7 +48,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int build_policy,
     /*
     * Build the tree, then print the output.
     */
-    tree = stree_gen_ukkonen_build(strings, num_strings, build_policy, build_threshold);
+    tree = stree_gen_ukkonen_build(strings, num_strings);
     if (tree == NULL)
         return 0;
 
@@ -101,8 +98,6 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int build_policy,
  * Parameters:   pattern          -  the input pattern
  *               strings          -  the input strings
  *               num_strings      -  the number of input strings
- *               build_policy     -  suffix tree build policy
- *               build_threshold  -  threshold used by LIST_THEN_ARRAY
  *               print_stats      -  flag telling whether to print the stats
  *
  * Returns:  non-zero on success, zero on error
@@ -142,8 +137,7 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
 }
 
 
-int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings,
-                       int build_policy, int build_threshold, int print_stats)
+int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int print_stats)
 {
   int flag, pos, matchlen;
 #ifdef STATS
@@ -160,8 +154,7 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings,
    * Build the suffix tree.
    */
   mprintf("Building the tree...\n\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings, build_policy,
-                                 build_threshold);
+  tree = stree_gen_ukkonen_build(strings, num_strings);
   if (tree == NULL)
     return 0;
 
@@ -274,25 +267,23 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings,
  *
  * Parameters:   strings          -  the input strings
  *               num_strings      -  the number of input strings
- *               build_policy     -  suffix tree build policy
- *               build_threshold  -  threshold used by LIST_THEN_ARRAY
  *               print_stats      -  flag telling whether to print the stats
  *
  * Returns:  non-zero on success, zero on error
  */
-static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node,                STREE_NODE *nodemap);
-int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,  int build_threshold, int print_stats, LCA_TYPE type);
+static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodemap);
+int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type);
 
-int strmat_stree_lca(STRING **strings, int num_strings, int build_policy, int build_threshold, int print_stats)
+int strmat_stree_lca(STRING **strings, int num_strings, int print_stats)
 {  
-    return int_strmat_stree_lca(strings, num_strings, build_policy, build_threshold, print_stats, LCA_LINEAR);  
+    return int_strmat_stree_lca(strings, num_strings,  print_stats, LCA_LINEAR);  
 }
-int strmat_stree_naive_lca(STRING **strings, int num_strings, int build_policy,  int build_threshold, int print_stats)
+int strmat_stree_naive_lca(STRING **strings, int num_strings, int print_stats)
 {  
-    return int_strmat_stree_lca(strings, num_strings, build_policy, build_threshold, print_stats, LCA_NAIVE);  
+    return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE);  
 }
 
-int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,  int build_threshold, int print_stats, LCA_TYPE type)
+int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type)
 {
   int i, num_nodes, num1, num2, len, num_lcas, max_length;
   char *s, *line, buffer[64];
@@ -307,8 +298,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int build_policy,  i
    * Build the tree.
    */
   printf("Building the suffix tree...\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings, build_policy,
-                                 build_threshold);
+  tree = stree_gen_ukkonen_build(strings, num_strings);
   if (tree == NULL)
     return 0;
 
@@ -508,16 +498,13 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *map)
  *
  * Parameters:   strings          -  the input strings
  *               num_strings      -  the number of input strings
- *               build_policy     -  suffix tree build policy
- *               build_threshold  -  threshold used by LIST_THEN_ARRAY
  *
  * Returns:  non-zero on success, zero on error
  */
 static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
                              int gen_stree_flag, int mend_num_lines);
 
-int strmat_stree_walkaround(STRING **strings, int num_strings,
-                            int build_policy, int build_threshold)
+int strmat_stree_walkaround(STRING **strings, int num_strings)
 {
   int alphabet;
   char mapch, *choice;
@@ -531,8 +518,7 @@ int strmat_stree_walkaround(STRING **strings, int num_strings,
    * Build the tree.
    */
   printf("Building the suffix tree...\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings, build_policy,
-                                 build_threshold);
+  tree = stree_gen_ukkonen_build(strings, num_strings);
   if (tree == NULL)
     return 0;
 

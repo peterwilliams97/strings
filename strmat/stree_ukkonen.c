@@ -279,20 +279,17 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
  * Build a suffix tree for a single string.
  *
  * Parameters:  string           -  the string
- *              build_policy     -  what type of build policy to use
- *              build_threshold  -  for LIST_THEN_ARRAY, when to move from
- *                                  linked list to complete array
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_ukkonen_build(STRING *string, int build_policy,  int build_threshold)
+SUFFIX_TREE stree_ukkonen_build(STRING *string)
 {
     SUFFIX_TREE tree;
 
     if (string == NULL || string->sequence == NULL || string->length == 0)
         return NULL;
   
-    tree = stree_new_tree(string->alpha_size, 1, build_policy, build_threshold);
+    tree = stree_new_tree(string->alpha_size, 1);
     if (tree == NULL)
         return NULL;
 
@@ -311,13 +308,10 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string, int build_policy,  int build_thr
  *
  * Parameters:  strings          -  the strings
  *              num_strings      -  the number of strings
- *              build_policy     -  what type of build policy to use
- *              build_threshold  -  for LIST_THEN_ARRAY, when to move from
- *                                  linked list to complete array
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, int build_policy, int build_threshold)
+SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
 {
     int i;
     SUFFIX_TREE tree;
@@ -325,7 +319,7 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, int build
     if (strings == NULL || num_strings == 0)
         return NULL;
 
-    tree = stree_new_tree(strings[0]->alpha_size, 0, build_policy, build_threshold);
+    tree = stree_new_tree(strings[0]->alpha_size, 0);
     if (tree == NULL)
         return NULL;
 

@@ -10,8 +10,6 @@
 #define ON 1
 #define OFF 0
 static int ch_len;
-static int stree_build_policy = COMPLETE_ARRAY; // SORTED_LIST;
-static int stree_build_threshold = 10;
 static int stree_print_flag = ON;
 static int stats_flag = ON;
 
@@ -48,15 +46,14 @@ int main(int argc, char *argv[])
         strings[i] = make_seq(title, dstring);
     }
 
-    ok = strmat_ukkonen_build(strings, NUM_STRINGS, stree_build_policy,
-                             stree_build_threshold, stats_flag, stree_print_flag);
+    ok = strmat_ukkonen_build(strings, NUM_STRINGS, stats_flag, stree_print_flag);
 
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
         return 1;
     }
 
-    printf("Print any key to exit...");
-    _getch();
+   printf("Print any key to exit...");
+   _getch();
 
 }
