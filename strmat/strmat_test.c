@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include <conio.h>
 #include "strmat.h"
 #include "strmat_util.h"

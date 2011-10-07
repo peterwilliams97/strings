@@ -10,66 +10,59 @@
 #define ON 1
 #define OFF 0
 
-int my_itoalen(int num)
-{
-    int i;
 
-    for (i=1; num >= 10; i++)
-        num /= 10;
-    return i;
-}
 
-char *my_getline(FILE *fp, int *len_out)
-{
-  static int bufsize = 0;
-  static char *buffer = NULL;
-  int size, len;
-  char *s;
-
-  if (!buffer) {
-    bufsize = 20;
-    if ((buffer = malloc(bufsize)) == NULL) {
-      fprintf(stderr, "Memory Error:  Ran out of memory.\n");
-      return NULL;
-    }
-  }  
-
-  s = buffer + bufsize - 2;
-  *s = '\0';
-  if (fgets(buffer, bufsize, fp) == NULL)
-    return NULL;
-  else if (!*s || *s == '\n') {
-    len = strlen(buffer);
-    if (buffer[len-1] == '\n')
-      buffer[--len] = '\0';
-    if (len_out) *len_out = len;
-    return buffer;
-  }
-
-  while (1) {
-    size = bufsize - 1;
-    bufsize += bufsize;
-    if ((buffer = realloc(buffer, bufsize)) == NULL) {
-      fprintf(stderr, "Memory Error:  Ran out of memory.\n");
-      return NULL;
-    }
-
-    s = buffer + bufsize - 2;
-    *s = '\0';
-    if (fgets(buffer + size, bufsize - size, fp) == NULL) {
-      len = size;
-      if (buffer[len-1] == '\n')
-        buffer[--len] = '\0';
-      if (len_out) *len_out = len;
-      return buffer;
-    }
-    else if (!*s || *s == '\n') {
-      len = size + strlen(buffer + size);
-      if (buffer[len-1] == '\n')
-        buffer[--len] = '\0';
-      if (len_out) *len_out = len;
-      return buffer;
-    }
-  }
-}
+//char *my_getline(FILE *fp, int *len_out)
+//{
+//  static int bufsize = 0;
+//  static char *buffer = NULL;
+//  int size, len;
+//  char *s;
+//
+//  if (!buffer) {
+//    bufsize = 20;
+//    if ((buffer = malloc(bufsize)) == NULL) {
+//      fprintf(stderr, "Memory Error:  Ran out of memory.\n");
+//      return NULL;
+//    }
+//  }  
+//
+//  s = buffer + bufsize - 2;
+//  *s = '\0';
+//  if (fgets(buffer, bufsize, fp) == NULL)
+//    return NULL;
+//  else if (!*s || *s == '\n') {
+//    len = strlen(buffer);
+//    if (buffer[len-1] == '\n')
+//      buffer[--len] = '\0';
+//    if (len_out) *len_out = len;
+//    return buffer;
+//  }
+//
+//  while (1) {
+//    size = bufsize - 1;
+//    bufsize += bufsize;
+//    if ((buffer = realloc(buffer, bufsize)) == NULL) {
+//      fprintf(stderr, "Memory Error:  Ran out of memory.\n");
+//      return NULL;
+//    }
+//
+//    s = buffer + bufsize - 2;
+//    *s = '\0';
+//    if (fgets(buffer + size, bufsize - size, fp) == NULL) {
+//      len = size;
+//      if (buffer[len-1] == '\n')
+//        buffer[--len] = '\0';
+//      if (len_out) *len_out = len;
+//      return buffer;
+//    }
+//    else if (!*s || *s == '\n') {
+//      len = size + strlen(buffer + size);
+//      if (buffer[len-1] == '\n')
+//        buffer[--len] = '\0';
+//      if (len_out) *len_out = len;
+//      return buffer;
+//    }
+//  }
+//}
 

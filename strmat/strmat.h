@@ -77,7 +77,7 @@
 
 typedef struct {
     char *sequence, *desc_string;
-    int length, raw_alpha, db_type;
+    int length;
     char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
 } STRING;
 
@@ -87,14 +87,13 @@ typedef struct {
 #define ERROR 0
 #define OK 1
 
-extern char *db_names[];
 
-#include "more.h"
+//#include "more.h"
 
 /*
  * Prototypes from strmat_main.c
  */
-int my_itoalen(int);
-char *my_getline(FILE *, int *);
+//int my_itoalen(int);
+//char *my_getline(FILE *, int *);
 
 #endif

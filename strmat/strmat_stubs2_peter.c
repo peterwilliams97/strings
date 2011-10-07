@@ -5,6 +5,7 @@
 #include "strmat.h"
 #include "strmat_match.h"
 #include "strmat_print.h"
+#include "strmat_util.h"
 #include "stree_strmat.h"
 #include "stree_ukkonen.h"
 //#include "stree_weiner.h"
@@ -52,20 +53,20 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
         return 0;
 
     if (print_stats) {
-        mprintf("\nStatistics:\n");
+        printf("\nStatistics:\n");
 #ifdef STATS
-        mprintf("   Sum of Sequence Sizes:       %d\n", total_length);
-        mprintf("   Number of Tree Nodes:        %d\n", stree_get_num_nodes(tree));
-        mprintf("   Size of Optimized Tree:      %d\n", tree->tree_size);
-        mprintf("   Bytes per Character:         %.2f\n",  (float) tree->tree_size / (float) total_length);
-        mprintf("\n");
-        mprintf("   Number of Comparisons:       %d\n", tree->num_compares);
-        mprintf("   Cost of Constructing Edges:  %d\n", tree->creation_cost);
-        mprintf("   Number of Edges Traversed:   %d\n", tree->edges_traversed);
-        mprintf("   Cost of Traversing Edges:    %d\n", tree->child_cost);
-        mprintf("   Number of Links Traversed:   %d\n", tree->links_traversed);
+        printf("   Sum of Sequence Sizes:       %d\n", total_length);
+        printf("   Number of Tree Nodes:        %d\n", stree_get_num_nodes(tree));
+        printf("   Size of Optimized Tree:      %d\n", tree->tree_size);
+        printf("   Bytes per Character:         %.2f\n",  (float) tree->tree_size / (float) total_length);
+        printf("\n");
+        printf("   Number of Comparisons:       %d\n", tree->num_compares);
+        printf("   Cost of Constructing Edges:  %d\n", tree->creation_cost);
+        printf("   Number of Edges Traversed:   %d\n", tree->edges_traversed);
+        printf("   Cost of Traversing Edges:    %d\n", tree->child_cost);
+        printf("   Number of Links Traversed:   %d\n", tree->links_traversed);
 #else
-        mprintf("   No statistics available.\n");
+        printf("   No statistics available.\n");
 #endif
         if (mputc('\n') == 0) {
             stree_delete_tree(tree);
@@ -74,7 +75,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
     }
 
     if (print_tree) {
-        mprintf("Suffix Tree:\n");
+        printf("Suffix Tree:\n");
         if (max_length < 40)
             small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
         else
@@ -152,7 +153,7 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
   /*
    * Build the suffix tree.
    */
-  mprintf("Building the tree...\n\n");
+  printf("Building the tree...\n\n");
   tree = stree_gen_ukkonen_build(strings, num_strings);
   if (tree == NULL)
     return 0;
@@ -230,20 +231,20 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
   print_matches(NULL, strings, num_strings, matchlist, matchcount);
 
   if (print_stats) {
-    mprintf("Statistics:\n");
+    printf("Statistics:\n");
 #ifdef STATS
-    mprintf("   Matching:\n");
-    mprintf("      Pattern Length:          %d\n", pattern->length);
-    mprintf("      Number of Comparisons:   %d\n", num_compares);
-    mprintf("      Number Edges Traversed:  %d\n", edges_traversed);
-    mprintf("      Cost of Edge Traversal:  %d\n", child_cost);
-    mprintf("\n");
-    mprintf("   Subtree Traversal:\n");
-    mprintf("      Number of Matches:       %d\n", matchcount);
-    mprintf("      Number Edges Traversed:  %d\n", tree->edges_traversed);
-    mprintf("      Cost of Edge Traversal:  %d\n", tree->child_cost);
+    printf("   Matching:\n");
+    printf("      Pattern Length:          %d\n", pattern->length);
+    printf("      Number of Comparisons:   %d\n", num_compares);
+    printf("      Number Edges Traversed:  %d\n", edges_traversed);
+    printf("      Cost of Edge Traversal:  %d\n", child_cost);
+    printf("\n");
+    printf("   Subtree Traversal:\n");
+    printf("      Number of Matches:       %d\n", matchcount);
+    printf("      Number Edges Traversed:  %d\n", tree->edges_traversed);
+    printf("      Cost of Edge Traversal:  %d\n", tree->child_cost);
 #else
-    mprintf("   No statistics available.\n");
+    printf("   No statistics available.\n");
 #endif
     mputc('\n');
   }
@@ -271,71 +272,72 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
  * Returns:  non-zero on success, zero on error
  */
 static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodemap);
-int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type);
+int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type, char *lines[]);
 
-int strmat_stree_lca(STRING **strings, int num_strings, int print_stats)
+int strmat_stree_lca(STRING **strings, int num_strings, int print_stats, char *lines[])
 {  
-    return int_strmat_stree_lca(strings, num_strings,  print_stats, LCA_LINEAR);  
+    return int_strmat_stree_lca(strings, num_strings,  print_stats, LCA_LINEAR, lines);  
 }
-int strmat_stree_naive_lca(STRING **strings, int num_strings, int print_stats)
+int strmat_stree_naive_lca(STRING **strings, int num_strings, int print_stats, char *lines[])
 {  
-    return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE);  
+    return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE, lines);  
 }
 
-int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type)
+int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type, char *lines[])
 {
-  int i, num_nodes, num1, num2, len, num_lcas, max_length;
-  char *s, *line, buffer[64];
-  STREE_NODE x, y, z, *nodemap;
-  SUFFIX_TREE tree;
-  LCA_STRUCT *lcastruct;
+    int i, num_nodes, num1, num2, len, num_lcas, max_length;
+    char *s, **line_ptr, buffer[64];
+    STREE_NODE x, y, z, *nodemap;
+    SUFFIX_TREE tree;
+    LCA_STRUCT *lcastruct;
 
-  if (strings == NULL)
-    return 0;
+    if (strings == NULL)
+        return 0;
 
   /*
    * Build the tree.
    */
-  printf("Building the suffix tree...\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings);
-  if (tree == NULL)
-    return 0;
+    printf("Building the suffix tree...\n");
+    tree = stree_gen_ukkonen_build(strings, num_strings);
+    if (tree == NULL)
+        return 0;
 
-  num_nodes = stree_get_num_nodes(tree);
-  max_length = -1;
-  for (i=0; i < num_strings; i++)
-    if (max_length == -1 || strings[i]->length > max_length)
-      max_length = strings[i]->length;
+    num_nodes = stree_get_num_nodes(tree);
+    max_length = -1;
+    for (i=0; i < num_strings; i++)
+        if (max_length == -1 || strings[i]->length > max_length)
+            max_length = strings[i]->length;
 
-  /*
-   * Preprocess the suffix tree.
-   */
-  printf("Preprocessing...\n");
-  lcastruct = NULL;
-  switch (type) {
-  case LCA_NAIVE:   lcastruct = lca_naive_prep(tree);  break;
-  case LCA_LINEAR:  lcastruct = lca_prep(tree);  break;
-  case LCA_NLOGN:   return 0;
-  }
-  if (lcastruct == NULL) {
-    stree_delete_tree(tree);
-    return 0;
-  }
+   /*
+    * Preprocess the suffix tree.
+    */
+    printf("Preprocessing...\n");
+    lcastruct = NULL;
+    switch (type) {
+        case LCA_NAIVE:   lcastruct = lca_naive_prep(tree);  break;
+        case LCA_LINEAR:  lcastruct = lca_prep(tree);  break;
+        case LCA_NLOGN:   return 0;
+    }
+    if (lcastruct == NULL) {
+        stree_delete_tree(tree);
+        return 0;
+    }
 
   /*
    * Build the map of suffix tree nodes.
    */
-  nodemap = malloc(num_nodes * sizeof(STREE_NODE));
-  if (nodemap == NULL) {
-    lca_free(lcastruct);
-    stree_delete_tree(tree);
-    return 0;
-  }
+    nodemap = malloc(num_nodes * sizeof(STREE_NODE));
+    if (nodemap == NULL) {
+        lca_free(lcastruct);
+        stree_delete_tree(tree);
+        return 0;
+    }
 
-  compute_nodemap(tree, stree_get_root(tree), nodemap);
+    compute_nodemap(tree, stree_get_root(tree), nodemap);
 
   /*
    * Query the user to enter nodes, and compute the LCA of those nodes.
+   * !@#$ Now passed in as an argument
    */
   printf("\n");
   printf("Commands (0-%d 0-%d - Find LCA of two nodes (identify by number),\n",
@@ -343,122 +345,109 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
   printf("          ! - print suffix tree, Ctl-D - quit)\n");
 
   num_lcas = 0;
-  while (1) {
-    printf("Enter nodes: ");
+  for (line_ptr = lines; line_ptr; line_ptr++) {
+        char *line = *line_ptr;
+        if (line[0] == '\0') {
+            continue;
+        } else if (line[0] == '!') {
+            mputc('\n');
+            printf("Suffix Tree:\n");
+            if (max_length < 40)
+                small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
+            else
+                large_print_tree(tree, stree_get_root(tree), (num_strings > 1));
+            mputc('\n');
+        }  else if (sscanf(line, "%d %d", &num1, &num2) == 2 && num1 >= 0 
+            &&  num1 < num_nodes && num2 >= 0 && num2 < num_nodes) {
+            x = nodemap[num1];
+            y = nodemap[num2];
+            z = NULL;
+            switch (type) {
+                case LCA_NAIVE:   z = lca_naive_lookup(lcastruct, x, y);  break;
+                case LCA_LINEAR:  z = lca_lookup(lcastruct, x, y);  break;
+                case LCA_NLOGN:  return 0;
+            }
+            num_lcas++;
+            
+            if (x == stree_get_root(tree)) {
+                printf("   Node %d:  (root)\n", stree_get_ident(tree, x));
+            } else {
+                len = stree_get_labellen(tree, x);
+                stree_get_label(tree, x, buffer, 50, 0);
+                for (s=buffer,i=0; *s && i < 50; s++,i++) {
+                    if (!isprint((int)(*s)))
+                        *s = '#';
+                }
+                if (len > 50) {
+                    buffer[50] = buffer[51] = buffer[52] = '.';
+                    buffer[53] = '\0';
+                } else if (len == 50) {
+                    buffer[50] = '\0';
+                }
+                printf("   Node %d:  %s\n", stree_get_ident(tree, x), buffer);
+            }
 
-    if ((line = my_getline(stdin, NULL)) == NULL) {
-      printf("\n\n");
-      break;
+            if (y == stree_get_root(tree)) {
+                printf("   Node %d:  (root)\n", stree_get_ident(tree, y));
+            } else {
+                len = stree_get_labellen(tree, y);
+                stree_get_label(tree, y, buffer, 50, 0);
+                for (s=buffer,i=0; *s && i < 50; s++,i++)
+                    if (!isprint((int)(*s)))
+                        *s = '#';
+                if (len > 50) {
+                    buffer[50] = buffer[51] = buffer[52] = '.';
+                    buffer[53] = '\0';
+                }  else if (len == 50) {
+                    buffer[50] = '\0';
+                }
+                printf("   Node %d:  %s\n", stree_get_ident(tree, y), buffer);
+            }
+
+            if (z == stree_get_root(tree))
+                printf("   LCA Node %d:  (root)\n", stree_get_ident(tree, z));
+            else {
+                len = stree_get_labellen(tree, z);
+                stree_get_label(tree, z, buffer, 50, 0);
+                for (s=buffer,i=0; *s && i < 50; s++,i++)
+                    if (!isprint((int)(*s)))
+                        *s = '#';
+                if (len > 50) {
+                    buffer[50] = buffer[51] = buffer[52] = '.';
+                    buffer[53] = '\0';
+                }  else if (len == 50) {
+                    buffer[50] = '\0';
+                }
+                printf("   LCA Node %d:  %s\n", stree_get_ident(tree, z), buffer);
+            }
+            
+            putchar('\n');
+    
+        } 
     }
 
-    if (line[0] == '\0')
-      continue;
-
-    if (line[0] == '!') {
-      mputc('\n');
-      mprintf("Suffix Tree:\n");
-      if (max_length < 40)
-        small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
-      else
-        large_print_tree(tree, stree_get_root(tree), (num_strings > 1));
-      mputc('\n');
-    }
-    else if (sscanf(line, "%d %d", &num1, &num2) == 2 && num1 >= 0 &&
-             num1 < num_nodes && num2 >= 0 && num2 < num_nodes) {
-      x = nodemap[num1];
-      y = nodemap[num2];
-
-      z = NULL;
-      switch (type) {
-      case LCA_NAIVE:   z = lca_naive_lookup(lcastruct, x, y);  break;
-      case LCA_LINEAR:  z = lca_lookup(lcastruct, x, y);  break;
-      case LCA_NLOGN:  return 0;
-      }
-      num_lcas++;
-
-      if (x == stree_get_root(tree))
-        printf("   Node %d:  (root)\n", stree_get_ident(tree, x));
-      else {
-        len = stree_get_labellen(tree, x);
-        stree_get_label(tree, x, buffer, 50, 0);
-        for (s=buffer,i=0; *s && i < 50; s++,i++)
-          if (!isprint((int)(*s)))
-            *s = '#';
-        if (len > 50) {
-          buffer[50] = buffer[51] = buffer[52] = '.';
-          buffer[53] = '\0';
-        }
-        else if (len == 50)
-          buffer[50] = '\0';
-
-        printf("   Node %d:  %s\n", stree_get_ident(tree, x), buffer);
-      }
-
-      if (y == stree_get_root(tree))
-        printf("   Node %d:  (root)\n", stree_get_ident(tree, y));
-      else {
-        len = stree_get_labellen(tree, y);
-        stree_get_label(tree, y, buffer, 50, 0);
-        for (s=buffer,i=0; *s && i < 50; s++,i++)
-          if (!isprint((int)(*s)))
-            *s = '#';
-        if (len > 50) {
-          buffer[50] = buffer[51] = buffer[52] = '.';
-          buffer[53] = '\0';
-        }
-        else if (len == 50)
-          buffer[50] = '\0';
-
-        printf("   Node %d:  %s\n", stree_get_ident(tree, y), buffer);
-      }
-
-      if (z == stree_get_root(tree))
-        printf("   LCA Node %d:  (root)\n", stree_get_ident(tree, z));
-      else {
-        len = stree_get_labellen(tree, z);
-        stree_get_label(tree, z, buffer, 50, 0);
-        for (s=buffer,i=0; *s && i < 50; s++,i++)
-          if (!isprint((int)(*s)))
-            *s = '#';
-        if (len > 50) {
-          buffer[50] = buffer[51] = buffer[52] = '.';
-          buffer[53] = '\0';
-        }
-        else if (len == 50)
-          buffer[50] = '\0';
-
-        printf("   LCA Node %d:  %s\n", stree_get_ident(tree, z), buffer);
-      }
-
-      putchar('\n');
-    }
-    else
-      printf("  Invalid input line.  Please reenter.\n\n");
-  }
-
-  if (print_stats) {
-    printf("\nStatistics:\n");
+    if (print_stats) {
+        printf("\nStatistics:\n");
 #ifdef STATS
-    printf("   Preprocessing Steps:    %d\n", lcastruct->num_prep);
-    printf("\n");
-    printf("   Number LCA's Computed:  %d\n", num_lcas);
-    printf("   LCA Compute Steps:      %d\n", lcastruct->num_compares);
+        printf("   Preprocessing Steps:    %d\n", lcastruct->num_prep);
+        printf("\n");
+        printf("   Number LCA's Computed:  %d\n", num_lcas);
+        printf("   LCA Compute Steps:      %d\n", lcastruct->num_compares);
 #else
-    printf("   No statistics available.\n");
+        printf("   No statistics available.\n");
 #endif
+       putchar('\n');
+    }
 
-    putchar('\n');
-  }
+    free(nodemap);
+    switch (type) {
+        case LCA_NAIVE:   lca_naive_free(lcastruct);  break;
+        case LCA_LINEAR:  lca_free(lcastruct);  break;
+        case LCA_NLOGN:  return 0;
+    }
+    stree_delete_tree(tree);
 
-  free(nodemap);
-  switch (type) {
-  case LCA_NAIVE:   lca_naive_free(lcastruct);  break;
-  case LCA_LINEAR:  lca_free(lcastruct);  break;
-  case LCA_NLOGN:  return 0;
-  }
-  stree_delete_tree(tree);
-
-  return 1;
+    return 1;
 }
 
 
@@ -500,92 +489,92 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *map)
  */
 static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag, int mend_num_lines);
 
-int strmat_stree_walkaround(STRING **strings, int num_strings)
-{
-    char mapch, *choice;
-    STREE_NODE node, child;
-    SUFFIX_TREE tree;
-
-    if (strings == NULL)
-        return 0;
-
-  /*
-   * Build the tree.
-   */
-  printf("Building the suffix tree...\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings);
-  if (tree == NULL)
-    return 0;
-
- 
-  /*
-   * Main interactive loop.
-   */
-  node = stree_get_root(tree);
-  while (1) {
-    /*
-     * Print the details of the current node.
-     */
-    printf("\n\n");
-    print_stree_node(tree, node, (num_strings > 1), 5);
-
-    /*
-     * Ask the user where to move in the tree.
-     */
-    printf("\n");
-    printf("Commands (d%% - move down to a child, u - move up to parent,\n");
-    printf("          l - move across suffix link, Ctl-D - quit)\n");
-    printf("Enter Move: ");
-
-    if ((choice = my_getline(stdin, NULL)) == NULL)
-      break;
-
-    if (choice[0] == '\0')
-      continue;
-
-    /*
-     * Execute the move command.
-     */
-    switch (toupper(choice[0])) {
-    case 'D':
-      if (choice[1] == '\0') {
-        printf("\nYou must specify the first character on an edge to a child.\n");
-        continue;
-      }
-
-      mapch = choice[1];
-
-      if ((child = stree_find_child(tree, node, mapch)) == NULL) {
-        printf("\nNo child's edge begins with '%c'.\n", choice[1]);
-        continue;
-      }
-
-      node = child;
-      break;
-
-    case 'U':
-      if (node == stree_get_root(tree))
-        printf("\nYou cannot move up from the root.\n");
-      else
-        node = stree_get_parent(tree, node);
-      break;
-
-    case 'L':
-      if (node == stree_get_root(tree))
-        printf("\nThe root has no suffix link.\n");
-      else
-        node = stree_get_suffix_link(tree, node);
-      break;
-
-    default:
-      printf("\nThat is not a choice.\n");
-    }
-  }
-
-  stree_delete_tree(tree);
-
-  return 1;
-}
+//int strmat_stree_walkaround(STRING **strings, int num_strings)
+//{
+//    char mapch, *choice;
+//    STREE_NODE node, child;
+//    SUFFIX_TREE tree;
+//
+//    if (strings == NULL)
+//        return 0;
+//
+//  /*
+//   * Build the tree.
+//   */
+//  printf("Building the suffix tree...\n");
+//  tree = stree_gen_ukkonen_build(strings, num_strings);
+//  if (tree == NULL)
+//    return 0;
+//
+// 
+//  /*
+//   * Main interactive loop.
+//   */
+//  node = stree_get_root(tree);
+//  while (1) {
+//    /*
+//     * Print the details of the current node.
+//     */
+//    printf("\n\n");
+//    print_stree_node(tree, node, (num_strings > 1), 5);
+//
+//    /*
+//     * Ask the user where to move in the tree.
+//     */
+//    printf("\n");
+//    printf("Commands (d%% - move down to a child, u - move up to parent,\n");
+//    printf("          l - move across suffix link, Ctl-D - quit)\n");
+//    printf("Enter Move: ");
+//
+//    if ((choice = my_getline(stdin, NULL)) == NULL)
+//      break;
+//
+//    if (choice[0] == '\0')
+//      continue;
+//
+//    /*
+//     * Execute the move command.
+//     */
+//    switch (toupper(choice[0])) {
+//    case 'D':
+//      if (choice[1] == '\0') {
+//        printf("\nYou must specify the first character on an edge to a child.\n");
+//        continue;
+//      }
+//
+//      mapch = choice[1];
+//
+//      if ((child = stree_find_child(tree, node, mapch)) == NULL) {
+//        printf("\nNo child's edge begins with '%c'.\n", choice[1]);
+//        continue;
+//      }
+//
+//      node = child;
+//      break;
+//
+//    case 'U':
+//      if (node == stree_get_root(tree))
+//        printf("\nYou cannot move up from the root.\n");
+//      else
+//        node = stree_get_parent(tree, node);
+//      break;
+//
+//    case 'L':
+//      if (node == stree_get_root(tree))
+//        printf("\nThe root has no suffix link.\n");
+//      else
+//        node = stree_get_suffix_link(tree, node);
+//      break;
+//
+//    default:
+//      printf("\nThat is not a choice.\n");
+//    }
+//  }
+//
+//  stree_delete_tree(tree);
+//
+//  return 1;
+//}
 
 
 /*
@@ -629,29 +618,29 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
    * Print the node info: ident, label, edge label, leaves & suffix link.
    */
   if (node == stree_get_root(tree))
-    mprintf("Current node is Node %d, the Root\n", ident);
+    printf("Current node is Node %d, the Root\n", ident);
   else {
-    mprintf("Current node is Node %d, labeled `%s%s'\n", ident,
+    printf("Current node is Node %d, labeled `%s%s'\n", ident,
             (labellen > 30 ? "..." : ""), label);
-    mprintf("     Leaves:  ");
+    printf("     Leaves:  ");
     leafnum = 1;
     for (;stree_get_leaf(tree, node, leafnum, &str, &pos, &index); leafnum++) {
       if (leafnum > 1)
         mputs(", ");
 
       if (gen_stree_flag)
-        mprintf("%d:%d", index, pos + 1);
+        printf("%d:%d", index, pos + 1);
       else
-        mprintf("%d", pos + 1);
+        printf("%d", pos + 1);
     }
     if (leafnum == 1)
       mputs("(none)");
     mputc('\n');
-    mprintf("       Edge:  %s%s\n", (edgelen > 30 ? "..." : ""),
+    printf("       Edge:  %s%s\n", (edgelen > 30 ? "..." : ""),
             (edgelen > 30 ? label : (label + (labellen - edgelen))));
-    mprintf("     Parent:  Node %d\n",
+    printf("     Parent:  Node %d\n",
             stree_get_ident(tree, stree_get_parent(tree, node)));
-    mprintf("  Suf. Link:  Node %d\n",
+    printf("  Suf. Link:  Node %d\n",
             stree_get_ident(tree, stree_get_suffix_link(tree, node)));
   }
 
@@ -659,9 +648,9 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
    * Print the outgoing edges.
    */
   if (stree_get_num_children(tree, node) == 0)
-    mprintf("   Children:\n       (none)\n");
+    printf("   Children:\n       (none)\n");
   else {
-    mprintf("   Children:\n");
+    printf("   Children:\n");
     child = stree_get_children(tree, node);
     while (child != NULL) {
       edgestr = stree_get_edgestr(tree, child);
@@ -676,20 +665,20 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
         label[33] = '\0';
       }
 
-      mprintf("       %s  ->  Node %d", label,
+      printf("       %s  ->  Node %d", label,
               stree_get_ident(tree, child));
 
       leafnum = 1;
       while (stree_get_leaf(tree, child, leafnum, &str, &pos, &index)) {
         if (leafnum == 1)
-          mprintf("    (Leaf #");
+          printf("    (Leaf #");
         else
-          mprintf(", ");
+          printf(", ");
 
         if (gen_stree_flag)
-          mprintf("%d:%d", index, pos + 1);
+          printf("%d:%d", index, pos + 1);
         else
-          mprintf("%d", pos + 1);
+          printf("%d", pos + 1);
 
         leafnum++;
       }
@@ -733,7 +722,7 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
 //  /*
 //   * Build the tree (can't use stree_ukkonen_build because of copyflag).
 //   */
-//  mprintf("\nBuilding the suffix tree...\n");
+//  printf("\nBuilding the suffix tree...\n");
 //  if ((tree = stree_new_tree(string->alpha_size, 0, build_policy,
 //                             build_threshold)) == NULL)
 //    return 0;
@@ -747,7 +736,7 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
 //  /*
 //   * Preprocess the suffix tree and initialize repeat_struct
 //   */
-//  mprintf("Preprocessing...\n");
+//  printf("Preprocessing...\n");
 //  decomp_struct = decomposition_prep(tree, string->sequence,
 //                                     string->raw_seq, string->length);
 //  if(decomp_struct == NULL) {
@@ -758,7 +747,7 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
 //  /*
 //   * Compute the decomposition
 //   */
-//  mprintf("Computing the decomposition...\n");
+//  printf("Computing the decomposition...\n");
 //  if(mode == 'A')
 //    lempel_ziv(decomp_struct);
 //  else if(mode == 'B')
@@ -771,41 +760,41 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
 //  /*
 //   * Print Lempel-Ziv decomposition
 //   */
-//  mprintf("\nThe %sLempel-Ziv decomposition is:\n\n",
+//  printf("\nThe %sLempel-Ziv decomposition is:\n\n",
 //          mode=='A' ? "" : mode=='B' ? "original " : "non-overlapping ");
 //  decomposition_print(decomp_struct);
-//  mprintf("\n");
+//  printf("\n");
 //  mend(14);
 //
 //  /* Write summary of results */
 //  mstart(stdin,stdout,OK,OK,0,NULL);
-//  mprintf("\nSummary:\n");
-//  mprintf("   Number of Blocks:              %d\n",decomp_struct->num_blocks);
-//  mprintf("   Maximal Block Length:          %d\n",
+//  printf("\nSummary:\n");
+//  printf("   Number of Blocks:              %d\n",decomp_struct->num_blocks);
+//  printf("   Maximal Block Length:          %d\n",
 //          decomp_struct->max_block_length);
-//  mprintf("   Average Block Length:          %.1f\n",
+//  printf("   Average Block Length:          %.1f\n",
 //          (float)decomp_struct->length / decomp_struct->num_blocks);
 //
 //  /*
 //   * Write statistics and free memory
 //   */
 //  if (print_stats) {
-//    mprintf("\nStatistics:\n");
+//    printf("\nStatistics:\n");
 //#ifdef STATS
-//    mprintf("   String Length:                 %d\n",decomp_struct->length);
-//    mprintf("   Suffix Tree\n");
-//    mprintf("      Number of Tree Nodes:       %d\n",
+//    printf("   String Length:                 %d\n",decomp_struct->length);
+//    printf("   Suffix Tree\n");
+//    printf("      Number of Tree Nodes:       %d\n",
 //            stree_get_num_nodes(tree));
-//    mprintf("      Number of Compares:         %d\n",tree->num_compares);
-//    mprintf("   Decomposition\n");
-//    mprintf("      Number of Compares:         %d\n",
+//    printf("      Number of Compares:         %d\n",tree->num_compares);
+//    printf("   Decomposition\n");
+//    printf("      Number of Compares:         %d\n",
 //            decomp_struct->num_compares);
-//    mprintf("      Number of Edge Traversals:  %d\n",
+//    printf("      Number of Edge Traversals:  %d\n",
 //            decomp_struct->num_edge_traversals);
 //#else
-//    mprintf("   No statistics available.\n");
+//    printf("   No statistics available.\n");
 //#endif
-//    mprintf("\n");
+//    printf("\n");
 //  }
 //
 //  decomposition_free(decomp_struct);

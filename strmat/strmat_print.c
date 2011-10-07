@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include "strmat.h"
 #include "stree_strmat.h"
+#include "strmat_util.h"
 #include "strmat_print.h"
 
 /*
@@ -17,27 +18,27 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
     char *str;
 
     if (node == stree_get_root(tree))
-        mprintf("   Node %d:    (Root)", stree_get_ident(tree, node));
+        printf("   Node %d:    (Root)", stree_get_ident(tree, node));
     else
-        mprintf("   Node %d:    (Link to %d)", stree_get_ident(tree, node),
+        printf("   Node %d:    (Link to %d)", stree_get_ident(tree, node),
             stree_get_ident(tree, stree_get_suffix_link(tree, node)));
 
     leafnum = 1;
     while (stree_get_leaf(tree, node, leafnum, &str, &pos, &index)) {
         if (leafnum == 1)
-            mprintf("   (Leaf ");
+            printf("   (Leaf ");
         else
-            mprintf(", ");
+            printf(", ");
 
         if (gen_stree_flag)
-            mprintf("%d:%d", index, pos + 1);
+            printf("%d:%d", index, pos + 1);
         else
-            mprintf("%d", pos + 1);
+            printf("%d", pos + 1);
 
         leafnum++;
     }
     if (leafnum > 1)
-        mprintf(")\n");
+        printf(")\n");
     else
         mputc('\n');
 
@@ -55,19 +56,19 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
             buffer[33] = '\0';
         }
 
-        mprintf("      %s  ->  Node %d", buffer, stree_get_ident(tree, child));
+        printf("      %s  ->  Node %d", buffer, stree_get_ident(tree, child));
 
         leafnum = 1;
         while (stree_get_leaf(tree, child, leafnum, &str, &pos, &index)) {
             if (leafnum == 1)
-                mprintf("   (Leaf #");
+                printf("   (Leaf #");
             else
-                mprintf(", ");
+                printf(", ");
 
             if (gen_stree_flag)
-                mprintf("%d:%d", index, pos + 1);
+                printf("%d:%d", index, pos + 1);
             else
-                mprintf("%d", pos + 1);
+                printf("%d", pos + 1);
 
             leafnum++;
         }
@@ -104,10 +105,10 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
     memset(buf2, 0, sizeof(buf2));
 
     if (node == stree_get_root(tree)) {
-        mprintf("   Root %d:\n", stree_get_ident(tree, node));
+        printf("   Root %d:\n", stree_get_ident(tree, node));
         edgelen = 0;
     } else {
-        mprintf("   Node %2d->%2d:  ",
+        printf("   Node %2d->%2d:  ",
             stree_get_ident(tree, stree_get_parent(tree, node)),
             stree_get_ident(tree, node));
     
@@ -153,7 +154,7 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
 
         mputs(buffer);
 
-        status = mprintf("(Link %2d->%2d)\n", stree_get_ident(tree, node),
+        status = printf("(Link %2d->%2d)\n", stree_get_ident(tree, node),
                          stree_get_ident(tree, stree_get_suffix_link(tree, node)));
     }
 

@@ -1,4 +1,3 @@
-
 #ifndef _LCA_H_
 #define _LCA_H_
 
@@ -17,6 +16,7 @@ typedef struct {
 LCA_STRUCT *lca_prep(SUFFIX_TREE tree);
 STREE_NODE lca_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y);
 void lca_free(LCA_STRUCT *lca);
+
 LCA_STRUCT *lca_naive_prep(SUFFIX_TREE tree);
 STREE_NODE lca_naive_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y);
 void lca_naive_free(LCA_STRUCT *lca);

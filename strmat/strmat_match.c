@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "strmat.h"
+#include "strmat_util.h"
 #include "strmat_match.h"
 
 static MATCHES freelist = NULL;
@@ -84,7 +85,7 @@ int print_matches(STRING *string, STRING **strings, int num_strings,
    * Print the header line with signal characters showing where
    * the matches are.
    */
-  mprintf("Found %d matches:", num_matches);
+  printf("Found %d matches:", num_matches);
   width = (17 + 2 * maxposdigs + maxiddigs) - (15 + matchdigs);
   for (i=0; i < width; i++)
     mputc(' ');
@@ -119,12 +120,12 @@ int print_matches(STRING *string, STRING **strings, int num_strings,
     
   for (count=0,ptr=list; count < num_matches; count++,ptr=ptr->next) {
     if (multistring_mode && num_strings > 1) {
-      mprintf(format, ptr->textid, ptr->lend, ptr->rend);
+      printf(format, ptr->textid, ptr->lend, ptr->rend);
       T = strings[ptr->textid-1]->sequence;
       N = strings[ptr->textid-1]->length;
     }
     else
-      mprintf(format, ptr->lend, ptr->rend);
+      printf(format, ptr->lend, ptr->rend);
 
     if (ptr->lend - 4 >= 1) {
       mputs("...");

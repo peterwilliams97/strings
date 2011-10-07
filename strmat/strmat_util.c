@@ -6,6 +6,15 @@
 #include "strmat_util.h"
 
 
+int my_itoalen(int num)
+{
+    int i;
+
+    for (i=1; num >= 10; i++)
+        num /= 10;
+    return i;
+}
+
 /********************************************************************** 
  *  Function: make_seq() by Peter                                           
  *                                                                    
@@ -25,10 +34,11 @@ STRING *make_seq(const char *title, const char *cstring)
         fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
         return NULL;
     }
-    if ((sptr = (STRING *)malloc(sizeof(STRING))) == NULL)
+    if ((sptr = (STRING *)calloc(sizeof(STRING), 1)) == NULL) {
+        free(sequence);
         return NULL;
-    memset(sptr, 0, sizeof(STRING));
-    sptr->db_type = 0;
+    }
+    
     sptr->sequence = sequence;
     sptr->length = strlen(cstring);
     strcpy(sptr->title, title);
@@ -53,12 +63,10 @@ void print_string(STRING* string)
   int i, j, pos, width, height, space, pos_len, spcount;
   char *s;
 
-  //mprintf("TYPE: %s\n", db_names[string->db_type]);
-  mprintf("IDENT: %s\n", string->ident);
-  mprintf("TITLE: %s\n", string->title);
- // mprintf("ALPHA: %s\n", alpha_names[string->raw_alpha]); 
-  mprintf("LENGTH: %d\n", string->length);
-  mprintf("SEQUENCE:\n");
+  printf("IDENT: %s\n", string->ident);
+  printf("TITLE: %s\n", string->title);
+  printf("LENGTH: %d\n", string->length);
+  printf("SEQUENCE:\n");
 
   width = 60;
   height = 30;
@@ -70,7 +78,7 @@ void print_string(STRING* string)
     /*
      * Print the header line
      */
-    for (i=0; i < pos_len; i++)
+    for (i = 0; i < pos_len; i++)
       mputc(' ');
 
     j = 1;
@@ -79,7 +87,7 @@ void print_string(STRING* string)
         mputc(' ');
         i++;
       }
-      mprintf("%1d", j++);
+      printf("%1d", j++);
      
     }
     if (mputc('\n') == 0)
@@ -89,7 +97,7 @@ void print_string(STRING* string)
      * Print num_rows - 2 lines of the sequence.
      */
     for (i=0; pos < string->length && i < height; i++) {
-      mprintf(" %7d  ", pos + 1);
+      printf(" %7d  ", pos + 1);
       for (j=0,spcount=0; pos < string->length && j < width; j++) {
         if (!isprint((int)s[pos])) {
           mputc('#');
@@ -113,17 +121,17 @@ void terse_print_string(STRING *spt)
   int i;
   char *s, *t, buffer[51];
   
-//  mprintf("\tTYPE: %s\t", db_names[spt->db_type]);
-  mprintf("TITLE: ");
+//  printf("\tTYPE: %s\t", db_names[spt->db_type]);
+  printf("TITLE: ");
   if (*(spt->title))
     mputs(spt->title);
   mputc('\n');
 
-  mprintf("\tLENGTH: %d\t",spt->length);
- // mprintf("ALPHA: %s\n",alpha_names[spt->raw_alpha]);
+  printf("\tLENGTH: %d\t",spt->length);
+ // printf("ALPHA: %s\n",alpha_names[spt->raw_alpha]);
 
   buffer[50] = '\0';
-  mprintf("\tSEQUENCE:  ");
+  printf("\tSEQUENCE:  ");
   for (s=buffer,t=spt->sequence,i=0; i < 50 && i < spt->length; i++,s++,t++)
     *s = (isprint((int)(*t)) ? *t : '#');
   *s = '\0';
