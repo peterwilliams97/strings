@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include "stree_strmat.h"
+#include "strmat_alpha.h"
 
 #define OPT_NODE_SIZE 24
 #define OPT_LEAF_SIZE 12
@@ -43,16 +44,10 @@
  *
  * Returns:  A SUFFIX_TREE structure
  */
-SUFFIX_TREE stree_new_tree(int alphasize, int copyflag)
-
+SUFFIX_TREE stree_new_tree(int copyflag)
 {
     SUFFIX_TREE tree;
-
-    // !@#$ Why is alphasize limited to 128?
-    if (alphasize <= 0 || alphasize > 128) {
-        return NULL;
-    }
-    
+            
    /*
     * Allocate the space.
     */
@@ -62,9 +57,8 @@ SUFFIX_TREE stree_new_tree(int alphasize, int copyflag)
     
     memset(tree, 0, sizeof(STREE_STRUCT));
     tree->copyflag = copyflag;
-    tree->alpha_size = alphasize;
-  
-    if ((tree->root = int_stree_new_node(tree, NULL, NULL, 0)) == NULL) {
+   
+    if ((tree->root = int_stree_new_node(tree, NULL, 0)) == NULL) {
         free(tree);
         return NULL;
     }
@@ -101,15 +95,7 @@ void stree_delete_tree(SUFFIX_TREE tree)
     free(tree->strings);
   }
   
-  if (tree->rawstrings != NULL) {
-    if (tree->copyflag) {
-      for (i=0; i < tree->strsize; i++)
-        if (tree->rawstrings[i] != NULL)
-          free(tree->rawstrings[i]);
-    }
-    free(tree->rawstrings);
-  }
-  
+    
   if (tree->ids != NULL)
     free(tree->ids);
   if (tree->lengths != NULL)
@@ -189,15 +175,13 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
 
       
         children = (STREE_NODE *) node->children;
-        for (i=childnum; i < tree->alpha_size; i++) {
+        for (i = childnum; i < ALPHABET_SIZE; i++) {
           if (children[i] != NULL)
             break;
-
 #ifdef STATS
           tree->child_cost++;
 #endif
-        
-        child = (i < tree->alpha_size ? children[i] : NULL);
+        child = (i < ALPHABET_SIZE ? children[i] : NULL);
 
 #ifdef STATS
         tree->child_cost++;
@@ -213,8 +197,7 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
 #ifdef STATS
         tree->edges_traversed++;
 #endif
-
-        state = START;
+       state = START;
       }
     }
 
@@ -346,7 +329,7 @@ int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node)
 
     count = 0;
     children = (STREE_NODE *)node->children;
-    for (i=0; i < tree->alpha_size; i++)
+    for (i = 0; i < ALPHABET_SIZE; i++)
       if (children[i] != NULL)
         count++;
  
@@ -373,7 +356,7 @@ STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
 
     head = tail = NULL;
     children = (STREE_NODE *)node->children;
-    for (i = 0; i < tree->alpha_size; i++) {
+    for (i = 0; i < ALPHABET_SIZE; i++) {
         if (children[i] != NULL) {
             if (head == NULL)
                 head = tail = children[i];
@@ -386,23 +369,6 @@ STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
     }
 
     return head;
-}
-
-
-/*
- * stree_sort_children
- *
- * Sort the children of a node, ordered by the first characters of the
- * edges.
- *
- * Parameters:  tree  -  a suffix tree
- *              node  -  a tree node
- *
- * Returns:  nothing.
- */
-void stree_sort_children(SUFFIX_TREE tree, STREE_NODE node)
-{
-    // Already sorted
 }
 
 
@@ -429,7 +395,6 @@ int stree_get_labellen(SUFFIX_TREE tree, STREE_NODE node)
   return len;
 }
 
-
 /*
  * stree_get_label
  *
@@ -449,8 +414,7 @@ int stree_get_labellen(SUFFIX_TREE tree, STREE_NODE node)
  *
  * Returns:  nothing.
  */
-void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, char *buffer,
-                     int buflen, int endflag)
+void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, char *buffer,  int buflen, int endflag)
 {
   int len, skip, edgelen;
   char *edgestr, *bufptr;
@@ -484,7 +448,7 @@ void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, char *buffer,
         edgelen -= skip;
         skip = 0;
       }
-      edgestr = stree_get_rawedgestr(tree, node) + edgelen;
+      edgestr = stree_get_edgestr(tree, node) + edgelen;
       for ( ; len > 0 && edgelen > 0; edgelen--,len--)
         *--bufptr = *--edgestr;
     }
@@ -507,19 +471,19 @@ void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, char *buffer,
  */
 int stree_get_num_leaves(SUFFIX_TREE tree, STREE_NODE node)
 {
-  int i;
-  STREE_INTLEAF intleaf;
+    int i;
+    STREE_INTLEAF intleaf;
 
-  if (int_stree_isaleaf(tree, node))
-    return 1;
-  else {
+    if (int_stree_isaleaf(tree, node)) {
+        return 1;
+    }
+  
     intleaf = int_stree_get_intleaves(tree, node);
-    for (i=0; intleaf != NULL; i++)
-      intleaf = intleaf->next;
+    for (i = 0; intleaf != NULL; i++) {
+        intleaf = intleaf->next;
+    }
     return i;
-  }
 }
-
 
 /*
  * stree_get_leaf
@@ -566,7 +530,7 @@ int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum,
         *pos_out = leaf->pos;
         *id_out = int_stree_get_strid(tree, leaf->strid);
         return 1;
-    }  else {
+    } else {
         intleaf = int_stree_get_intleaves(tree, node);
         for (i=1; intleaf != NULL; i++,intleaf=intleaf->next) {
             if (i == leafnum) {
@@ -582,8 +546,8 @@ int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum,
 
 void stree_reset_stats(SUFFIX_TREE tree)
 {
-  tree->num_compares = tree->edges_traversed = tree->links_traversed = 0;
-  tree->child_cost = tree->nodes_created = tree->creation_cost = 0;
+    tree->num_compares = tree->edges_traversed = tree->links_traversed = 0;
+    tree->child_cost = tree->nodes_created = tree->creation_cost = 0;
 }
 
 
@@ -605,39 +569,36 @@ void stree_reset_stats(SUFFIX_TREE tree)
  *
  * Parameters:  tree  -  A suffix tree
  *              S     -  The sequence
- *              Sraw  -  The raw sequence
  *              M     -  The sequence length
  *
  * Returns:  The internal index into the SUFFIX_TREE structure's
- *           strings/rawstrings/lengths/ids arrays, or -1 on an error.
+ *           strings/lengths/ids arrays, or -1 on an error.
  */
-int int_stree_insert_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int strid)
+int int_stree_insert_string(SUFFIX_TREE tree, char *S,  int M, int strid)
 {
     int i, slot, newsize;
 
     if (tree->nextslot == tree->strsize) {
         if (tree->strsize == 0) {
             tree->strsize = 128;
-            if ((tree->strings = malloc(tree->strsize * sizeof(char *))) == NULL 
-                || (tree->rawstrings = malloc(tree->strsize * sizeof(char *))) == NULL)
+            if ((tree->strings = malloc(tree->strsize * sizeof(char *))) == NULL)
                 return -1;
             if ((tree->lengths = malloc(tree->strsize * sizeof(int))) == NULL 
                 || (tree->ids = malloc(tree->strsize * sizeof(int))) == NULL)
                 return -1;
             for (i = 0; i < 128; i++) {
-                tree->strings[i] = tree->rawstrings[i] = NULL;
+                tree->strings[i] = NULL;
                 tree->lengths[i] = tree->ids[i] = 0;
             }
         } else {
             newsize = tree->strsize + tree->strsize;
-            if ((tree->strings = realloc(tree->strings, tree->strsize * sizeof(char *))) == NULL 
-                || (tree->rawstrings = realloc(tree->rawstrings, tree->strsize * sizeof(char *))) == NULL)
+            if ((tree->strings = realloc(tree->strings, tree->strsize * sizeof(char *))) == NULL)
                 return -1;
             if ((tree->lengths = realloc(tree->lengths, tree->strsize * sizeof(int))) == NULL 
                 || (tree->ids = realloc(tree->ids,  tree->strsize * sizeof(int))) == NULL)
                 return -1;
             for (i=tree->strsize; i < newsize; i++) {
-                tree->strings[i] = tree->rawstrings[i] = NULL;
+                tree->strings[i] = NULL;
                 tree->lengths[i] = tree->ids[i] = 0;
             }
             tree->strsize = newsize;
@@ -646,7 +607,6 @@ int int_stree_insert_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int st
 
     slot = tree->nextslot;
     tree->strings[slot] = S;
-    tree->rawstrings[slot] = Sraw;
     tree->lengths[slot] = M;
     tree->ids[slot] = strid;
 
@@ -697,29 +657,28 @@ void int_stree_delete_string(SUFFIX_TREE tree, int id)
  */
 STREE_NODE int_stree_convert_leafnode(SUFFIX_TREE tree, STREE_NODE node)
 {
-  STREE_NODE newnode;
-  STREE_LEAF leaf;
-  STREE_INTLEAF ileaf;
+    STREE_NODE newnode;
+    STREE_LEAF leaf;
+    STREE_INTLEAF ileaf;
 
-  leaf = (STREE_LEAF) node;
+    leaf = (STREE_LEAF) node;
 
-  newnode = int_stree_new_node(tree, leaf->edgestr, leaf->rawedgestr,
-                               leaf->edgelen);
-  if (newnode == NULL)
-    return NULL;
+    newnode = int_stree_new_node(tree, leaf->edgestr, leaf->edgelen);
+    if (newnode == NULL)
+        return NULL;
 
-  if ((ileaf = int_stree_new_intleaf(tree, leaf->strid, leaf->pos)) == NULL) {
-    int_stree_free_node(tree, newnode);
-    return NULL;
-  }
+    if ((ileaf = int_stree_new_intleaf(tree, leaf->strid, leaf->pos)) == NULL) {
+        int_stree_free_node(tree, newnode);
+        return NULL;
+    }
 
-  newnode->id = leaf->id;
-  newnode->leaves = ileaf;
+    newnode->id = leaf->id;
+    newnode->leaves = ileaf;
 
-  int_stree_reconnect(tree, node->parent, node, newnode);
-  int_stree_free_leaf(tree, leaf);
+    int_stree_reconnect(tree, node->parent, node, newnode);
+    int_stree_free_leaf(tree, leaf);
 
-  return newnode;
+    return newnode;
 }
 
 /*
@@ -920,7 +879,7 @@ STREE_NODE int_stree_edge_split(SUFFIX_TREE tree, STREE_NODE node, int len)
       len == 0 || stree_get_edgelen(tree, node) <= len)
     return NULL;
 
-  newnode = int_stree_new_node(tree, node->edgestr, node->rawedgestr, len);
+  newnode = int_stree_new_node(tree, node->edgestr, len);
   if (newnode == NULL)
     return NULL;
 
@@ -928,12 +887,10 @@ STREE_NODE int_stree_edge_split(SUFFIX_TREE tree, STREE_NODE node, int len)
   int_stree_reconnect(tree, parent, node, newnode);
   
   node->edgestr += len;
-  node->rawedgestr += len;
-  node->edgelen -= len;
+    node->edgelen -= len;
 
   if (int_stree_connect(tree, newnode, node) == NULL) {
     node->edgestr -= len;
-    node->rawedgestr -= len;
     node->edgelen += len;
     int_stree_reconnect(tree, parent, newnode, node);
     int_stree_free_node(tree, newnode);
@@ -970,8 +927,8 @@ void int_stree_edge_merge(SUFFIX_TREE tree, STREE_NODE node)
     parent = stree_get_parent(tree, node);
    
         child = NULL;
-        children = (STREE_NODE *) node->children;
-        for (i=0; i < tree->alpha_size; i++) {
+        children = (STREE_NODE *)node->children;
+        for (i = 0; i < ALPHABET_SIZE; i++) {
             if (children[i] != NULL) {
                 if (child != NULL)
                     return;
@@ -983,7 +940,6 @@ void int_stree_edge_merge(SUFFIX_TREE tree, STREE_NODE node)
    
     len = stree_get_edgelen(tree, node);
     child->edgestr -= len;
-    child->rawedgestr -= len;
     child->edgelen += len;
 
     int_stree_reconnect(tree, parent, node, child);
@@ -1078,11 +1034,11 @@ void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
   } else {
         for (ileaf=node->leaves; ileaf != NULL; ileaf=itemp) {
             itemp = ileaf->next;
-        int_stree_free_intleaf(tree, ileaf);
+            int_stree_free_intleaf(tree, ileaf);
         }
 
         children = (STREE_NODE *) node->children;
-        for (i=0; i < tree->alpha_size; i++) {
+        for (i = 0; i < ALPHABET_SIZE; i++) {
             if (children[i] != NULL)
                 int_stree_delete_subtree(tree, children[i]);
         }
@@ -1109,18 +1065,18 @@ void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
 int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
                            char *T, int N, STREE_NODE *node_out, int *pos_out)
 {
-  int len, edgelen;
-  char *edgestr;
-  STREE_NODE child;
+    int len, edgelen;
+    char *edgestr;
+    STREE_NODE child;
 
-  if (int_stree_isaleaf(tree, node)) {
-    *node_out = node;
-    *pos_out = pos;
-    return 0;
-  }
+    if (int_stree_isaleaf(tree, node)) {
+        *node_out = node;
+        *pos_out = pos;
+        return 0;
+    }
 
-  edgestr = stree_get_edgestr(tree, node);
-  edgelen = stree_get_edgelen(tree, node);
+    edgestr = stree_get_edgestr(tree, node);
+    edgelen = stree_get_edgelen(tree, node);
   len = 0;
   while (1) {
     while (len < N && pos < edgelen && T[len] == edgestr[pos]) {
@@ -1218,10 +1174,10 @@ void int_stree_set_idents(SUFFIX_TREE tree)
            
       
         children = (STREE_NODE *) node->children;
-        for (i=childnum; i < tree->alpha_size; i++)
+        for (i = childnum; i < ALPHABET_SIZE; i++)
           if (children[i] != NULL)
             break;
-        child = (i < tree->alpha_size ? children[i] : NULL);
+        child = (i < ALPHABET_SIZE ? children[i] : NULL);
     
 
       if (child == NULL)
@@ -1309,7 +1265,6 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
   leaf->strid = strid;
   leaf->pos = leafpos;
   leaf->edgestr = int_stree_get_string(tree, strid) + edgepos;
-  leaf->rawedgestr = int_stree_get_rawstring(tree, strid) + edgepos;
   leaf->edgelen = int_stree_get_length(tree, strid) - edgepos;
 
 #ifdef STATS
@@ -1319,7 +1274,6 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
   return leaf;
 }
 
-
 /*
  * int_stree_new_node
  *
@@ -1327,12 +1281,11 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
  *
  * Parameters:  tree        -  A suffix tree
  *              edgestr     -  The edge label on the edge to the node.
- *              rawedgestr  -  The raw edge label on the edge to the leaf.
  *              edgelen     -  The edge label's length.
  *
  * Returns:  The structure or NULL.
  */
-STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, char *rawedgestr, int edgelen)
+STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, int edgelen)
 {
     STREE_NODE node;
 
@@ -1341,16 +1294,15 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, char *rawedgestr,
 
     memset(node, 0, sizeof(SNODE_STRUCT));
     node->edgestr = edgestr;
-    node->rawedgestr = rawedgestr;
     node->edgelen = edgelen;
        
-    node->children = malloc(tree->alpha_size * sizeof(STREE_NODE));
+    node->children = malloc(ALPHABET_SIZE * sizeof(STREE_NODE));
     if (node->children == NULL) {
         free(node);
         return NULL;
     }
 
-    memset(node->children, 0, tree->alpha_size * sizeof(STREE_NODE));
+    memset(node->children, 0, ALPHABET_SIZE * sizeof(STREE_NODE));
 
 #ifdef STATS
     tree->tree_size += tree->alpha_size * sizeof(STREE_NODE);

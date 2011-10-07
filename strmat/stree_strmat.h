@@ -12,7 +12,6 @@ typedef struct stree_leaf {
     int isaleaf, id;
 
     char *edgestr;
-    char *rawedgestr;
     int edgelen;
 
     struct stree_node *parent;
@@ -22,19 +21,18 @@ typedef struct stree_leaf {
 } SLEAF_STRUCT, *STREE_LEAF;
 
 typedef struct stree_node {
-  int isaleaf, id;
+    int isaleaf, id;
 
-  char *edgestr;
-  char *rawedgestr;
-  int edgelen;
+    char *edgestr;
+    int edgelen;
 
-  struct stree_node *parent;
-  struct stree_node *next;
+    struct stree_node *parent;
+    struct stree_node *next;
 
-  struct stree_node *suffix_link;
-  struct stree_node *children;
+    struct stree_node *suffix_link;
+    struct stree_node *children;
 
-  STREE_INTLEAF leaves;
+    STREE_INTLEAF leaves;
 } SNODE_STRUCT, *STREE_NODE;
 
 typedef struct {
@@ -42,11 +40,9 @@ typedef struct {
   int num_nodes;
 
   char **strings;
-  char **rawstrings;
   int *lengths, *ids;
   int nextslot, strsize, copyflag;
 
-  int alpha_size;
   int idents_dirty;
 
   int tree_size;
@@ -54,7 +50,7 @@ typedef struct {
   int child_cost, nodes_created, creation_cost;
 } STREE_STRUCT, *SUFFIX_TREE;
 
-SUFFIX_TREE stree_new_tree(int alphasize, int copyflag);
+SUFFIX_TREE stree_new_tree(int copyflag);
 void stree_delete_tree(SUFFIX_TREE tree);
 
 void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(),  int (*postorder_fn)());
@@ -77,7 +73,6 @@ void stree_sort_children(SUFFIX_TREE tree, STREE_NODE node);
     (!int_stree_isaleaf(tree,node) ? (node)->suffix_link \
                                    : int_stree_get_suffix_link(tree, node))
 #define stree_get_edgestr(tree,node)  ((node)->edgestr)
-#define stree_get_rawedgestr(tree,node)  ((node)->rawedgestr)
 #define stree_get_edgelen(tree,node)  ((node)->edgelen)
 #define stree_getch(tree,node)  (*((node)->edgestr))
 
@@ -98,16 +93,14 @@ void stree_reset_stats(SUFFIX_TREE tree);
  * Internal procedures to use when building and manipulating trees.
  *
  */
-int int_stree_insert_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int strid);
+int int_stree_insert_string(SUFFIX_TREE tree, char *S, int M, int strid);
 void int_stree_delete_string(SUFFIX_TREE tree, int strid);
 
 STREE_NODE int_stree_convert_leafnode(SUFFIX_TREE tree, STREE_NODE node);
 
 #define int_stree_isaleaf(tree,node)  ((node)->isaleaf)
-#define int_stree_has_intleaves(tree,node) \
-              (int_stree_isaleaf(tree,node) ? 0 : ((node)->leaves != NULL))
-#define int_stree_get_intleaves(tree,node) \
-              (int_stree_isaleaf(tree,node) ? NULL : (node)->leaves)
+#define int_stree_has_intleaves(tree,node) (int_stree_isaleaf(tree,node) ? 0 : ((node)->leaves != NULL))
+#define int_stree_get_intleaves(tree,node) (int_stree_isaleaf(tree,node) ? NULL : (node)->leaves)
 
 STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node);
 #define int_stree_get_leafpos(tree,node)  ((node)->pos)
@@ -137,7 +130,7 @@ void int_stree_set_idents(SUFFIX_TREE tree);
 
 STREE_INTLEAF int_stree_new_intleaf(SUFFIX_TREE tree, int strid, int pos);
 STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,  int leafpos);
-STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr,  char *rawedgestr, int edgelen);
+STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, int edgelen);
 void int_stree_free_intleaf(SUFFIX_TREE tree, STREE_INTLEAF ileaf);
 void int_stree_free_leaf(SUFFIX_TREE tree, STREE_LEAF leaf);
 void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node);

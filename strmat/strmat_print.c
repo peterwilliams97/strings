@@ -44,7 +44,7 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
 
     child = stree_get_children(tree, node);
     while (child != NULL) {
-        edgestr = stree_get_rawedgestr(tree, child);
+        edgestr = stree_get_edgestr(tree, child);
         edgelen = stree_get_edgelen(tree, child);
 
         for (j=0; j < 30 && j < edgelen; j++)
@@ -112,7 +112,7 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
             stree_get_ident(tree, stree_get_parent(tree, node)),
             stree_get_ident(tree, node));
     
-        edgestr = stree_get_rawedgestr(tree, node);
+        edgestr = stree_get_edgestr(tree, node);
         edgelen = stree_get_edgelen(tree, node);
 
         for (i = 0; i < depth; i++) {

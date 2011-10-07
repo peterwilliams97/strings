@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "strmat.h"
 #include "stree_strmat.h"
 #include "stree_ukkonen.h"
 /*
@@ -25,20 +24,19 @@
  *
  * Parameters:  tree  -  a suffix tree
  *              S     -  the string to add
- *              Sraw  -  the raw version of the string
  *              M     -  the string length
  *              strid -  the string identifier
  *
  * Returns:  non-zero on success, zero on error.
  */
-int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int strid)
+int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, int M, int strid)
 {
     int i, j, g, h, gprime, edgelen, id;
     char *edgestr;
     STREE_NODE node, lastnode, root, child, parent;
     STREE_LEAF leaf;
 
-    id = int_stree_insert_string(tree, S, Sraw, M, strid);
+    id = int_stree_insert_string(tree, S,  M, strid);
     if (id == -1)
         return 0;
   /*
@@ -168,6 +166,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
                         return 0;
                     }
                     tree->num_nodes++;
+
                 } else {
                       /*
                        * If i == M, then the suffix ends inside the tree, so
@@ -205,6 +204,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
 
                 g = edgelen;
                 continue;
+
             } else {
             /*
              * Move across the suffix link of the parent (unless the
@@ -243,7 +243,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int s
                 edgelen = stree_get_edgelen(tree, node);
                 edgestr = stree_get_edgestr(tree, node);
 
-                                                                    /*
+            /*
              * After the walk down, either "g > 0" and S[j+1..i-1] ends g
              * characters down the edge to 'node', or "g == 0" and S[j+1..i-1]
              * really ends at 'node' (i.e., all of the characters on the edge
@@ -289,11 +289,11 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
     if (string == NULL || string->sequence == NULL || string->length == 0)
         return NULL;
   
-    tree = stree_new_tree(string->alpha_size, 1);
+    tree = stree_new_tree(1);
     if (tree == NULL)
         return NULL;
 
-    if (stree_ukkonen_add_string(tree, string->sequence, string->raw_seq, string->length, 1) < 1) {
+    if (stree_ukkonen_add_string(tree, string->sequence, string->length, 1) < 1) {
         stree_delete_tree(tree);
         return NULL;
     }
@@ -318,13 +318,13 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
     if (strings == NULL || num_strings == 0)
         return NULL;
 
-    tree = stree_new_tree(strings[0]->alpha_size, 0);
+    tree = stree_new_tree( 0);
     if (tree == NULL)
         return NULL;
 
-    for (i=0; i < num_strings; i++) {
+    for (i = 0; i < num_strings; i++) {
         printf("Adding string %d\n", i);
-        if (stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->raw_seq, strings[i]->length, i+1) < 1) {
+        if (stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->length, i+1) < 1) {
             stree_delete_tree(tree);
             return NULL;
         }

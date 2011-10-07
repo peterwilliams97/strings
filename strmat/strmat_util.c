@@ -19,66 +19,21 @@
  **********************************************************************/
 STRING *make_seq(const char *title, const char *cstring)
 {
-    int i, seqlen, seqsize, orig_seqlen, otherflag, buf_len;
-    char ch, newline_ch, *sequence, *seq2;
-    const char *s;
     STRING *sptr;
+    char *sequence;
 
     printf("make_seq('%s', '%s')\n", title, cstring);
-
-    buf_len = strlen(cstring);
-    newline_ch = rawmapchar('\n');
-    if (newline_ch == -1) {
-        return 0;
-    }
-
-    seqsize = 256;
-    if ((sequence = calloc(seqsize,1)) == NULL) {
+    
+    if ((sequence = _strdup(cstring)) == NULL) {
         fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
-        return 0;
+        return NULL;
     }
-
-    seqlen = 0;
-    orig_seqlen = seqlen;
-    otherflag = 0;
-    for (i=0, s=cstring; i < buf_len; i++,s++) {
-        ch = rawmapchar(*s);
-        if (ch == -1) {
-            return 0;
-        } else if (ch != '\0') {
-            sequence[seqlen++] = ch;
-        } else if (!isspace((int)(*s))) {
-            printf("Bad char '%c' (%d) => '%c'\n", *s, (unsigned int)*s, ch);
-            otherflag = 1;
-        }
-    }
-    if (newline_ch != '\0') {
-      sequence[seqlen++] = newline_ch;
-    }
-
-    if (otherflag) {
-        printf("\nError:  This line contains characters not in the alphabet.\n");
-    }   
- 
-    sequence[seqlen] = '\0';
-    if (seqlen > 0 && sequence[seqlen-1] == newline_ch)
-        sequence[--seqlen] = '\0';
-
-    if ((seq2 = calloc(seqlen + 1, 1)) == NULL) {
-        fprintf(stderr, "Ran out of memory.  Unable to add new sequence.\n");
-        free(sequence);
-        return 0;
-    }
-    strcpy(seq2, cstring);
-           
-    if ((sptr = malloc(sizeof(STRING))) == NULL)
+    if ((sptr = (STRING *)malloc(sizeof(STRING))) == NULL)
         return NULL;
     memset(sptr, 0, sizeof(STRING));
     sptr->db_type = 0;
-    sptr->alpha_size = get_alpha_size();
-    sptr->raw_seq = seq2;
     sptr->sequence = sequence;
-    sptr->length = seqlen;
+    sptr->length = strlen(cstring);
     strcpy(sptr->title, title);
 
     return sptr;
@@ -112,7 +67,7 @@ void print_string(STRING* string)
   height = 30;
   pos_len = 10;
 
-  s = string->raw_seq;
+  s = string->sequence;
   pos = 0;
   while (pos < string->length) {
     /*
@@ -172,7 +127,7 @@ void terse_print_string(STRING *spt)
 
   buffer[50] = '\0';
   mprintf("\tSEQUENCE:  ");
-  for (s=buffer,t=spt->raw_seq,i=0; i < 50 && i < spt->length; i++,s++,t++)
+  for (s=buffer,t=spt->sequence,i=0; i < 50 && i < spt->length; i++,s++,t++)
     *s = (isprint((int)(*t)) ? *t : '#');
   *s = '\0';
   mputs(buffer);  

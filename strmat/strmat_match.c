@@ -109,18 +109,18 @@ int print_matches(STRING *string, STRING **strings, int num_strings,
   T = NULL;
   N = 0;
   if (!multistring_mode) {
-    T = string->raw_seq;
-    N = string->length;
+      T = string->sequence;
+      N = string->length;
   }
   else if (num_strings == 1) {
-    T = strings[0]->raw_seq;
+     T = strings[0]->sequence;
     N = strings[0]->length;
   }
     
   for (count=0,ptr=list; count < num_matches; count++,ptr=ptr->next) {
     if (multistring_mode && num_strings > 1) {
       mprintf(format, ptr->textid, ptr->lend, ptr->rend);
-      T = strings[ptr->textid-1]->raw_seq;
+      T = strings[ptr->textid-1]->sequence;
       N = strings[ptr->textid-1]->length;
     }
     else

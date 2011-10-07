@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include <string.h>
 #include "strmat.h"
-#include "strmat_alpha.h"
 #include "strmat_match.h"
 #include "strmat_print.h"
 #include "stree_strmat.h"
@@ -550,12 +549,11 @@ int strmat_stree_walkaround(STRING **strings, int num_strings)
     switch (toupper(choice[0])) {
     case 'D':
       if (choice[1] == '\0') {
-        printf("\nYou must specify the first character "
-               "on an edge to a child.\n");
+        printf("\nYou must specify the first character on an edge to a child.\n");
         continue;
       }
 
-      mapch = mapchar(choice[1]);
+      mapch = choice[1];
 
       if ((child = stree_find_child(tree, node, mapch)) == NULL) {
         printf("\nNo child's edge begins with '%c'.\n", choice[1]);
@@ -666,7 +664,7 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
     mprintf("   Children:\n");
     child = stree_get_children(tree, node);
     while (child != NULL) {
-      edgestr = stree_get_rawedgestr(tree, child);
+      edgestr = stree_get_edgestr(tree, child);
       edgelen = stree_get_edgelen(tree, child);
 
       for (j=0; j < 30 && j < edgelen; j++)

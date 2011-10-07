@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
     STRING *strings[NUM_STRINGS];
 
     for (i = 0; i < NUM_STRINGS; i++) {
-        char title[128];
-        char cstring[256];
-        char dstring[256];
+        char title[129];
+        char cstring[257];
+        char dstring[257];
         sprintf(title, "string %02d", i+1);
         //sprintf(cstring, "hello_%02d,testing-%02d", i+1, i+1); 
         //sprintf(cstring, "ab%02dx", i+1);

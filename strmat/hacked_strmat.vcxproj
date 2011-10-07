@@ -71,7 +71,6 @@
     <ClCompile Include="stree_lca.c" />
     <ClCompile Include="stree_strmat.c" />
     <ClCompile Include="stree_ukkonen.c" />
-    <ClCompile Include="strmat_alpha.c" />
     <ClCompile Include="strmat_match.c" />
     <ClCompile Include="strmat_peter.c" />
     <ClCompile Include="strmat_print.c" />
@@ -80,7 +79,6 @@
     <ClCompile Include="strmat_util.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="strmat_alpha.h" />
     <ClInclude Include="strmat_util.h" />
   </ItemGroup>
   <ItemGroup>
