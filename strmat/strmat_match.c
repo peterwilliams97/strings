@@ -7,7 +7,6 @@
 
 static MATCHES freelist = NULL;
 
-
 MATCH_NODE *alloc_match(void)
 {
   MATCH_NODE *temp;

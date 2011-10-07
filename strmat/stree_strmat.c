@@ -580,14 +580,11 @@ int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum,
     }
 }
 
-
 void stree_reset_stats(SUFFIX_TREE tree)
 {
   tree->num_compares = tree->edges_traversed = tree->links_traversed = 0;
   tree->child_cost = tree->nodes_created = tree->creation_cost = 0;
 }
-
-
 
 
 /*
@@ -627,7 +624,7 @@ int int_stree_insert_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int st
             if ((tree->lengths = malloc(tree->strsize * sizeof(int))) == NULL 
                 || (tree->ids = malloc(tree->strsize * sizeof(int))) == NULL)
                 return -1;
-            for (i=0; i < 128; i++) {
+            for (i = 0; i < 128; i++) {
                 tree->strings[i] = tree->rawstrings[i] = NULL;
                 tree->lengths[i] = tree->ids[i] = 0;
             }
@@ -653,7 +650,7 @@ int int_stree_insert_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int st
     tree->lengths[slot] = M;
     tree->ids[slot] = strid;
 
-    for (i=slot+1; i < tree->strsize; i++) {
+    for (i = slot+1; i < tree->strsize; i++) {
         if (tree->strings[i] == NULL)
             break;
     }
@@ -676,15 +673,15 @@ int int_stree_insert_string(SUFFIX_TREE tree, char *S, char *Sraw, int M, int st
  */
 void int_stree_delete_string(SUFFIX_TREE tree, int id)
 {
-  if (tree->strings[id] == NULL)
-    return;
+    if (tree->strings[id] == NULL)
+        return;
 
-  if (tree->copyflag)
-    free(tree->strings[id]);
+    if (tree->copyflag)
+        free(tree->strings[id]);
 
-  tree->strings[id] = NULL;
-  if (id < tree->nextslot)
-    tree->nextslot = id;
+    tree->strings[id] = NULL;
+    if (id < tree->nextslot)
+        tree->nextslot = id;
 }
 
 /*

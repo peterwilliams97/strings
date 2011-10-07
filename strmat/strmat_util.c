@@ -4,11 +4,7 @@
 #include <ctype.h>
 #include "strmat.h"
 #include "strmat_alpha.h"
-#include "strmat_fileio.h"
-#include "strmat_seqary.h"
 #include "strmat_util.h"
-
-//extern int util_menu(void);
 
 extern FILE *fpout;
 
