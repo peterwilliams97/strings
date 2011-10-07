@@ -297,7 +297,6 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
         stree_delete_tree(tree);
         return NULL;
     }
-
     return tree;
 }
 

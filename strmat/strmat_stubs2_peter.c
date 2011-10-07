@@ -356,7 +356,6 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
       continue;
 
     if (line[0] == '!') {
-      mstart(stdin, stdout, OK, OK, 5, NULL);
       mputc('\n');
       mprintf("Suffix Tree:\n");
       if (max_length < 40)
@@ -364,7 +363,6 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
       else
         large_print_tree(tree, stree_get_root(tree), (num_strings > 1));
       mputc('\n');
-      mend(2);
     }
     else if (sscanf(line, "%d %d", &num1, &num2) == 2 && num1 >= 0 &&
              num1 < num_nodes && num2 >= 0 && num2 < num_nodes) {
@@ -613,8 +611,7 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
   char *str;
   STREE_NODE child;
 
-  mstart(stdin, stdout, OK, OK, 5, NULL);
-
+ 
   /*
    * Get the node and edge information.
    */
@@ -707,7 +704,6 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
     }
   }
 
-  mend(mend_num_lines);
 }
 
 /*

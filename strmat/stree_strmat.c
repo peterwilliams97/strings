@@ -1076,25 +1076,22 @@ void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
   STREE_NODE  *children;
   STREE_INTLEAF ileaf, itemp;
 
-  if (int_stree_isaleaf(tree, node))
-    int_stree_free_leaf(tree, (STREE_LEAF) node);
-  else {
-    for (ileaf=node->leaves; ileaf != NULL; ileaf=itemp) {
-      itemp = ileaf->next;
-      int_stree_free_intleaf(tree, ileaf);
+  if (int_stree_isaleaf(tree, node)) {
+        int_stree_free_leaf(tree, (STREE_LEAF) node);
+  } else {
+        for (ileaf=node->leaves; ileaf != NULL; ileaf=itemp) {
+            itemp = ileaf->next;
+        int_stree_free_intleaf(tree, ileaf);
+        }
+
+        children = (STREE_NODE *) node->children;
+        for (i=0; i < tree->alpha_size; i++) {
+            if (children[i] != NULL)
+                int_stree_delete_subtree(tree, children[i]);
+        }
+        int_stree_free_node(tree, node);
     }
-
- 
-      children = (STREE_NODE *) node->children;
-      for (i=0; i < tree->alpha_size; i++)
-        if (children[i] != NULL)
-          int_stree_delete_subtree(tree, children[i]);
-   
-
-    int_stree_free_node(tree, node);
-  }
 }
-
 
 /*
  * int_stree_walk_to_leaf
@@ -1167,7 +1164,6 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
   return len;
 }
 
-
 /*
  * int_stree_set_idents
  *
@@ -1219,11 +1215,10 @@ void int_stree_set_idents(SUFFIX_TREE tree)
        * Look for the next child to traverse down to.
        */
       if (state == FIRST)
-        childnum = 0;
+            childnum = 0;
       else
-        childnum = node->isaleaf;
-
-      
+            childnum = node->isaleaf;
+           
       
         children = (STREE_NODE *) node->children;
         for (i=childnum; i < tree->alpha_size; i++)
@@ -1259,7 +1254,6 @@ void int_stree_set_idents(SUFFIX_TREE tree)
 
   tree->idents_dirty = 0;
 }
-
 
 /*
  * int_stree_new_intleaf
@@ -1368,7 +1362,6 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, char *rawedgestr,
     return node;
 }
 
-
 /*
  * int_stree_free_{intleaf,leaf,node}
  *
@@ -1382,35 +1375,27 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, char *rawedgestr,
 void int_stree_free_intleaf(SUFFIX_TREE tree, STREE_INTLEAF ileaf)
 {
 #ifdef STATS
-  tree->tree_size -= OPT_INTLEAF_SIZE;
+    tree->tree_size -= OPT_INTLEAF_SIZE;
 #endif
-
-  free(ileaf);
+    free(ileaf);
 }
 
 void int_stree_free_leaf(SUFFIX_TREE tree, STREE_LEAF leaf)
 {
 #ifdef STATS
-  tree->tree_size -= OPT_LEAF_SIZE;
+    tree->tree_size -= OPT_LEAF_SIZE;
 #endif
-
   free(leaf);
 }
 
 void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
 {
-
-    free(node->children);
-
 #ifdef STATS
     tree->tree_size -= tree->alpha_size * sizeof(STREE_NODE);
+    tree->tree_size -= OPT_NODE_SIZE;
 #endif
-
-
-#ifdef STATS
-  tree->tree_size -= OPT_NODE_SIZE;
-#endif
-  free(node);
+    free(node->children);
+    free(node);
 }
 
 
