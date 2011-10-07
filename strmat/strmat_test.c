@@ -10,7 +10,7 @@
 #define ON 1
 #define OFF 0
 static int ch_len;
-static int stree_build_policy = SORTED_LIST;
+static int stree_build_policy = COMPLETE_ARRAY; // SORTED_LIST;
 static int stree_build_threshold = 10;
 static int stree_print_flag = ON;
 static int stats_flag = ON;
