@@ -75,7 +75,6 @@
     <ClCompile Include="strmat_match.c" />
     <ClCompile Include="strmat_peter.c" />
     <ClCompile Include="strmat_print.c" />
-    <ClCompile Include="strmat_seqary.c" />
     <ClCompile Include="strmat_stubs2_peter.c" />
     <ClCompile Include="strmat_test.c" />
     <ClCompile Include="strmat_util.c" />
