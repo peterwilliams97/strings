@@ -94,6 +94,9 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
     return 1;
 }
 
+#define COLUMN_1 30
+#define COLUMN_2 70
+
 void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stree_flag)
 {
     char buffer[256], buf2[128];
@@ -128,13 +131,18 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
             strncpy(buffer + i, char_buf, char_len);
             i += char_len;
         }
-        while (i < 30) {
+        while (i < COLUMN_1) {
             buffer[i++] = ' ';
         }
         buffer[i] = '\0';
         
         leafnum = 1;
         while (stree_get_leaf(tree, node, leafnum, &str, &pos, &index)) {
+            if (i >= COLUMN_2 -3) {
+                strcpy(buffer + i, "...");
+                i += 3;
+                break;
+            }
             if (leafnum == 1) {
                 strcpy(buffer + i, " $");
                 i += 2;
@@ -156,7 +164,7 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
             leafnum++;
         }
 
-        while (i < 50) {
+        while (i < COLUMN_2) {
             buffer[i++] = ' ';
         }
 

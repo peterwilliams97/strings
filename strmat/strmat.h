@@ -56,27 +56,17 @@
  *
  * Contains the sequence and data structures specifically associated with
  * that string.
- *     raw_seq     - the raw characters of the string read from the input
- *                   (should be used when producing output)
- *     sequence    - the mapped characters of the string
- *                   (should be used when executing an algorithm, all strings
- *                    guaranteed to be mapped to the same alphabet)
+ *     sequence    - the  characters of the string
  *     length      - the length of the string
- *     raw_alpha   - the alphabet of the raw string
- *     alphabet    - the alphabet used to create the mapped string
- *     alpha_size  - the size of the mapped alphabet
- *     db_type     - the type of database which has this string
  *     ident       - an database identifier for retrieving the string
  *     title       - a title or name for the string
- *     desc_string - the complete description for the string
- *                      (a combination of the 'ident', 'title' and 'db_type')
  */
 
 #define IDENT_LENGTH 50
 #define TITLE_LENGTH 200
 
 typedef struct {
-    char *sequence, *desc_string;
+    char *sequence;
     int length;
     char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
 } STRING;
@@ -87,13 +77,5 @@ typedef struct {
 #define ERROR 0
 #define OK 1
 
-
-//#include "more.h"
-
-/*
- * Prototypes from strmat_main.c
- */
-//int my_itoalen(int);
-//char *my_getline(FILE *, int *);
 
 #endif

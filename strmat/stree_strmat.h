@@ -1,10 +1,15 @@
 #ifndef _STREE_STRMAT_H_
 #define _STREE_STRMAT_H_
 
-#define ON 1
-#define OFF 0
+// Peter's definitions
+
+typedef int BOOL;
+#define FALSE 0
+#define TRUE 1
 
 #define ALPHABET_SIZE 256
+
+// Original strmat definitions
 
 typedef struct stree_intleaf {
     int strid, pos;

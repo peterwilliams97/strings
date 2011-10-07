@@ -85,6 +85,7 @@ STRING *make_seq(const char *title, const char *cstring)
         fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
         return NULL;
     }
+
     if ((sptr = (STRING *)calloc(sizeof(STRING), 1)) == NULL) {
         free(sequence);
         return NULL;
@@ -95,6 +96,14 @@ STRING *make_seq(const char *title, const char *cstring)
     strcpy(sptr->title, title);
 
     return sptr;
+}
+
+void free_seq(STRING *sptr) 
+{
+    if (sptr) {
+        free(sptr->sequence);
+    }
+    free(sptr);
 }
 
 /********************************************************************

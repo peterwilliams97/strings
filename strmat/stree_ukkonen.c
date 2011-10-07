@@ -323,7 +323,7 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
         return NULL;
 
     for (i = 0; i < num_strings; i++) {
-        printf("Adding string %d\n", i);
+        printf("Adding string %2d\n", i);
         if (stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->length, i+1) < 1) {
             stree_delete_tree(tree);
             return NULL;
