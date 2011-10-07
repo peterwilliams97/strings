@@ -13,7 +13,7 @@ static int stats_flag = ON;
 #define NUM_STRINGS 4
 #define UNIQUE_STRINGS 2
 
-int main(int argc, char *argv[])
+static int test1()
 {
     int i, ok = 1;
     STRING *strings[NUM_STRINGS];
@@ -62,10 +62,15 @@ int main(int argc, char *argv[])
 
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
-        return 1;
+        return 0;
     }
 
    printf("Print any key to exit...");
    _getch();
+   return 1;
+}
 
+int main(int argc, char *argv[]) 
+{
+    test1();
 }
