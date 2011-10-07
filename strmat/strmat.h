@@ -1,5 +1,6 @@
 #ifndef _STRMAT_H_
 #define _STRMAT_H_
+
 /*
  * struct.h
  *

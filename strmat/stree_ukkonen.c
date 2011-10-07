@@ -121,8 +121,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, int M, int strid)
                    * If i == M, then the suffix ends inside the tree, so
                    * add a new intleaf at the current node.
                    */
-                    if (int_stree_isaleaf(tree, node) 
-                        &&  (node = int_stree_convert_leafnode(tree, node)) == NULL)
+                    if (int_stree_isaleaf(tree, node)  &&  (node = int_stree_convert_leafnode(tree, node)) == NULL)
                         return 0;
 
                     if (!int_stree_add_intleaf(tree, node, id, j))
@@ -133,6 +132,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, int M, int strid)
                     lastnode->suffix_link = node;
                 }
                 lastnode = node;
+
             } else {
                 /*
                  * g > 0 && g < edgelen, and so S[j..i-1] ends in the middle

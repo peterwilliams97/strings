@@ -1,7 +1,7 @@
 #ifndef _STREE_STRMAT_H_
 #define _STREE_STRMAT_H_
 
-#define COMPLETE_ARRAY 3
+#define ALPHABET_SIZE 128
 
 typedef struct stree_intleaf {
     int strid, pos;

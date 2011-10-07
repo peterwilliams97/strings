@@ -3,10 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "strmat.h"
-#include "strmat_alpha.h"
 #include "strmat_util.h"
-
-
 
 
 /********************************************************************** 

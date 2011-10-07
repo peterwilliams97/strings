@@ -19,7 +19,6 @@
 #include <ctype.h>
 #include <assert.h>
 #include "stree_strmat.h"
-#include "strmat_alpha.h"
 
 #define OPT_NODE_SIZE 24
 #define OPT_LEAF_SIZE 12

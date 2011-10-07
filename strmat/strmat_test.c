@@ -2,9 +2,7 @@
 #include <conio.h>
 #include "strmat.h"
 #include "strmat_util.h"
-//#include "sary_match.h"
 #include "stree_ukkonen.h"
-#include "strmat_alpha.h"
 #include "strmat_stubs2.h"
 
 #define ON 1

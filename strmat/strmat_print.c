@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include "strmat.h"
 #include "stree_strmat.h"
-#include "strmat_alpha.h"
 #include "strmat_print.h"
 
 /*
