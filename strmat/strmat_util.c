@@ -15,6 +15,57 @@ int my_itoalen(int num)
     return i;
 }
 
+#define CHAR_BUFFER_LEN 129
+char *get_char_array(const char *cstring, int length, char *buffer) 
+{
+    int i;
+ 
+    buffer[0] = 0;
+    for (i = 0; i < length; i++) {
+        char s[20];
+        sprintf(s, "x%02x", (unsigned int)cstring[i]);
+        if (strlen(buffer) + strlen(s) + 1 >= CHAR_BUFFER_LEN) {
+            break;
+        }
+        strcat(buffer, s);
+    } 
+    return buffer;
+}
+
+/********************************************************************** 
+ *  Function: make_seq() by Peter                                           
+ *                                                                    
+ *  Parameter:                                                        
+ *                                                                    
+ * Convert a character array to a STRING
+ * 
+ **********************************************************************/
+STRING *make_seqn(const char *title, const char *cstring, int length)
+{
+    STRING *sptr;
+    char *sequence;
+    char buffer[CHAR_BUFFER_LEN];
+
+    printf("make_seqn('%s', %d, %s)\n", title, length, get_char_array(cstring, length, buffer));
+    
+    if ((sequence = (char *)malloc(length)) == NULL) {
+        fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
+        return NULL;
+    }
+    memcpy(sequence, cstring, length);
+
+    if ((sptr = (STRING *)calloc(sizeof(STRING), 1)) == NULL) {
+        free(sequence);
+        return NULL;
+    }
+    
+    sptr->sequence = sequence;
+    sptr->length = length;
+    strcpy(sptr->title, title);
+
+    return sptr;
+}
+
 /********************************************************************** 
  *  Function: make_seq() by Peter                                           
  *                                                                    
@@ -45,7 +96,6 @@ STRING *make_seq(const char *title, const char *cstring)
 
     return sptr;
 }
-
 
 /********************************************************************
 *  Function print_string

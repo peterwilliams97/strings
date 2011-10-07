@@ -115,12 +115,20 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
         edgestr = stree_get_edgestr(tree, node);
         edgelen = stree_get_edgelen(tree, node);
 
-        for (i = 0; i < depth; i++) {
+        for (i = 0; i < depth*3; i++) {
             buffer[i] = '.';
         }
-        strncpy(buffer + i, edgestr, edgelen);
-        i += edgelen;
-        while (i < 20) {
+        {
+            char char_buf[CHAR_BUFFER_LEN];
+            int char_len;
+            get_char_array(edgestr, edgelen, char_buf);
+            char_len = strlen(char_buf);
+            //strncpy(buffer + i, edgestr, edgelen);
+            //i += edgelen;
+            strncpy(buffer + i, char_buf, char_len);
+            i += char_len;
+        }
+        while (i < 30) {
             buffer[i++] = ' ';
         }
         buffer[i] = '\0';
@@ -148,7 +156,7 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
             leafnum++;
         }
 
-        while (i < 40) {
+        while (i < 50) {
             buffer[i++] = ' ';
         }
 

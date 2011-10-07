@@ -24,10 +24,14 @@ int main(int argc, char *argv[])
         char title[129];
         char cstring[257];
         char dstring[257];
+        int length = 0;
+        int j;
         sprintf(title, "string %02d", i+1);
+ 
         //sprintf(cstring, "hello_%02d,testing-%02d", i+1, i+1); 
         //sprintf(cstring, "ab%02dx", i+1);
         //sprintf(cstring, "%c%c%02d%c", 'a' + i, 'm' + i, i+1, 'x' + i);
+        
         if (i % UNIQUE_STRINGS == 0) {
             sprintf(cstring, "abc");
         } else if (i % UNIQUE_STRINGS == 1) {
@@ -41,8 +45,19 @@ int main(int argc, char *argv[])
         strcat(dstring, cstring);
         strcat(dstring, "yyy");
            
-        printf("String %2d: '%s' '%s'\n", i, title, dstring);
+        //printf("String %2d: '%s' '%s'\n", i, title, dstring);
+#if 1
+        length = 5;
+        for (j = 0; j < length; j++) {
+            dstring[j] = j + i % UNIQUE_STRINGS;
+        }
+
+        //length = strlen(dstring);
+        //dstring[4] = 0;
+        strings[i] = make_seqn(title, dstring, length);
+#else
         strings[i] = make_seq(title, dstring);
+#endif
     }
 
     ok = strmat_ukkonen_build(strings, NUM_STRINGS, stats_flag, stree_print_flag);

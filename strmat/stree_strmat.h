@@ -1,7 +1,7 @@
 #ifndef _STREE_STRMAT_H_
 #define _STREE_STRMAT_H_
 
-#define ALPHABET_SIZE 128
+#define ALPHABET_SIZE 256
 
 typedef struct stree_intleaf {
     int strid, pos;
