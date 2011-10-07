@@ -385,7 +385,7 @@ int set_marks_from_list(char *);
  **********************************************************************/
 STRING *make_seq(const char *title, const char *cstring)
 {
-    int i, seqlen, seqsize, alpha, orig_seqlen, otherflag;
+    int i, seqlen, seqsize, orig_seqlen, otherflag;
     char ch, newline_ch, *s, *sequence, *seq2;
     STRING *sptr;
 
@@ -393,8 +393,7 @@ STRING *make_seq(const char *title, const char *cstring)
 
     inbuf = (char *)cstring;
     buf_len = strlen(cstring);
-    alpha = ALPHA_ASCII;
-    newline_ch = rawmapchar(alpha, '\n');
+    newline_ch = rawmapchar('\n');
     if (newline_ch == -1) {
         return 0;
     }
@@ -409,7 +408,7 @@ STRING *make_seq(const char *title, const char *cstring)
     orig_seqlen = seqlen;
     otherflag = 0;
     for (i=0,s=inbuf; i < buf_len; i++,s++) {
-        ch = rawmapchar(alpha, *s);
+        ch = rawmapchar(*s);
         if (ch == -1) {
             return 0;
         } else if (ch != '\0') {
@@ -442,8 +441,7 @@ STRING *make_seq(const char *title, const char *cstring)
         return NULL;
     memset(sptr, 0, sizeof(STRING));
     sptr->db_type = 0;
-    sptr->raw_alpha = alpha;
-    sptr->alpha_size = get_alpha_size(alpha);
+    sptr->alpha_size = get_alpha_size();
     sptr->raw_seq = seq2;
     sptr->sequence = sequence;
     sptr->length = seqlen;
@@ -826,7 +824,6 @@ STRING *make_seq(const char *title, const char *cstring)
 void print_string(STRING* string)
 {
   int i, j, pos, width, height, space, pos_len, spcount;
-  int ascii;
   char *s;
 
   //mprintf("TYPE: %s\n", db_names[string->db_type]);
@@ -835,8 +832,6 @@ void print_string(STRING* string)
  // mprintf("ALPHA: %s\n", alpha_names[string->raw_alpha]); 
   mprintf("LENGTH: %d\n", string->length);
   mprintf("SEQUENCE:\n");
-
-  ascii = (string->raw_alpha == ALPHA_ASCII);
 
   width = 60;
   height = 30;
@@ -858,8 +853,7 @@ void print_string(STRING* string)
         i++;
       }
       mprintf("%1d", j++);
-      if (!ascii)
-        mputc(' ');
+     
     }
     if (mputc('\n') == 0)
       return;
@@ -878,12 +872,7 @@ void print_string(STRING* string)
         }
         else
           mputc(s[pos++]);
-
-        if (!ascii && ++spcount == 10) {
-          mputc(' ');
-          spcount = 0;
-        }
-      }
+    }
 
       if (mputc('\n') == 0)
         return;

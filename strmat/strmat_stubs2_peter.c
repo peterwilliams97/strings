@@ -501,18 +501,16 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *map)
  *
  * Returns:  non-zero on success, zero on error
  */
-static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
-                             int gen_stree_flag, int mend_num_lines);
+static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag, int mend_num_lines);
 
 int strmat_stree_walkaround(STRING **strings, int num_strings)
 {
-  int alphabet;
-  char mapch, *choice;
-  STREE_NODE node, child;
-  SUFFIX_TREE tree;
+    char mapch, *choice;
+    STREE_NODE node, child;
+    SUFFIX_TREE tree;
 
-  if (strings == NULL)
-    return 0;
+    if (strings == NULL)
+        return 0;
 
   /*
    * Build the tree.
@@ -522,8 +520,7 @@ int strmat_stree_walkaround(STRING **strings, int num_strings)
   if (tree == NULL)
     return 0;
 
-  alphabet = strings[0]->alphabet;
-
+ 
   /*
    * Main interactive loop.
    */
@@ -560,7 +557,7 @@ int strmat_stree_walkaround(STRING **strings, int num_strings)
         continue;
       }
 
-      mapch = mapchar(alphabet, choice[1]);
+      mapch = mapchar(choice[1]);
 
       if ((child = stree_find_child(tree, node, mapch)) == NULL) {
         printf("\nNo child's edge begins with '%c'.\n", choice[1]);
@@ -712,7 +709,6 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
 
   mend(mend_num_lines);
 }
-
 
 /*
  * strmat_stree_lempel_ziv

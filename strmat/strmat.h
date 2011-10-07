@@ -76,7 +76,7 @@
 
 typedef struct {
   char *sequence, *desc_string, *raw_seq;
-  int length, alphabet, raw_alpha, db_type;
+  int length, raw_alpha, db_type;
   int alpha_size;
   char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
 } STRING;
@@ -87,7 +87,7 @@ typedef struct {
 #define ERROR 0
 #define OK 1
 
-extern char *alpha_names[], *db_names[];
+extern char *db_names[];
 
 #include "more.h"
 
