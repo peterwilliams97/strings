@@ -18,4 +18,9 @@ typedef short CHAR_TYPE;
 char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer); 
 CHAR_TYPE *str_to_sequence(const char* cstring, CHAR_TYPE *sequence, int length);
 
+void *my_malloc(size_t size);
+void *my_calloc(size_t size, size_t number);
+#define malloc(s) my_malloc(s)
+#define calloc(s,n) my_calloc(s,n)
+
 #endif

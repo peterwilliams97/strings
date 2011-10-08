@@ -211,3 +211,28 @@ void terse_print_string(STRING *spt)
     mputc('\n');
 }
 
+#undef malloc
+#undef calloc
+#define THRESHOLD (1024 * 1024)
+void *my_malloc(size_t size)
+{
+    void *ptr = malloc(size);
+    if (size > THRESHOLD) {
+        printf( "malloc(%u)\n", size);
+    }
+    if (!ptr) {
+        fprintf(stderr, "malloc(%u) failed\n", size);
+    }
+    return ptr;
+}
+
+void *my_calloc(size_t size, size_t number) {
+    void *ptr = calloc(size, number);
+    if (size * number > THRESHOLD) {
+        printf( "calloc(%u, %u)\n", size, number);
+    }
+    if (!ptr) {
+        fprintf(stderr, "calloc(%u, %u) failed\n", size, number);
+    }
+    return ptr;
+}
