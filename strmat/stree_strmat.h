@@ -1,13 +1,7 @@
 #ifndef _STREE_STRMAT_H_
 #define _STREE_STRMAT_H_
 
-// Peter's definitions
-
-typedef int BOOL;
-#define FALSE 0
-#define TRUE 1
-
-#define ALPHABET_SIZE 256
+#include "peter_common.h"
 
 // Original strmat definitions
 
@@ -19,7 +13,7 @@ typedef struct stree_intleaf {
 typedef struct stree_leaf {
     int isaleaf, id;
 
-    char *edgestr;
+    CHAR_TYPE *edgestr;
     int edgelen;
 
     struct stree_node *parent;
@@ -31,7 +25,7 @@ typedef struct stree_leaf {
 typedef struct stree_node {
     int isaleaf, id;
 
-    char *edgestr;
+    CHAR_TYPE *edgestr;
     int edgelen;
 
     struct stree_node *parent;
@@ -47,7 +41,7 @@ typedef struct {
     STREE_NODE root;
     int num_nodes;
 
-    char **strings;
+    CHAR_TYPE **strings;
     int *lengths, *ids;
     int nextslot, strsize, copyflag;
 
@@ -64,10 +58,10 @@ void stree_delete_tree(SUFFIX_TREE tree);
 void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(),  int (*postorder_fn)());
 void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(), int (*postorder_fn)());
 
-int stree_match(SUFFIX_TREE tree, char *T, int N, STREE_NODE *node_out, int *pos_out);
-int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, char *T, int N,  STREE_NODE *node_out, int *pos_out);
+int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out);
+int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N,  STREE_NODE *node_out, int *pos_out);
 
-STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, int ch);
+STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch);
 int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node);
 STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node);
 #define stree_get_next(tree, node) (node)->next
@@ -97,7 +91,7 @@ void stree_reset_stats(SUFFIX_TREE tree);
  * Internal procedures to use when building and manipulating trees.
  *
  */
-int int_stree_insert_string(SUFFIX_TREE tree, char *S, int M, int strid);
+int int_stree_insert_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid);
 void int_stree_delete_string(SUFFIX_TREE tree, int strid);
 
 STREE_NODE int_stree_convert_leafnode(SUFFIX_TREE tree, STREE_NODE node);
@@ -127,13 +121,13 @@ int int_stree_remove_intleaf(SUFFIX_TREE tree, STREE_NODE node, int strid, int p
 
 void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node);
 
-int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos, char *T, int N, STREE_NODE *node_out, int *pos_out);
+int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out);
 
 void int_stree_set_idents(SUFFIX_TREE tree);
 
 STREE_INTLEAF int_stree_new_intleaf(SUFFIX_TREE tree, int strid, int pos);
 STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,  int leafpos);
-STREE_NODE int_stree_new_node(SUFFIX_TREE tree, char *edgestr, int edgelen);
+STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen);
 void int_stree_free_intleaf(SUFFIX_TREE tree, STREE_INTLEAF ileaf);
 void int_stree_free_leaf(SUFFIX_TREE tree, STREE_LEAF leaf);
 void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node);

@@ -1,55 +1,7 @@
 #ifndef _STRMAT_H_
 #define _STRMAT_H_
 
-/*
- * struct.h
- *
- * The data structures implementing the interface between the main
- * program and the algorithm implementations.
- *
- * NOTES:
- *    7/94  -   Original Implementation.   (James Knight)
- *    7/94  -   Redid the output variables for the Boyer-Moore algorithm.
- *              Commented out the SUFFIX_TREE variables (so that the file
- *              can be used before the SUFFIX_TREE data structure has 
- *              been implemented.
- *              (James Knight)
- *    8/94  -   I added all the interface structures and the sequence
- *              structures.  I did all my prototyping in here and I add some
- *              useful Macros.
- *              (Rajdeep Gupta)
- *    8/94  -   Removed all of the clutter Rajdeep put in here, and also
- *              removed all variables which are not currently being used.
- *              Also, updated STRING structure with the title, identifier,
- *              database type, alphabet and description string fields.
- *              (James Knight)
- *    8/94  -   Defined constants for a few alphabets.  Removed interface
- *              specific constants and STRING array structure and moved to
- *              'interface.h'.
- *              (Gene Fodor)
- *    8/94  -   Added fields for the Z construction algorithm, the Z-values
- *              exact matching algorithm, the include file "more.h" and
- *              the constant OUTSIZE.
- *              (James Knight)
- *    9/94  -   Added the suffix tree definition, along with some fields for
- *              the Aho-Corasick algorithm and some suffix tree fields.
- *              (James Knight)
- *    9/94  -   Added the alphabet definition, added the a field for
- *              the user alphabet to the STRING structure
- *              (Gene Fodor)
- *    9/94  -   Added new suffix tree policies, and added a field 
- *              for a miscellaneous pointer to suffix tree definition.
- *              (Gene Fodor)
- *    9/94  -   Added new suffix tree matching field to PROBLEM,
- *              STREE_LEAF, and corresponding fields to SUFFIX_TREE
- *              for generating generalized suffix trees.
- *    7/95  -   Changed some fields/field-names for the Z-values algorithms.
- *              (James Knight)
- *    8/95  -   Redid the SUFFIX_TREE structure using the new implementation.
- *              (James Knight)
- *    3/96  -   Modularized the code  (James Knight)
- *    7/96  -   Finished the modularization  (James Knight)
- */
+#include "peter_common.h"
 
 /*
  * STRING data structure.

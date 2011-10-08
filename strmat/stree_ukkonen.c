@@ -43,10 +43,10 @@
  *
  * Returns:  non-zero on success, zero on error.
  */
-int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, int M, int strid)
+int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 {
     int i, j, g, h, gprime, edgelen, id;
-    char *edgestr;
+    CHAR_TYPE *edgestr;
     STREE_NODE node, lastnode, root, child, parent;
     STREE_LEAF leaf;
 
@@ -257,20 +257,20 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, char *S, int M, int strid)
                 edgelen = stree_get_edgelen(tree, node);
                 edgestr = stree_get_edgestr(tree, node);
 
-            /*
-             * After the walk down, either "g > 0" and S[j+1..i-1] ends g
-             * characters down the edge to 'node', or "g == 0" and S[j+1..i-1]
-             * really ends at 'node' (i.e., all of the characters on the edge
-             * label to `node' match the end of S[j+1..i-1]).
-             *
-             * If "g > 0" or "g == 0" but 'node' points to a leaf (which could
-             * happen if S[j+1..i-1] was the suffix of a previously added
-             * string), then we must delay the setting of the suffix link
-             * until a node has been created.  (With the suffix tree data 
-             * structure, no suffix links can safely point to leaves of the
-             * tree because a leaf may be converted into a node at some future
-             * time.)
-             */
+               /*
+                * After the walk down, either "g > 0" and S[j+1..i-1] ends g
+                * characters down the edge to 'node', or "g == 0" and S[j+1..i-1]
+                * really ends at 'node' (i.e., all of the characters on the edge
+                * label to `node' match the end of S[j+1..i-1]).
+                *
+                * If "g > 0" or "g == 0" but 'node' points to a leaf (which could
+                * happen if S[j+1..i-1] was the suffix of a previously added
+                * string), then we must delay the setting of the suffix link
+                * until a node has been created.  (With the suffix tree data 
+                * structure, no suffix links can safely point to leaves of the
+                * tree because a leaf may be converted into a node at some future
+                * time.)
+                */
                 if (g == 0) {
                     if (lastnode != root && !int_stree_isaleaf(tree, node) 
                         && lastnode->suffix_link == NULL) {

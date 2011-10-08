@@ -290,7 +290,7 @@ int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, char *T, int N,
  *
  * Returns:  a tree node or NULL.
  */
-STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, int ch)
+STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
 {
     STREE_NODE *children;
 

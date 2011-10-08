@@ -16,7 +16,7 @@ int my_itoalen(int num)
 }
 
 #define CHAR_BUFFER_LEN 129
-char *get_char_array(const char *cstring, int length, char *buffer) 
+char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer) 
 {
     int i;
  
