@@ -55,8 +55,8 @@ typedef struct {
 SUFFIX_TREE stree_new_tree(int copyflag);
 void stree_delete_tree(SUFFIX_TREE tree);
 
-void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(),  int (*postorder_fn)());
-void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(), int (*postorder_fn)());
+void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE),  int (*postorder_fn)(SUFFIX_TREE,STREE_NODE));
+void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE), int (*postorder_fn)(SUFFIX_TREE,STREE_NODE));
 
 int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out);
 int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N,  STREE_NODE *node_out, int *pos_out);

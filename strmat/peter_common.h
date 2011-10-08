@@ -1,6 +1,7 @@
 #ifndef _PETER_COMMON_H_
 #define _PETER_COMMON_H_
 
+
 // Peter's definitions
 
 typedef int BOOL;
@@ -12,6 +13,8 @@ typedef int BOOL;
 #define ALPHABET_SIZE 256
 
 typedef short CHAR_TYPE;
+
+template <class T> T min(T a, T b) { return (a < b) ? a : b; }
 
 
 #define CHAR_BUFFER_LEN 129

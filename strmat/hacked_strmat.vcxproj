@@ -68,14 +68,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="stree_lca.c" />
-    <ClCompile Include="stree_strmat.c" />
-    <ClCompile Include="stree_ukkonen.c" />
-    <ClCompile Include="strmat_match.c" />
-    <ClCompile Include="strmat_print.c" />
-    <ClCompile Include="strmat_stubs2_peter.c" />
-    <ClCompile Include="peter_main.c" />
-    <ClCompile Include="strmat_util.c" />
+    <ClCompile Include="stree_lca.cpp" />
+    <ClCompile Include="stree_strmat.cpp" />
+    <ClCompile Include="stree_ukkonen.cpp" />
+    <ClCompile Include="strmat_match.cpp" />
+    <ClCompile Include="strmat_print.cpp" />
+    <ClCompile Include="strmat_stubs2_peter.cpp" />
+    <ClCompile Include="peter_main.cpp" />
+    <ClCompile Include="strmat_util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strmat_util.h" />
