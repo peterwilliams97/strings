@@ -13,7 +13,7 @@ MATCH_NODE *alloc_match(void)
   MATCH_NODE *temp;
 
   if (!freelist) {
-    if ((temp = malloc(sizeof(MATCH_NODE))) == NULL)
+    if ((temp = my_malloc(sizeof(MATCH_NODE))) == NULL)
       return NULL;
   }
   else {

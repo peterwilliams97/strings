@@ -156,7 +156,7 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
   if (tree == NULL)
     return NULL;
 
-  if ((lca = malloc(sizeof(LCA_STRUCT))) == NULL)
+  if ((lca = my_malloc(sizeof(LCA_STRUCT))) == NULL)
     return NULL;
 
   memset(lca, 0, sizeof(LCA_STRUCT));
@@ -165,19 +165,19 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
 
   num_nodes = stree_get_num_nodes(tree) + 1;
 
-  if ((lca->I = malloc(num_nodes * sizeof(unsigned int))) == NULL) {
+  if ((lca->I = my_malloc(num_nodes * sizeof(unsigned int))) == NULL) {
     lca_free(lca);
     return NULL;
   }
   memset(lca->I, 0, num_nodes * sizeof(unsigned int));
 
-  if ((lca->A = malloc(num_nodes * sizeof(unsigned int))) == NULL) {
+  if ((lca->A = my_malloc(num_nodes * sizeof(unsigned int))) == NULL) {
     lca_free(lca);
     return NULL;
   }
   memset(lca->A, 0, num_nodes * sizeof(unsigned int));
 
-  if ((lca->L = malloc(num_nodes * sizeof(STREE_NODE))) == NULL) {
+  if ((lca->L = my_malloc(num_nodes * sizeof(STREE_NODE))) == NULL) {
     lca_free(lca);
     return NULL;
   }
@@ -429,7 +429,7 @@ LCA_STRUCT *lca_naive_prep(SUFFIX_TREE tree)
   if (tree == NULL)
     return NULL;
 
-  if ((lca = malloc(sizeof(LCA_STRUCT))) == NULL)
+  if ((lca = my_malloc(sizeof(LCA_STRUCT))) == NULL)
     return NULL;
 
   memset(lca, 0, sizeof(LCA_STRUCT));

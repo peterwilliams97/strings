@@ -50,7 +50,7 @@ SUFFIX_TREE stree_new_tree(int copyflag)
    /*
     * Allocate the space.
     */
-    if ((tree = malloc(sizeof(STREE_STRUCT))) == NULL) {
+    if ((tree = my_malloc(sizeof(STREE_STRUCT))) == NULL) {
         return NULL;
     }
     
@@ -578,10 +578,10 @@ int int_stree_insert_string(SUFFIX_TREE tree, CHAR_TYPE *S,  int M, int strid)
     if (tree->nextslot == tree->strsize) {
         if (tree->strsize == 0) {
             tree->strsize = 128;
-            if ((tree->strings = malloc(tree->strsize * sizeof(char *))) == NULL)
+            if ((tree->strings = my_malloc(tree->strsize * sizeof(char *))) == NULL)
                 return -1;
-            if ((tree->lengths = malloc(tree->strsize * sizeof(int))) == NULL 
-                || (tree->ids = malloc(tree->strsize * sizeof(int))) == NULL)
+            if ((tree->lengths = my_malloc(tree->strsize * sizeof(int))) == NULL 
+                || (tree->ids = my_malloc(tree->strsize * sizeof(int))) == NULL)
                 return -1;
             for (i = 0; i < 128; i++) {
                 tree->strings[i] = NULL;
@@ -1218,7 +1218,7 @@ STREE_INTLEAF int_stree_new_intleaf(SUFFIX_TREE tree, int strid, int pos)
 {
     STREE_INTLEAF ileaf;
 
-    if ((ileaf = malloc(sizeof(SINTLEAF_STRUCT))) == NULL)
+    if ((ileaf = my_malloc(sizeof(SINTLEAF_STRUCT))) == NULL)
         return NULL;
 
     memset(ileaf, 0, sizeof(SINTLEAF_STRUCT));
@@ -1249,7 +1249,7 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
 {
     STREE_LEAF leaf;
 
-    if ((leaf = malloc(sizeof(SLEAF_STRUCT))) == NULL)
+    if ((leaf = my_malloc(sizeof(SLEAF_STRUCT))) == NULL)
         return NULL;
 
     memset(leaf, 0, sizeof(SLEAF_STRUCT));
@@ -1281,14 +1281,14 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
 {
     STREE_NODE node;
 
-    if ((node = (STREE_NODE)malloc(sizeof(SNODE_STRUCT))) == NULL)
+    if ((node = (STREE_NODE)my_malloc(sizeof(SNODE_STRUCT))) == NULL)
         return NULL;
 
     memset(node, 0, sizeof(SNODE_STRUCT));
     node->edgestr = edgestr;
     node->edgelen = edgelen;
        
-    node->children = malloc(ALPHABET_SIZE * sizeof(STREE_NODE));
+    node->children = my_malloc(ALPHABET_SIZE * sizeof(STREE_NODE));
     if (node->children == NULL) {
         free(node);
         return NULL;

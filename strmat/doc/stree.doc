@@ -193,7 +193,7 @@ package to build trees and access values.
        /* Construct the tree */
      
        num_nodes = stree_get_num_nodes(tree);
-       if ((value = malloc(num_nodes * sizeof(int))) == NULL) {
+       if ((value = my_malloc(num_nodes * sizeof(int))) == NULL) {
          /* Ran out of memory */
        }
      

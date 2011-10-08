@@ -30,6 +30,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
 {
     int i, max_length, total_length;
     SUFFIX_TREE tree;
+    BOOL ok;
 
     if (strings == NULL)
         return 0;
@@ -48,7 +49,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
     /*
     * Build the tree, then print the output.
     */
-    tree = stree_gen_ukkonen_build(strings, num_strings);
+    tree = stree_gen_ukkonen_build(strings, num_strings, &ok);
     if (tree == NULL)
         return 0;
 
@@ -85,7 +86,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
 
     stree_delete_tree(tree);
 
-    return 1;
+    return ok;
 }
 
 /*
@@ -146,6 +147,7 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
   MATCHES back, current, next;
   STREE_NODE node;
   SUFFIX_TREE tree;
+  BOOL ok = TRUE;
 
   if (pattern == NULL || strings == NULL)
     return 0;
@@ -154,7 +156,7 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
    * Build the suffix tree.
    */
   printf("Building the tree...\n\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings);
+  tree = stree_gen_ukkonen_build(strings, num_strings, &ok);
   if (tree == NULL)
     return 0;
 
@@ -292,6 +294,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
     STREE_NODE x, y, z, *nodemap;
     SUFFIX_TREE tree;
     LCA_STRUCT *lcastruct;
+    BOOL ok = TRUE;
 
     if (strings == NULL)
         return 0;
@@ -300,7 +303,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
    * Build the tree.
    */
     printf("Building the suffix tree...\n");
-    tree = stree_gen_ukkonen_build(strings, num_strings);
+    tree = stree_gen_ukkonen_build(strings, num_strings, &ok);
     if (tree == NULL)
         return 0;
 
@@ -328,7 +331,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
   /*
    * Build the map of suffix tree nodes.
    */
-    nodemap = malloc(num_nodes * sizeof(STREE_NODE));
+    nodemap = my_malloc(num_nodes * sizeof(STREE_NODE));
     if (nodemap == NULL) {
         lca_free(lcastruct);
         stree_delete_tree(tree);

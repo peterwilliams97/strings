@@ -325,11 +325,12 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
+SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok)
 {
     int i;
     SUFFIX_TREE tree;
 
+    *ok = TRUE;
     if (strings == NULL || num_strings == 0)
         return NULL;
 
@@ -345,8 +346,12 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
             printf("Testing strings above 128\n");
         }
         if (stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->length, i+1) < 1) {
-            stree_delete_tree(tree);
-            return NULL;
+            *ok = FALSE;
+            fprintf(stderr, "stree_ukkonen_add_string() failed !!!\n");
+            break;
+            // !@#$ No need to delete as caller does this
+            //stree_delete_tree(tree);
+            //return NULL;
         }
     }
     return tree;

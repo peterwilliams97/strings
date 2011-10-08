@@ -77,8 +77,8 @@ static BOOL test2(int num_strings, int num_unique, int length, int max_char)
 {
     int i;
     BOOL ok;
-    STRING **strings = (STRING **)calloc(num_strings, sizeof(STRING *));
-    CHAR_TYPE *cstring = (CHAR_TYPE *)calloc(length, sizeof(CHAR_TYPE));
+    STRING **strings = (STRING **)my_calloc(num_strings, sizeof(STRING *));
+    CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
     char title[129];
 
     for (i = 0; i < num_strings; i++) {
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 
     int num_strings = 20;
     int num_unique = 20;
-    int length = 2000 * 1000;
+    int length = 20 * 1000;
     int max_char = 255;
 
     switch(test_num) {

@@ -76,14 +76,14 @@ STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length)
 
     printf("make_seqn('%s', %d, %s)\n", title, length, get_char_array(cstring, length, buffer));
     
-    if ((sequence = (CHAR_TYPE *)calloc(length, sizeof(CHAR_TYPE))) == NULL) {
+    if ((sequence = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE))) == NULL) {
         fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
         return NULL;
     }
 
     memcpy(sequence, cstring, length * sizeof(CHAR_TYPE));
  
-    if ((sptr = (STRING *)calloc(sizeof(STRING), 1)) == NULL) {
+    if ((sptr = (STRING *)my_calloc(sizeof(STRING), 1)) == NULL) {
         free(sequence);
         return NULL;
     }
@@ -211,17 +211,23 @@ void terse_print_string(STRING *spt)
     mputc('\n');
 }
 
-#undef malloc
-#undef calloc
-#define THRESHOLD (1024 * 1024)
+__int64 total_bytes = 0;
+int number_allocs = 0;
+
+#define THRESHOLD (10 * 1024)
 void *my_malloc(size_t size)
 {
     void *ptr = malloc(size);
     if (size > THRESHOLD) {
-        printf( "malloc(%u)\n", size);
+        printf( "malloc(%u) total_bytes = %.1f MB number_allocs = %d\n", 
+            size, (double)total_bytes/1024.0/1024.0, number_allocs);
     }
     if (!ptr) {
-        fprintf(stderr, "malloc(%u) failed\n", size);
+        fprintf(stderr, "malloc(%u) failed  total_bytes = %.1f MB number_allocs = %d\n", 
+            size, (double)total_bytes/1024.0/1024.0, number_allocs);
+    } else {
+        total_bytes += size;
+        number_allocs++;
     }
     return ptr;
 }
@@ -229,10 +235,16 @@ void *my_malloc(size_t size)
 void *my_calloc(size_t size, size_t number) {
     void *ptr = calloc(size, number);
     if (size * number > THRESHOLD) {
-        printf( "calloc(%u, %u)\n", size, number);
+        printf( "calloc(%u, %u) total_bytes = %.1f MB number_allocs = %d\n", 
+            size, number, (double)total_bytes/1024.0/1024.0, number_allocs);
     }
     if (!ptr) {
-        fprintf(stderr, "calloc(%u, %u) failed\n", size, number);
+        fprintf(stderr, "calloc(%u, %u) failed  total_bytes = %.1f MB number_allocs = %d\n", 
+            size, number, (double)total_bytes/1024.0/1024.0, number_allocs);
+    } else {
+        total_bytes += size * number;
+        number_allocs++;
     }
     return ptr;
 }
+
