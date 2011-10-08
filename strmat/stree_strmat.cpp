@@ -2,15 +2,6 @@
  * stree_strmat.c
  *
  * Implementation of the suffix tree data structure.
- *
- * NOTES:
- *    7/94  -  Initial implementation of Weiner's algorithm (Joyce Lau)   
- *    9/94  -  Partial Implementation.  (James Knight)
- *    9/94  -  Completed the implementation.  (Sean Davis)
- *    9/94  -  Redid Sean's implementation.  (James Knight)
- *    9/95  -  Reimplemented suffix trees, optimized the data structure,
- *             created streeopt.[ch]   (James Knight)
- *    4/96  -  Modularized the code  (James Knight)
  */
 
 #include <stdio.h>
@@ -20,9 +11,11 @@
 #include <assert.h>
 #include "stree_strmat.h"
 
-#define OPT_NODE_SIZE 24
-#define OPT_LEAF_SIZE 12
-#define OPT_INTLEAF_SIZE 12
+#ifdef STATS
+    #define OPT_NODE_SIZE 24
+    #define OPT_LEAF_SIZE 12
+    #define OPT_INTLEAF_SIZE 12
+#endif
 
 /*
  *
@@ -86,17 +79,15 @@ void stree_delete_tree(SUFFIX_TREE tree)
   
     if (tree->strings != NULL) {
         if (tree->copyflag) {
-            for (i=0; i < tree->strsize; i++)
-                if (tree->strings[i] != NULL)
-                    free(tree->strings[i]);
+            for (i = 0; i < tree->strsize; i++) {
+                free(tree->strings[i]);
+            }
         }
         free(tree->strings);
     }
       
-    if (tree->ids != NULL)
-        free(tree->ids);
-    if (tree->lengths != NULL)
-        free(tree->lengths);
+    free(tree->ids);
+    free(tree->lengths);
 
     free(tree);
 }
@@ -633,8 +624,9 @@ void int_stree_delete_string(SUFFIX_TREE tree, int id)
     if (tree->strings[id] == NULL)
         return;
 
-    if (tree->copyflag)
+    if (tree->copyflag) {
         free(tree->strings[id]);
+    }
 
     tree->strings[id] = NULL;
     if (id < tree->nextslot)

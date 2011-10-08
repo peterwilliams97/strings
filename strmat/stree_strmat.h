@@ -42,6 +42,7 @@ typedef struct {
     int num_nodes;
 
     CHAR_TYPE **strings;
+   
     int *lengths, *ids;
     int nextslot, strsize, copyflag;
 
