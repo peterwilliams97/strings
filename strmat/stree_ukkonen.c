@@ -16,6 +16,20 @@
 #include <string.h>
 #include "stree_strmat.h"
 #include "stree_ukkonen.h"
+
+//static char *_stree_get_edgestr(SUFFIX_TREE tree, STREE_NODE node)
+//{
+//    if (!node) {
+//        printf("No node!\n");
+//    }
+//    if (!node->edgestr) {
+//        printf("No edgestr!\n");
+//    }
+//    return node->edgestr;
+//}
+//#undef stree_get_edgestr
+//#define stree_get_edgestr(tree, node) _stree_get_edgestr(tree, node) 
+
 /*
  * stree_ukkonen_add_string
  *
@@ -324,6 +338,10 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
 
     for (i = 0; i < num_strings; i++) {
         printf("Adding string %2d\n", i);
+        if (i == 128) {
+            // Original strmat is limited to 128 strings
+            printf("Testing strings above 128\n");
+        }
         if (stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->length, i+1) < 1) {
             stree_delete_tree(tree);
             return NULL;

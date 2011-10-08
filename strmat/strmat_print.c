@@ -94,8 +94,8 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
     return 1;
 }
 
-#define COLUMN_1 30
-#define COLUMN_2 70
+#define COLUMN_1 50
+#define COLUMN_2 80
 
 void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stree_flag)
 {
@@ -103,6 +103,10 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
     int i, index, pos, leafnum, edgelen, status;
     char *edgestr, *str;
     STREE_NODE child;
+
+    if (depth * 3 > COLUMN_1 -10) {
+        return;
+    }
 
     memset(buffer, 0, sizeof(buffer));
     memset(buf2, 0, sizeof(buf2));

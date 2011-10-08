@@ -110,10 +110,10 @@ int main(int argc, char *argv[])
 {
     int test_num = 2;
 
-    int num_strings = 64;
-    int num_unique = 2;
-    int length = 8;
-    int max_char = 4;
+    int num_strings = 9;
+    int num_unique = 9;
+    int length = 80000;
+    int max_char = 100;
 
     switch(test_num) {
     
