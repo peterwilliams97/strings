@@ -57,7 +57,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
 #ifdef STATS
         printf("   Sum of Sequence Sizes:       %d\n", total_length);
         printf("   Number of Tree Nodes:        %d\n", stree_get_num_nodes(tree));
-        printf("   Size of Optimized Tree:      %d\n", tree->tree_size);
+        printf("   Size of Optimized Tree:      %d (%.1f MB)\n", tree->tree_size, (double)tree->tree_size/1024.0/1024.0);
         printf("   Bytes per Character:         %.2f\n",  (float) tree->tree_size / (float) total_length);
         printf("\n");
         printf("   Number of Comparisons:       %d\n", tree->num_compares);
@@ -76,7 +76,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
 
     if (print_tree) {
         printf("Suffix Tree:\n");
-        if (max_length < 40)
+        if (max_length < 40 || TRUE)
             small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
         else
             large_print_tree(tree, stree_get_root(tree), (num_strings > 1));

@@ -1297,7 +1297,7 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
     memset(node->children, 0, ALPHABET_SIZE * sizeof(STREE_NODE));
 
 #ifdef STATS
-    tree->tree_size += tree->alpha_size * sizeof(STREE_NODE);
+    tree->tree_size += ALPHABET_SIZE * sizeof(STREE_NODE);
     tree->tree_size += OPT_NODE_SIZE;
 #endif
     return node;
@@ -1332,7 +1332,7 @@ void int_stree_free_leaf(SUFFIX_TREE tree, STREE_LEAF leaf)
 void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
 {
 #ifdef STATS
-    tree->tree_size -= tree->alpha_size * sizeof(STREE_NODE);
+    tree->tree_size -= ALPHABET_SIZE * sizeof(STREE_NODE);
     tree->tree_size -= OPT_NODE_SIZE;
 #endif
     free(node->children);

@@ -8,7 +8,7 @@
 #include "strmat_stubs2.h"
 
 
-static int stree_print_flag = TRUE;
+static int stree_print_flag = FALSE;
 static int stats_flag = TRUE;
 
 #define NUM_STRINGS 4
@@ -112,10 +112,10 @@ int main(int argc, char *argv[])
 {
     int test_num = 2;
 
-    int num_strings = 3;
-    int num_unique = 3;
-    int length = 8;
-    int max_char = 9;
+    int num_strings = 20;
+    int num_unique = 20;
+    int length = 2000 * 1000;
+    int max_char = 255;
 
     switch(test_num) {
     

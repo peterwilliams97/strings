@@ -23,7 +23,7 @@ char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer)
     buffer[0] = 0;
     for (i = 0; i < length; i++) {
         char s[20];
-        sprintf(s, "x%02x", (int)cstring[i]);
+        sprintf(s, "%c%02x",  cstring[i] > 127 ? 'y' : 'x', (int)cstring[i]);
         if (strlen(buffer) + strlen(s) + 1 >= CHAR_BUFFER_LEN) {
             break;
         }

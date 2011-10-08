@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "strmat.h"
@@ -94,8 +95,8 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
     return 1;
 }
 
-#define COLUMN_1 50
-#define COLUMN_2 80
+#define COLUMN_1 60
+#define COLUMN_2 90
 
 void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stree_flag)
 {
@@ -115,7 +116,7 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
         printf("   Root %d:\n", stree_get_ident(tree, node));
         edgelen = 0;
     } else {
-        printf("   Node %2d->%2d:  ",
+        printf("   Node %4d->%4d:  ",
             stree_get_ident(tree, stree_get_parent(tree, node)),
             stree_get_ident(tree, node));
     
@@ -129,7 +130,7 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
             char char_buf[CHAR_BUFFER_LEN];
             int char_len;
             get_char_array(edgestr, edgelen, char_buf);
-            char_len = strlen(char_buf);
+            char_len = min(strlen(char_buf), COLUMN_1 - 5);
             //strncpy(buffer + i, edgestr, edgelen);
             //i += edgelen;
             strncpy(buffer + i, char_buf, char_len);
@@ -178,10 +179,16 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
                          stree_get_ident(tree, stree_get_suffix_link(tree, node)));
     }
 
+    if (stree_get_num_children(tree, node) > 1) {
+        printf("\n -- %d children ---\n", stree_get_num_children(tree, node));
+    }
+
     child = stree_get_children(tree, node);
     while (child != NULL) {
         small_print_tree(tree, child, depth + edgelen, gen_stree_flag);
         child = stree_get_next(tree, child);
     }
+
+    
 
 }
