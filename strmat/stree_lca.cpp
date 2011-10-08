@@ -14,11 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef STRMAT
 #include "stree_strmat.h"
-#else
-#include "stree.h"
-#endif
 #include "stree_lca.h"
 /*
  *

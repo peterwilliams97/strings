@@ -1,6 +1,8 @@
 #ifndef _STRMAT_MATCH_H_
 #define _STRMAT_MATCH_H_
 
+#include "strmat.h"
+
 #define ONESEQ_EXACT 0
 #define ONESEQ_APPROX 1
 #define SET_EXACT 2
@@ -15,7 +17,6 @@ typedef struct matchnode {
 
 MATCH_NODE *alloc_match(void);
 void free_matches(MATCHES list);
-int print_matches(STRING *string, STRING **strings, int num_strings,
-                  MATCHES list, int num_matches);
+int print_matches(STRING *string, STRING **strings, int num_strings, MATCHES list, int num_matches);
 
 #endif

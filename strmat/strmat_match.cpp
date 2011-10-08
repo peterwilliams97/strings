@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include "strmat.h"
-#include "strmat_util.h"
 #include "strmat_match.h"
 
 static MATCHES freelist = NULL;
