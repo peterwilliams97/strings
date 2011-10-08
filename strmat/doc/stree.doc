@@ -448,7 +448,7 @@ char stree_get_mapch(SUFFIX_TREE tree, STREE_NODE node)
 
 
 int stree_get_labellen(SUFFIX_TREE tree, STREE_NODE node)
-int stree_get_label(SUFFIX_TREE tree, STREE_NODE node, char *buffer,
+int stree_get_label(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE *buffer,
                     int buflen, int begin_or_end_flag)
 
     These two procedures return the length of node's label or the label

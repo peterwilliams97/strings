@@ -18,7 +18,7 @@
 #define TITLE_LENGTH 200
 
 typedef struct {
-    char *sequence;
+    CHAR_TYPE *sequence;
     int length;
     char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
 } STRING;

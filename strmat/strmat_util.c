@@ -23,7 +23,7 @@ char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer)
     buffer[0] = 0;
     for (i = 0; i < length; i++) {
         char s[20];
-        sprintf(s, "x%02x", (unsigned int)cstring[i]);
+        sprintf(s, "x%02x", (int)cstring[i]);
         if (strlen(buffer) + strlen(s) + 1 >= CHAR_BUFFER_LEN) {
             break;
         }
@@ -31,6 +31,34 @@ char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer)
     } 
     return buffer;
 }
+
+/*
+ *  Convert a c string to a sequence.
+ *  Include the terminating zero?
+ */
+CHAR_TYPE *str_to_sequence(const char* cstring, CHAR_TYPE *sequence, int length)
+{
+    const char *c;    
+    CHAR_TYPE *s;
+    int n;
+
+    for (c = cstring, s = sequence, n = 0; *c && n < length - 1; c++, s++, n++) {
+        *s = *c;
+    }
+    *s = 0;
+    return sequence;
+}
+
+static int my_strlen(const CHAR_TYPE *cstring)
+{
+    int length = 0;
+    const CHAR_TYPE *c;
+    for (c = cstring; *c; c++) {
+        length++;
+    }
+    return length;
+}
+
 
 /********************************************************************** 
  *  Function: make_seq() by Peter                                           
@@ -40,20 +68,21 @@ char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer)
  * Convert a character array to a STRING
  * 
  **********************************************************************/
-STRING *make_seqn(const char *title, const char *cstring, int length)
+STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length)
 {
     STRING *sptr;
-    char *sequence;
+    CHAR_TYPE *sequence;
     char buffer[CHAR_BUFFER_LEN];
 
     printf("make_seqn('%s', %d, %s)\n", title, length, get_char_array(cstring, length, buffer));
     
-    if ((sequence = (char *)malloc(length)) == NULL) {
+    if ((sequence = (CHAR_TYPE *)calloc(length, sizeof(CHAR_TYPE))) == NULL) {
         fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
         return NULL;
     }
-    memcpy(sequence, cstring, length);
 
+    memcpy(sequence, cstring, length * sizeof(CHAR_TYPE));
+ 
     if ((sptr = (STRING *)calloc(sizeof(STRING), 1)) == NULL) {
         free(sequence);
         return NULL;
@@ -74,28 +103,11 @@ STRING *make_seqn(const char *title, const char *cstring, int length)
  * Convert a c string to a STRING
  * 
  **********************************************************************/
-STRING *make_seq(const char *title, const char *cstring)
+STRING *make_seq(const char *title, const CHAR_TYPE *cstring)
 {
-    STRING *sptr;
-    char *sequence;
-
     printf("make_seq('%s', '%s')\n", title, cstring);
-    
-    if ((sequence = _strdup(cstring)) == NULL) {
-        fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
-        return NULL;
-    }
 
-    if ((sptr = (STRING *)calloc(sizeof(STRING), 1)) == NULL) {
-        free(sequence);
-        return NULL;
-    }
-    
-    sptr->sequence = sequence;
-    sptr->length = strlen(cstring);
-    strcpy(sptr->title, title);
-
-    return sptr;
+    return make_seqn(title, cstring, my_strlen(cstring));
 }
 
 void free_seq(STRING *sptr) 
@@ -120,7 +132,7 @@ void free_seq(STRING *sptr)
 void print_string(STRING* string)
 {
   int i, j, pos, width, height, space, pos_len, spcount;
-  char *s;
+  CHAR_TYPE *s;
 
   printf("IDENT: %s\n", string->ident);
   printf("TITLE: %s\n", string->title);
@@ -177,26 +189,25 @@ void print_string(STRING* string)
 
 void terse_print_string(STRING *spt)
 {
-  int i;
-  char *s, *t, buffer[51];
-  
-//  printf("\tTYPE: %s\t", db_names[spt->db_type]);
-  printf("TITLE: ");
-  if (*(spt->title))
-    mputs(spt->title);
-  mputc('\n');
+    int i;
+    CHAR_TYPE  *t;
+    char  buffer[51], *s;
 
-  printf("\tLENGTH: %d\t",spt->length);
- // printf("ALPHA: %s\n",alpha_names[spt->raw_alpha]);
+    printf("TITLE: ");
+    if (*(spt->title))
+        mputs(spt->title);
+    mputc('\n');
 
-  buffer[50] = '\0';
-  printf("\tSEQUENCE:  ");
-  for (s=buffer,t=spt->sequence,i=0; i < 50 && i < spt->length; i++,s++,t++)
-    *s = (isprint((int)(*t)) ? *t : '#');
-  *s = '\0';
-  mputs(buffer);  
-  if(spt->length > 50)
-    mputs("...");
-  mputc('\n');
+    printf("\tLENGTH: %d\t",spt->length);
+ 
+    buffer[50] = '\0';
+    printf("\tSEQUENCE:  ");
+    for (s=buffer,t=spt->sequence,i=0; i < 50 && i < spt->length; i++,s++,t++)
+        *s = (isprint((int)(*t)) ? *t : '#');
+    *s = '\0';
+    mputs(buffer);  
+    if(spt->length > 50)
+        mputs("...");
+    mputc('\n');
 }
 

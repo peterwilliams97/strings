@@ -11,7 +11,11 @@ typedef int BOOL;
 
 #define ALPHABET_SIZE 256
 
-typedef char CHAR_TYPE;
+typedef short CHAR_TYPE;
 
+
+#define CHAR_BUFFER_LEN 129
+char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer); 
+CHAR_TYPE *str_to_sequence(const char* cstring, CHAR_TYPE *sequence, int length);
 
 #endif

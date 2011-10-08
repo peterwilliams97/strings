@@ -108,7 +108,7 @@ static int matchcount, matcherror, patlen;
 static int add_match(SUFFIX_TREE tree, STREE_NODE node)
 {
   int i, pos, id;
-  char *seq;
+  CHAR_TYPE *seq;
   MATCHES newmatch;
   
   for (i=1; stree_get_leaf(tree, node, i, &seq, &pos, &id); i++) {
@@ -286,7 +286,9 @@ int strmat_stree_naive_lca(STRING **strings, int num_strings, int print_stats, c
 int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type, char *lines[])
 {
     int i, num_nodes, num1, num2, len, num_lcas, max_length;
-    char *s, **line_ptr, buffer[64];
+    CHAR_TYPE *s;
+    char **line_ptr;
+    CHAR_TYPE  buffer[64];
     STREE_NODE x, y, z, *nodemap;
     SUFFIX_TREE tree;
     LCA_STRUCT *lcastruct;
@@ -594,8 +596,9 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
 {
   int i, j, index, ident, idwidth, labellen, edgelen;
   int leafnum, pos;
-  char *edgestr, label[36];
-  char *str;
+  CHAR_TYPE *edgestr;
+  CHAR_TYPE label[36];
+  CHAR_TYPE *str;
   STREE_NODE child;
 
  

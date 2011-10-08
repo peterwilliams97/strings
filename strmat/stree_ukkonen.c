@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "peter_common.h"
 #include "stree_strmat.h"
 #include "stree_ukkonen.h"
 
@@ -337,7 +338,8 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings)
         return NULL;
 
     for (i = 0; i < num_strings; i++) {
-        printf("Adding string %2d\n", i);
+        char buffer[CHAR_BUFFER_LEN];
+        printf("Adding string %2d : %s\n", i, get_char_array(strings[i]->sequence, strings[i]->length, buffer));
         if (i == 128) {
             // Original strmat is limited to 128 strings
             printf("Testing strings above 128\n");

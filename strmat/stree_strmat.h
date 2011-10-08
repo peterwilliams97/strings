@@ -79,10 +79,10 @@ void stree_sort_children(SUFFIX_TREE tree, STREE_NODE node);
 #define stree_get_ident(tree,node) (!((tree)->idents_dirty) ? (node)->id  : (int_stree_set_idents(tree), (node)->id))
 
 int stree_get_labellen(SUFFIX_TREE tree, STREE_NODE node);
-void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, char *buffer, int buflen, int endflag);
+void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE *buffer, int buflen, int endflag);
 
 int stree_get_num_leaves(SUFFIX_TREE tree, STREE_NODE node);
-int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum, char **string_out, int *pos_out, int *id_out);
+int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum, CHAR_TYPE **string_out, int *pos_out, int *id_out);
 
 void stree_reset_stats(SUFFIX_TREE tree);
 

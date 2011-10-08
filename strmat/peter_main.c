@@ -23,6 +23,7 @@ static int test1()
         char title[129];
         char cstring[257];
         char dstring[257];
+        CHAR_TYPE sequence[257];
         int length = 0;
         int j;
         sprintf(title, "string %02d", i+1);
@@ -53,7 +54,8 @@ static int test1()
 
         //length = strlen(dstring);
         //dstring[4] = 0;
-        strings[i] = make_seqn(title, dstring, length);
+
+        strings[i] = make_seqn(title, str_to_sequence(cstring, sequence, 257) , length);
 #else
         strings[i] = make_seq(title, dstring);
 #endif
@@ -76,7 +78,7 @@ static BOOL test2(int num_strings, int num_unique, int length, int max_char)
     int i;
     BOOL ok;
     STRING **strings = (STRING **)calloc(num_strings, sizeof(STRING *));
-    unsigned char *cstring = (unsigned char *)malloc(length);
+    CHAR_TYPE *cstring = (CHAR_TYPE *)calloc(length, sizeof(CHAR_TYPE));
     char title[129];
 
     for (i = 0; i < num_strings; i++) {
@@ -87,7 +89,7 @@ static BOOL test2(int num_strings, int num_unique, int length, int max_char)
             cstring[j] = (j + i % num_unique) % max_char;
         }
 
-        strings[i] = make_seqn(title, (char *)cstring, length);
+        strings[i] = make_seqn(title, cstring, length);
     }
 
     ok = strmat_ukkonen_build(strings, num_strings, stats_flag, stree_print_flag);
@@ -110,10 +112,10 @@ int main(int argc, char *argv[])
 {
     int test_num = 2;
 
-    int num_strings = 9;
+    int num_strings = 3;
     int num_unique = 3;
     int length = 8;
-    int max_char = 100;
+    int max_char = 9;
 
     switch(test_num) {
     

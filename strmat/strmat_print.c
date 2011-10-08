@@ -15,7 +15,7 @@ int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
     int j, pos, edgelen, leafnum, index;
     CHAR_TYPE *edgestr, buffer[34];
     STREE_NODE child;
-    char *str;
+    CHAR_TYPE *str;
 
     if (node == stree_get_root(tree))
         printf("   Node %d:    (Root)", stree_get_ident(tree, node));
