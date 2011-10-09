@@ -179,16 +179,13 @@ void small_print_tree(SUFFIX_TREE tree, STREE_NODE node, int depth, int gen_stre
                          stree_get_ident(tree, stree_get_suffix_link(tree, node)));
     }
 
-    if (stree_get_num_children(tree, node) > 1) {
-        printf("\n -- %d children ---\n", stree_get_num_children(tree, node));
-    }
+    //if (stree_get_num_children(tree, node) > 1) {
+    //    printf("\n -- %d children ---\n", stree_get_num_children(tree, node));
+    //}
 
     child = stree_get_children(tree, node);
     while (child != NULL) {
         small_print_tree(tree, child, depth + edgelen, gen_stree_flag);
         child = stree_get_next(tree, child);
     }
-
-    
-
 }

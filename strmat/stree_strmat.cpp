@@ -23,7 +23,7 @@ using namespace std;
 static bool node_has_children(STREE_NODE node)
 {
  #ifdef PETER_GLOBAL
-    return get_number_children(node->_index) > 0;
+    return pglob_get_number_children(node->_index) > 0;
 #else
     return node->children != NULL;
 #endif
@@ -52,8 +52,9 @@ SUFFIX_TREE stree_new_tree(int copyflag)
 {
     SUFFIX_TREE tree;
 
+#ifdef PETER_GLOBAL
     pglob_init();
-            
+#endif            
    /*
     * Allocate the space.
     */
@@ -168,7 +169,7 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
             */
             childnum = (state == FIRST) ? 0 : node->isaleaf;
 #ifdef PETER_GLOBAL
-            map<CHAR_TYPE, stree_node *>children = get_children_map(node->_index);
+            map<CHAR_TYPE, stree_node *>children = pglob_get_children_map(node->_index);
 #else
             STREE_NODE *children = (STREE_NODE *) node->children;
 #endif
@@ -295,7 +296,7 @@ STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
 #endif
 
 #ifdef PETER_GLOBAL
-    STREE_NODE child_node = get_child_node(node->_index, ch);
+    STREE_NODE child_node = pglob_get_child_node(node->_index, ch);
 #if 0  // !@#$ Peter debugging
     if (child_node) {
         char buffer[CHAR_BUFFER_LEN];
@@ -329,7 +330,7 @@ STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
 int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node)
 {
 #ifdef PETER_GLOBAL
-    return get_number_children(node->_index);
+    return pglob_get_number_children(node->_index);
 #else
     int i, count;
     STREE_NODE *children;
@@ -359,12 +360,13 @@ int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node)
  */
 STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
 {
-    if (int_stree_isaleaf(tree, node) || !node_has_children(node) == 0) {
+    if (int_stree_isaleaf(tree, node) || !node_has_children(node)) {
+        //printf(" isaleaf=%d, has_children=%d\n", int_stree_isaleaf(tree, node), node_has_children(node));
         return NULL;
     }
 
 #ifdef PETER_GLOBAL    
-    list<STREE_NODE> children = get_children_list(node->_index);
+    list<STREE_NODE> children = pglob_get_children_list(node->_index);
  
     STREE_NODE head = NULL, tail = NULL;
     list<STREE_NODE>::iterator child;
@@ -792,7 +794,7 @@ STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE chi
 #endif
 
 #ifdef PETER_GLOBAL
-    add_child_node(parent->_index, ch, child->_index);
+    pglob_set_child_node(parent->_index, ch, child->_index);
 #else
     STREE_NODE *children = (STREE_NODE *)parent->children;
     children[(int) ch] = child;
@@ -818,7 +820,7 @@ STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE chi
 void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchild, STREE_NODE newchild)
 {
 #ifdef PETER_GLOBAL
-    add_child_node(parent->_index, stree_getch(tree, newchild), newchild->_index);
+    pglob_set_child_node(parent->_index, stree_getch(tree, newchild), newchild->_index);
 #else
     STREE_NODE  *children;
       
@@ -849,7 +851,7 @@ void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchil
 void int_stree_disc_from_parent(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE child)
 {
 #ifdef PETER_GLOBAL
-    delete_child_node(parent->_index, stree_getch(tree, child));
+    pglob_disconnect_child_node(parent->_index, stree_getch(tree, child));
 #else
     STREE_NODE *children = (STREE_NODE *) parent->children;
     children[(int) stree_getch(tree, child)] = NULL;
@@ -958,10 +960,10 @@ void int_stree_edge_merge(SUFFIX_TREE tree, STREE_NODE node)
     parent = stree_get_parent(tree, node);
    
 #if PETER_GLOBAL
-    if (get_number_children(node->_index) != 1) {
+    if (pglob_get_number_children(node->_index) != 1) {
         return;
     }
-    child = get_children_list(node->_index).front();
+    child = pglob_get_children_list(node->_index).front();
 #else
     child = NULL;
     STREE_NODE *children = (STREE_NODE *)node->children;
@@ -1076,7 +1078,7 @@ void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
             int_stree_free_intleaf(tree, ileaf);
         }
 #ifdef PETER_GLOBAL
-        map<CHAR_TYPE, stree_node *> children = get_children_map(node->_index);
+        map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(node->_index);
 #else
         STREE_NODE  *children = (STREE_NODE *) node->children;
 #endif
@@ -1301,8 +1303,8 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
 #endif
 
 #ifdef PETER_GLOBAL
-    leaf->_index = get_node_index();
-    add_node(leaf->_index, (stree_node*)leaf);
+    leaf->_index = pglob_get_node_index();
+    pglob_add_node(leaf->_index, (stree_node*)leaf);
 #endif
 
     return leaf;
@@ -1344,8 +1346,8 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
 #endif
 
 #ifdef PETER_GLOBAL
-    node->_index = get_node_index();
-    add_node(node->_index, node);
+    node->_index = pglob_get_node_index();
+    pglob_add_node(node->_index, node);
 #endif
     return node;
 }
@@ -1383,7 +1385,7 @@ void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
     tree->tree_size -= OPT_NODE_SIZE;
 #endif
 #ifdef PETER_GLOBAL
-    delete_node(node->_index);
+    pglob_delete_node(node->_index);
 #else
     free(node->children);
 #endif

@@ -69,14 +69,11 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
 #else
         printf("   No statistics available.\n");
 #endif
-        if (mputc('\n') == 0) {
-            stree_delete_tree(tree);
-            return 1;
-        }
+        
     }
 
     if (print_tree) {
-        printf("Suffix Tree:\n");
+        printf("\nSuffix Tree:\n");
         if (max_length < 40 || TRUE)
             small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
         else

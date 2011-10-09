@@ -110,7 +110,7 @@ static BOOL base_test(int num_strings, int num_unique, int length, int max_char)
 
 static BOOL test2(int num_strings, int num_unique, int length, int max_char)
 {
-    return  base_test(num_strings, num_unique, length, max_char);
+    return base_test(num_strings, num_unique, length, max_char);
 }
 
 static _int64 _last_val = 0;
@@ -143,7 +143,7 @@ static BOOL test3()
 
 int main(int argc, char *argv[]) 
 {
-   int test_num = 4;
+   int test_num = 2;
     
    switch(test_num) {
     
