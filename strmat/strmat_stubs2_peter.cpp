@@ -49,7 +49,7 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
     /*
     * Build the tree, then print the output.
     */
-    tree = stree_gen_ukkonen_build(strings, num_strings, &ok);
+    tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_tree);
     if (tree == NULL)
         return 0;
 
@@ -156,7 +156,7 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
    * Build the suffix tree.
    */
   printf("Building the tree...\n\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings, &ok);
+  tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
   if (tree == NULL)
     return 0;
 
@@ -303,7 +303,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
    * Build the tree.
    */
     printf("Building the suffix tree...\n");
-    tree = stree_gen_ukkonen_build(strings, num_strings, &ok);
+    tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
     if (tree == NULL)
         return 0;
 

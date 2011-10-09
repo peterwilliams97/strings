@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include "stree_strmat.h"
+#include "peter_global.h"
 
 #ifdef STATS
     #define OPT_NODE_SIZE 24
@@ -280,6 +281,9 @@ int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, 
  */
 STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
 {
+#ifdef PETER_GLOBAL
+    return get_child_node(node->_index, ch);
+#else
     STREE_NODE *children;
 
     if (int_stree_isaleaf(tree, node) || node->children == NULL)
@@ -296,6 +300,7 @@ STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
         }
     }
     return children[ch];
+#endif
 }
 
 /*
@@ -341,8 +346,9 @@ STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
     int i;
     STREE_NODE head, tail, *children;
   
-    if (int_stree_isaleaf(tree, node) || node->children == NULL)
+    if (int_stree_isaleaf(tree, node) || node->children == NULL) {
         return NULL;
+    }
 
     head = tail = NULL;
     children = (STREE_NODE *)node->children;
@@ -538,13 +544,9 @@ void stree_reset_stats(SUFFIX_TREE tree)
     tree->child_cost = tree->nodes_created = tree->creation_cost = 0;
 }
 
-
 /*
  *
- *
  * Internal procedures to use when building and manipulating trees.
- *
- *
  *
  */
 
@@ -777,8 +779,7 @@ STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE chi
  *
  * Returns:  nothing
  */
-void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent,
-                         STREE_NODE oldchild, STREE_NODE newchild)
+void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchild, STREE_NODE newchild)
 {
     STREE_NODE  *children;
       
@@ -1078,13 +1079,11 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
 #ifdef STATS
         tree->num_compares++;
 #endif
-
-        if (len == N || pos < edgelen || (child = stree_find_child(tree, node, T[len])) == NULL)
+       if (len == N || pos < edgelen || (child = stree_find_child(tree, node, T[len])) == NULL)
             break;
 #ifdef STATS
-    tree->edges_traversed++;
+        tree->edges_traversed++;
 #endif
-
         if (int_stree_isaleaf(tree, child)) {
             *node_out = child;
             *pos_out = 0;
@@ -1117,33 +1116,33 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
  */
 void int_stree_set_idents(SUFFIX_TREE tree)
 {
-  enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
-  int i, num, childnum, nextid;
-  STREE_NODE root, node, child, *children;
+    enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
+    int i, num, childnum, nextid;
+    STREE_NODE root, node, child, *children;
 
-  if (!tree->idents_dirty)
-    return;
+    if (!tree->idents_dirty)
+        return;
 
   /*
    * Use a non-recursive traversal where the `isaleaf' field of each node
    * is used as the value remembering the child currently being
    * traversed.
    */
-  nextid = 0;
-  node = root = stree_get_root(tree);
-  state = START;
-  while (1) {
+    nextid = 0;
+    node = root = stree_get_root(tree);
+    state = START;
+     while (1) {
     /*
      * The first time we get to a node.
      */
-    if (state == START) {
-      node->id = nextid++;
+        if (state == START) {
+            node->id = nextid++;
 
-      num = stree_get_num_children(tree, node);
-      if (num > 0)
-        state = FIRST;
-      else
-        state = DONELEAF;
+        num = stree_get_num_children(tree, node);
+        if (num > 0)
+            state = FIRST;
+        else
+            state = DONELEAF;
     }
 
     /*
@@ -1167,12 +1166,12 @@ void int_stree_set_idents(SUFFIX_TREE tree)
     
 
       if (child == NULL)
-        state = DONE;
+            state = DONE;
       else {
-        node->isaleaf = i + 1;
-        node = child;
-        state = START;
-      }
+            node->isaleaf = i + 1;
+            node = child;
+            state = START;
+        }
     }
 
     /*
@@ -1272,11 +1271,10 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
 STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
 {
     STREE_NODE node;
-
-    if ((node = (STREE_NODE)my_malloc(sizeof(SNODE_STRUCT))) == NULL)
+ 
+    if ((node = (STREE_NODE)my_calloc(sizeof(SNODE_STRUCT),1)) == NULL)
         return NULL;
-
-    memset(node, 0, sizeof(SNODE_STRUCT));
+        
     node->edgestr = edgestr;
     node->edgelen = edgelen;
        
@@ -1291,6 +1289,11 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
 #ifdef STATS
     tree->tree_size += ALPHABET_SIZE * sizeof(STREE_NODE);
     tree->tree_size += OPT_NODE_SIZE;
+#endif
+
+#ifdef PETER_GLOBAL
+    node->_index = get_node_index();
+    add_node(node->_index, node);
 #endif
     return node;
 }
@@ -1318,7 +1321,7 @@ void int_stree_free_leaf(SUFFIX_TREE tree, STREE_LEAF leaf)
 #ifdef STATS
     tree->tree_size -= OPT_LEAF_SIZE;
 #endif
-  free(leaf);
+    free(leaf);
 }
 
 void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
@@ -1326,6 +1329,9 @@ void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
 #ifdef STATS
     tree->tree_size -= ALPHABET_SIZE * sizeof(STREE_NODE);
     tree->tree_size -= OPT_NODE_SIZE;
+#endif
+#ifdef PETER_GLOBAL
+    delete_node(node->_index);
 #endif
     free(node->children);
     free(node);

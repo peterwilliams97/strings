@@ -325,7 +325,7 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok)
+SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok, BOOL print_flag)
 {
     int i;
     SUFFIX_TREE tree;
@@ -340,7 +340,9 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok)
 
     for (i = 0; i < num_strings; i++) {
         char buffer[CHAR_BUFFER_LEN];
-        printf("Adding string %2d : %s\n", i, get_char_array(strings[i]->sequence, strings[i]->length, buffer));
+        if (print_flag) {
+            printf("Adding string %2d : %s\n", i, get_char_array(strings[i]->sequence, strings[i]->length, buffer));
+        }
         if (i == 128) {
             // Original strmat is limited to 128 strings
             printf("Testing strings above 128\n");

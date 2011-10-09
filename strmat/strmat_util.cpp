@@ -68,13 +68,15 @@ static int my_strlen(const CHAR_TYPE *cstring)
  * Convert a character array to a STRING
  * 
  **********************************************************************/
-STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length)
+STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length, BOOL print_flag)
 {
     STRING *sptr;
     CHAR_TYPE *sequence;
     char buffer[CHAR_BUFFER_LEN];
 
-    printf("make_seqn('%s', %d, %s)\n", title, length, get_char_array(cstring, length, buffer));
+    if (print_flag) {
+        printf("make_seqn('%s', %d, %s)\n", title, length, get_char_array(cstring, length, buffer));
+    }
     
     if ((sequence = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE))) == NULL) {
         fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
@@ -107,7 +109,7 @@ STRING *make_seq(const char *title, const CHAR_TYPE *cstring)
 {
     printf("make_seq('%s', '%s')\n", title, cstring);
 
-    return make_seqn(title, cstring, my_strlen(cstring));
+    return make_seqn(title, cstring, my_strlen(cstring), TRUE);
 }
 
 void free_seq(STRING *sptr) 

@@ -23,6 +23,9 @@ typedef struct stree_leaf {
 } SLEAF_STRUCT, *STREE_LEAF;
 
 typedef struct stree_node {
+#ifdef PETER_GLOBAL
+    int _index;
+#endif
     int isaleaf, id;
 
     CHAR_TYPE *edgestr;

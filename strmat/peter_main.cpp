@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,7 +9,7 @@
 #include "strmat_stubs2.h"
 
 
-static int stree_print_flag = TRUE;
+static int stree_print_flag = FALSE;
 static int stats_flag = TRUE;
 
 #define NUM_STRINGS 4
@@ -55,7 +56,7 @@ static int test1()
         //length = strlen(dstring);
         //dstring[4] = 0;
 
-        strings[i] = make_seqn(title, str_to_sequence(cstring, sequence, 257) , length);
+        strings[i] = make_seqn(title, str_to_sequence(cstring, sequence, 257), length, stree_print_flag);
 #else
         strings[i] = make_seq(title, dstring);
 #endif
@@ -69,11 +70,10 @@ static int test1()
     }
 
    printf("Print any key to exit...");
-   _getch();
    return 1;
 }
 
-static BOOL test2(int num_strings, int num_unique, int length, int max_char)
+static BOOL base_test(int num_strings, int num_unique, int length, int max_char)
 {
     int i;
     BOOL ok;
@@ -89,7 +89,7 @@ static BOOL test2(int num_strings, int num_unique, int length, int max_char)
             cstring[j] = (j + i % num_unique) % max_char;
         }
 
-        strings[i] = make_seqn(title, cstring, length);
+        strings[i] = make_seqn(title, cstring, length, stree_print_flag);
     }
 
     ok = strmat_ukkonen_build(strings, num_strings, stats_flag, stree_print_flag);
@@ -102,15 +102,45 @@ static BOOL test2(int num_strings, int num_unique, int length, int max_char)
         free_seq(strings[i]);
     }
     free(strings);
+    return ok;
+}
 
-    printf("Print any key to exit...");
-    _getch();
+static BOOL test2(int num_strings, int num_unique, int length, int max_char)
+{
+    return  base_test(num_strings, num_unique, length, max_char);
+}
+
+static _int64 _last_val = 0;
+static int range(int val, int min_val, int max_val)
+{
+    _last_val = (_last_val * 152700091 + val * 153102757) % 152500063;
+    assert(_last_val >= 0);
+    int result = min_val + _last_val % (max_val - min_val);
+    assert(result >= 0);
+    return result;
+}
+
+static BOOL test3()
+{
+    BOOL ok = TRUE;
+    for (int i = 0; i < 10; i++) {
+             
+        int num_strings = range(i, 1, 100);
+        int num_unique = range(i, 1, 50); 
+        int length = range(i, 2, 1000);
+        int max_char = range(i, 1, 255);
+
+        if (!base_test(num_strings, num_unique, length, max_char)) {
+            ok = FALSE;
+            break;
+        }
+    }
     return ok;
 }
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 2;
+    int test_num = 3;
 
     int num_strings = 2;
     int num_unique = 2;
@@ -125,5 +155,11 @@ int main(int argc, char *argv[])
     case 2:
         test2(num_strings, num_unique, length, max_char);
         break;
+    case 3:
+        test3();
+        break;
     }
+
+    printf("Print any key to exit...");
+    _getch();
 }
