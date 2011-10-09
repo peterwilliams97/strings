@@ -158,10 +158,7 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
             for (i = childnum; i < ALPHABET_SIZE; i++) {
                 if (children[i] != NULL)
                     break;
-#ifdef STATS
-                tree->child_cost++;
-#endif
-                child = (i < ALPHABET_SIZE) ? children[i] : NULL;
+                child = children[i];
 #ifdef STATS
                 tree->child_cost++;
 #endif

@@ -140,20 +140,21 @@ static BOOL test3()
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 2;
-
-    int num_strings = 4;
-    int num_unique = 2;
-    int length = 6;
-    int max_char = 4;
-
-    switch(test_num) {
+    int test_num = 3;
+    
+   switch(test_num) {
     
     case 1:     // ASCII example
         test1(); 
         break;
     case 2:     // Simple binary example
-        test2(num_strings, num_unique, length, max_char);
+        {
+            int num_strings = 4;
+            int num_unique = 2;
+            int length = 6;
+            int max_char = 4;
+            test2(num_strings, num_unique, length, max_char);
+        }
         break;
     case 3:     // Stree binary example
         test3();
