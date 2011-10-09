@@ -73,6 +73,7 @@ static int test1()
    return 1;
 }
 
+static int num_calls = 0;
 static BOOL base_test(int num_strings, int num_unique, int length, int max_char)
 {
     int i;
@@ -80,9 +81,9 @@ static BOOL base_test(int num_strings, int num_unique, int length, int max_char)
     STRING **strings = (STRING **)my_calloc(num_strings, sizeof(STRING *));
     CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
     char title[129];
-
-    printf("\nbase_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
-        num_strings, num_unique, length, max_char);
+    
+    printf("\n %3d: base_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
+        num_calls++, num_strings, num_unique, length, max_char);
 
     for (i = 0; i < num_strings; i++) {
         int j;
@@ -164,7 +165,7 @@ static BOOL test5()
 
 int main(int argc, char *argv[]) 
 {
-   int test_num = 5;
+   int test_num = 2;
     
    switch(test_num) {
     

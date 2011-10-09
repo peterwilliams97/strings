@@ -1172,7 +1172,7 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
  *
  * Return:  nothing.
  */
-#if 1 // HACK !@#$
+#if 0 // HACK !@#$
 void int_stree_set_idents(SUFFIX_TREE tree) {}
 #else
 void int_stree_set_idents(SUFFIX_TREE tree)
