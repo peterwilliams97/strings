@@ -103,8 +103,12 @@ void stree_delete_tree(SUFFIX_TREE tree)
       
     free(tree->ids);
     free(tree->lengths);
-
     free(tree);
+
+#if PETER_GLOBAL
+    pglob_clear();
+#endif
+    
 }
 
 /*

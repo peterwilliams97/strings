@@ -134,6 +134,27 @@ static BOOL test3()
         int max_char = range(i, 1, 255);
 
         if (!base_test(num_strings, num_unique, length, max_char)) {
+            fprintf(stderr, "FAILURE !!!\n");
+            ok = FALSE;
+            break;
+        }
+    }
+    return ok;
+}
+
+static BOOL test5()
+{
+    int num_strings = 4;
+    int num_unique = 2; 
+    int length = 200;
+    int max_char = 155;
+    BOOL ok = TRUE;
+    
+    for (int i = 0; i < 1000; i++) {
+        stree_print_flag = (i == 999); 
+        stats_flag = (i == 0) || stree_print_flag;
+        if (!base_test(num_strings, num_unique, length, max_char)) {
+            fprintf(stderr, "FAILURE !!!\n");
             ok = FALSE;
             break;
         }
@@ -143,7 +164,7 @@ static BOOL test3()
 
 int main(int argc, char *argv[]) 
 {
-   int test_num = 2;
+   int test_num = 5;
     
    switch(test_num) {
     
@@ -172,6 +193,9 @@ int main(int argc, char *argv[])
             int max_char = 200;
             test2(num_strings, num_unique, length, max_char);
         }
+        break;
+    case 5:     // Many tests
+        test5();
         break;
    }
 
