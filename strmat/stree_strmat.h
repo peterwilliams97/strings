@@ -35,7 +35,9 @@ typedef struct stree_node {
     struct stree_node *next;
 
     struct stree_node *suffix_link;
+#ifndef PETER_GLOBAL
     struct stree_node *children;
+#endif
 
     STREE_INTLEAF leaves;
 } SNODE_STRUCT, *STREE_NODE;

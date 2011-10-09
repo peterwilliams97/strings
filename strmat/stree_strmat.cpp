@@ -127,85 +127,75 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
     STREE_NODE root, child, *children;
 
   /*
-   * Use a non-recursive traversal where the `isaleaf' field of each node
+   * Use a non-recursive traversal where the 'isaleaf' field of each node
    * is used as the value remembering the child currently being
    * traversed.
    */
-  root = node;
-  state = START;
-  while (1) {
-    /*
-     * The first time we get to a node.
-     */
-    if (state == START) {
-      if (preorder_fn != NULL)
-        (*preorder_fn)(tree, node);
+    root = node;
+    state = START;
+    while (true) {
+        /*
+         * The first time we get to a node.
+         */
+        if (state == START) {
+            if (preorder_fn != NULL) {
+                (*preorder_fn)(tree, node);
+            }
 
-      num = stree_get_num_children(tree, node);
-      if (num > 0)
-        state = FIRST;
-      else
-        state = DONELEAF;
-    }
+            num = stree_get_num_children(tree, node);
+            state = (num > 0) ? FIRST : DONELEAF;
+        }
 
-    /*
-     * Start or continue recursing on the children of the node.
-     */
-    if (state == FIRST || state == MIDDLE) {
-      /*
-       * Look for the next child to traverse down to.
-       */
-      if (state == FIRST)
-        childnum = 0;
-      else
-        childnum = node->isaleaf;
-
-      
-        children = (STREE_NODE *) node->children;
-        for (i = childnum; i < ALPHABET_SIZE; i++) {
-          if (children[i] != NULL)
-            break;
+        /*
+         * Start or continue recursing on the children of the node.
+         */
+        if (state == FIRST || state == MIDDLE) {
+            /*
+            * Look for the next child to traverse down to.
+            */
+            childnum = (state == FIRST) ? 0 : node->isaleaf;
+            children = (STREE_NODE *) node->children;
+            for (i = childnum; i < ALPHABET_SIZE; i++) {
+                if (children[i] != NULL)
+                    break;
 #ifdef STATS
-          tree->child_cost++;
+                tree->child_cost++;
 #endif
-        child = (i < ALPHABET_SIZE ? children[i] : NULL);
-
+                child = (i < ALPHABET_SIZE) ? children[i] : NULL;
 #ifdef STATS
-        tree->child_cost++;
+                tree->child_cost++;
 #endif
-      }
+            }
 
-      if (child == NULL)
-        state = DONE;
-      else {
-        node->isaleaf = i + 1;
-        node = child;
-
+            if (child == NULL) {
+                state = DONE;
+            } else {
+                node->isaleaf = i + 1;
+                node = child;
 #ifdef STATS
-        tree->edges_traversed++;
+                tree->edges_traversed++;
 #endif
-       state = START;
-      }
+                state = START;
+            }
+        }
+
+        /*
+         * Last time we get to a node, do the post-processing and move back up,
+         * unless we're at the root of the traversal, in which case we stop.
+         */
+        if (state == DONE || state == DONELEAF) {
+            if (state == DONE)
+                node->isaleaf = 0;
+            if (postorder_fn != NULL) {
+                (*postorder_fn)(tree, node);
+            }
+            if (node == root)
+                break;
+
+            node = stree_get_parent(tree, node);
+            state = MIDDLE;
+        }
     }
-
-    /*
-     * Last time we get to a node, do the post-processing and move back up,
-     * unless we're at the root of the traversal, in which case we stop.
-     */
-    if (state == DONE || state == DONELEAF) {
-      if (state == DONE)
-        node->isaleaf = 0;
-
-      if (postorder_fn != NULL)
-        (*postorder_fn)(tree, node);
-
-      if (node == root)
-        break;
-
-      node = stree_get_parent(tree, node);
-      state = MIDDLE;
-    }
-  }
 }
 
 /*
