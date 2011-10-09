@@ -1172,7 +1172,7 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
  *
  * Return:  nothing.
  */
-#if 0 // HACK !@#$
+#if 1 // HACK !@#$
 void int_stree_set_idents(SUFFIX_TREE tree) {}
 #else
 void int_stree_set_idents(SUFFIX_TREE tree)
@@ -1185,7 +1185,7 @@ void int_stree_set_idents(SUFFIX_TREE tree)
         return;
 
   /*
-   * Use a non-recursive traversal where the `isaleaf' field of each node
+   * Use a non-recursive traversal where the 'isaleaf' field of each node
    * is used as the value remembering the child currently being
    * traversed.
    */

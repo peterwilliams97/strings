@@ -17,11 +17,11 @@
 #define IDENT_LENGTH 50
 #define TITLE_LENGTH 200
 
-typedef struct {
+struct STRING {
     CHAR_TYPE *sequence;
     int length;
     char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
-} STRING;
+} ;
 
 /*
  * Common prototypes used by most or all of the strmat files.

@@ -7,7 +7,9 @@
 #include "strmat_util.h"
 #include "stree_ukkonen.h"
 #include "strmat_stubs2.h"
+#include "peter_io.h"
 
+using namespace std;
 
 static int stree_print_flag = TRUE;
 static int stats_flag = TRUE;
@@ -161,6 +163,41 @@ static BOOL test5()
         }
     }
     return ok;
+}
+
+static string oki_dir("c:\\dev\\suffix\\find.page.markers\\hiperc\\");
+
+static const char *oki_file_list[] = {
+ "oki5650-pages=1-doc.prn",
+ "oki5650-pages=1-pdf.prn",
+ "oki5650-pages=17-pdf.prn",
+ "oki5650-pages=2-doc.prn",
+ "oki5650-pages=2-pdf.prn",
+ "oki5650-pages=2.prn",
+ "oki5650-pages=3-doc.prn",
+ "oki5650-pages=3-pdf.prn",
+ "pages=1-color-oki5100.prn",
+ "pages=1-mono-oki5100.prn",
+ "pages=2-blank-A4-landscape-oki5100.prn",
+ "pages=2-blank-A4-oki5100.prn",
+ "pages=2-blank-A5-oki5100.prn",
+ "pages=4-blank-oki5100.prn",
+ "pages=5-blank-oki5100.prn",
+ "pages=5-simple-oki5100.prn"
+};
+
+static STRING *get_oki_file_strings()
+{
+    int num_strings = sizeof(oki_file_list)/sizeof(oki_file_list[0]);
+    STRING **strings = (STRING **)my_calloc(sizeof(STRING *), num_strings);
+
+    for (int i = 0; i < num_strings; i++) {
+        string fname(oki_file_list[i]);
+        string fpath;
+        fpath = oki_dir + fname;
+        FileData file_data = read_file_data(fpath);
+        strings[i] = make_seqn(fname, file_data._data, file_data._size, stree_print_flag);
+    }   
 }
 
 int main(int argc, char *argv[]) 

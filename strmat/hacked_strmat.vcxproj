@@ -69,6 +69,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="peter_global.cpp" />
+    <ClCompile Include="peter_io.cpp" />
     <ClCompile Include="stree_lca.cpp" />
     <ClCompile Include="stree_strmat.cpp" />
     <ClCompile Include="stree_ukkonen.cpp" />
