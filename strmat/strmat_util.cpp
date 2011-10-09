@@ -5,7 +5,6 @@
 #include "strmat.h"
 #include "strmat_util.h"
 
-
 int my_itoalen(int num)
 {
     int i;
@@ -58,7 +57,6 @@ static int my_strlen(const CHAR_TYPE *cstring)
     }
     return length;
 }
-
 
 /********************************************************************** 
  *  Function: make_seq() by Peter                                           
@@ -216,7 +214,7 @@ void terse_print_string(STRING *spt)
 __int64 total_bytes = 0;
 int number_allocs = 0;
 
-#define THRESHOLD (10 * 1024)
+#define THRESHOLD (1024 * 1024)
 void *my_malloc(size_t size)
 {
     void *ptr = malloc(size);

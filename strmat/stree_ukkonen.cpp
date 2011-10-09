@@ -47,7 +47,7 @@
 int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 {
     int i, j, g, h, gprime, edgelen, id;
-    CHAR_TYPE *edgestr;
+    CHAR_TYPE *edgestr = NULL;
     STREE_NODE node, lastnode, root, child, parent;
     STREE_LEAF leaf;
 
@@ -90,16 +90,16 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 
     for (i=0,j=0; i <= M; i++)  {
         for ( ; j <= i && j < M; j++) {
-      /*
-       * Perform the extension from S[j..i-1] to S[j..i].  One of the
-       * following two cases holds:
-       *    a) g == 0, node == root and i == j.
-       *         (meaning that in the previous outer loop,
-       *          all of the extensions S[1..i-1], S[2..i-1], ...,
-       *          S[i-1..i-1] were done.)
-       *    b) g > 0, node != root and the string S[j..i-1]
-       *       ends at the g'th character of node's edge.
-       */
+          /*
+           * Perform the extension from S[j..i-1] to S[j..i].  One of the
+           * following two cases holds:
+           *    a) g == 0, node == root and i == j.
+           *         (meaning that in the previous outer loop,
+           *          all of the extensions S[1..i-1], S[2..i-1], ...,
+           *          S[i-1..i-1] were done.)
+           *    b) g > 0, node != root and the string S[j..i-1]
+           *       ends at the g'th character of node's edge.
+           */
             if (g == 0 || g == edgelen) {
                 if (i < M) {
                   /*
@@ -109,7 +109,8 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 #ifdef STATS
                     tree->num_compares++;
 #endif
-                    if ((child = stree_find_child(tree, node, S[i])) != NULL) {
+                    child = stree_find_child(tree, node, S[i]);
+                    if (child != NULL) {
 #ifdef STATS
                         tree->edges_traversed++;
 #endif
@@ -334,7 +335,7 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok,
     if (strings == NULL || num_strings == 0)
         return NULL;
 
-    tree = stree_new_tree( 0);
+    tree = stree_new_tree(0);
     if (tree == NULL)
         return NULL;
 

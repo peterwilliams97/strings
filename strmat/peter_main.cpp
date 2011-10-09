@@ -81,6 +81,9 @@ static BOOL base_test(int num_strings, int num_unique, int length, int max_char)
     CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
     char title[129];
 
+    printf("\nbase_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
+        num_strings, num_unique, length, max_char);
+
     for (i = 0; i < num_strings; i++) {
         int j;
         sprintf(title, "string %2d", i+1);
@@ -140,7 +143,7 @@ static BOOL test3()
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 3;
+   int test_num = 4;
     
    switch(test_num) {
     
@@ -160,7 +163,17 @@ int main(int argc, char *argv[])
         stree_print_flag = FALSE;
         test3();
         break;
-    }
+    case 4:     // big binary example
+        stree_print_flag = FALSE;
+        {
+            int num_strings = 40;
+            int num_unique = 20;
+            int length = 10000;
+            int max_char = 200;
+            test2(num_strings, num_unique, length, max_char);
+        }
+        break;
+   }
 
     printf("Print any key to exit...");
     _getch();

@@ -12,11 +12,22 @@
 #include "stree_strmat.h"
 #include "peter_global.h"
 
+using namespace std;
+
 #ifdef STATS
     #define OPT_NODE_SIZE 24
     #define OPT_LEAF_SIZE 12
     #define OPT_INTLEAF_SIZE 12
 #endif
+
+static bool node_has_children(STREE_NODE node)
+{
+ #ifdef PETER_GLOBAL
+    return get_number_children(node->_index) > 0;
+#else
+    return node->children != NULL;
+#endif
+}
 
 /*
  *
@@ -40,6 +51,8 @@
 SUFFIX_TREE stree_new_tree(int copyflag)
 {
     SUFFIX_TREE tree;
+
+    pglob_init();
             
    /*
     * Allocate the space.
@@ -124,7 +137,7 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
 {
     enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
     int i, num, childnum;
-    STREE_NODE root, child, *children;
+    STREE_NODE root, child = NULL;
 
   /*
    * Use a non-recursive traversal where the 'isaleaf' field of each node
@@ -154,11 +167,16 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
             * Look for the next child to traverse down to.
             */
             childnum = (state == FIRST) ? 0 : node->isaleaf;
-            children = (STREE_NODE *) node->children;
+#ifdef PETER_GLOBAL
+            map<CHAR_TYPE, stree_node *>children = get_children_map(node->_index);
+#else
+            STREE_NODE *children = (STREE_NODE *) node->children;
+#endif
             for (i = childnum; i < ALPHABET_SIZE; i++) {
                 if (children[i] != NULL)
                     break;
                 child = children[i];
+
 #ifdef STATS
                 tree->child_cost++;
 #endif
@@ -254,6 +272,7 @@ int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, 
     return len;
 }
 
+
 /*
  * stree_find_child
  *
@@ -268,18 +287,25 @@ int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, 
  */
 STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
 {
-#ifdef PETER_GLOBAL
-    return get_child_node(node->_index, ch);
-#else
-    STREE_NODE *children;
-
-    if (int_stree_isaleaf(tree, node) || node->children == NULL)
+    if (int_stree_isaleaf(tree, node) || !node_has_children(node))
         return NULL;
 
-    children = (STREE_NODE *)node->children;
 #ifdef STATS
     tree->child_cost++;
 #endif
+
+#ifdef PETER_GLOBAL
+    STREE_NODE child_node = get_child_node(node->_index, ch);
+#if 0  // !@#$ Peter debugging
+    if (child_node) {
+        char buffer[CHAR_BUFFER_LEN];
+        printf("  child node: %d %s\n", child_node->edgelen, 
+            get_char_array(child_node->edgestr, child_node->edgelen, buffer));
+    }
+#endif
+    return child_node;
+#else
+    STREE_NODE *children = (STREE_NODE *)node->children;
     {   // !@#$ Peter's debugging
         STREE_NODE child = children[ch];
         if (child && !child->edgestr) {
@@ -302,6 +328,9 @@ STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
  */
 int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node)
 {
+#ifdef PETER_GLOBAL
+    return get_number_children(node->_index);
+#else
     int i, count;
     STREE_NODE *children;
 
@@ -314,8 +343,8 @@ int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node)
         if (children[i] != NULL)
             count++;
     }
- 
     return count;
+#endif
 }
 
 /*
@@ -330,13 +359,30 @@ int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node)
  */
 STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
 {
-    int i;
-    STREE_NODE head, tail, *children;
-  
-    if (int_stree_isaleaf(tree, node) || node->children == NULL) {
+    if (int_stree_isaleaf(tree, node) || !node_has_children(node) == 0) {
         return NULL;
     }
 
+#ifdef PETER_GLOBAL    
+    list<STREE_NODE> children = get_children_list(node->_index);
+ 
+    STREE_NODE head = NULL, tail = NULL;
+    list<STREE_NODE>::iterator child;
+    for (child = children.begin(); child != children.end(); child++) {
+        if (head == NULL)
+            head = tail = *child;
+        else
+            tail = tail->next = *child;
+    }
+    if (tail) {
+        tail->next = NULL;
+    }
+
+    return head;
+#else
+    int i;
+    STREE_NODE head, tail, *children;
+  
     head = tail = NULL;
     children = (STREE_NODE *)node->children;
     for (i = 0; i < ALPHABET_SIZE; i++) {
@@ -352,6 +398,7 @@ STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
     }
 
     return head;
+#endif
 }
 
 /*
@@ -639,7 +686,7 @@ STREE_NODE int_stree_convert_leafnode(SUFFIX_TREE tree, STREE_NODE node)
     STREE_LEAF leaf;
     STREE_INTLEAF ileaf;
 
-    leaf = (STREE_LEAF) node;
+    leaf = (STREE_LEAF)node;
 
     newnode = int_stree_new_node(tree, leaf->edgestr, leaf->edgelen);
     if (newnode == NULL)
@@ -733,8 +780,7 @@ STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node)
 STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE child)
 {
     CHAR_TYPE ch;
-    STREE_NODE *children;
-
+    
     if (int_stree_isaleaf(tree, parent) && (parent = int_stree_convert_leafnode(tree, parent)) == NULL)
         return NULL;
 
@@ -745,9 +791,12 @@ STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE chi
     tree->creation_cost++;
 #endif
 
-    children = (STREE_NODE *) parent->children;
+#ifdef PETER_GLOBAL
+    add_child_node(parent->_index, ch, child->_index);
+#else
+    STREE_NODE *children = (STREE_NODE *)parent->children;
     children[(int) ch] = child;
-
+#endif
     tree->idents_dirty = 1;
 
     return parent;
@@ -768,11 +817,15 @@ STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE chi
  */
 void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchild, STREE_NODE newchild)
 {
+#ifdef PETER_GLOBAL
+    add_child_node(parent->_index, stree_getch(tree, newchild), newchild->_index);
+#else
     STREE_NODE  *children;
       
     children = (STREE_NODE *) parent->children;
     children[(int) stree_getch(tree, newchild)] = newchild;
-  
+#endif  
+
     newchild->parent = parent;
     oldchild->parent = NULL;
 
@@ -793,11 +846,14 @@ void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchil
  *
  * Return:  nothing.
  */
-void int_stree_disc_from_parent(SUFFIX_TREE tree, STREE_NODE parent,
-                                STREE_NODE child)
+void int_stree_disc_from_parent(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE child)
 {
+#ifdef PETER_GLOBAL
+    delete_child_node(parent->_index, stree_getch(tree, child));
+#else
     STREE_NODE *children = (STREE_NODE *) parent->children;
     children[(int) stree_getch(tree, child)] = NULL;
+#endif
 }
 
 /*
@@ -892,8 +948,8 @@ STREE_NODE int_stree_edge_split(SUFFIX_TREE tree, STREE_NODE node, int len)
  */
 void int_stree_edge_merge(SUFFIX_TREE tree, STREE_NODE node)
 {
-    int i, len;
-    STREE_NODE parent, child, *children;
+    int  len;
+    STREE_NODE parent, child;
 
     if (node == stree_get_root(tree) || int_stree_isaleaf(tree, node) || node->leaves != NULL) {
         return;
@@ -901,18 +957,25 @@ void int_stree_edge_merge(SUFFIX_TREE tree, STREE_NODE node)
   
     parent = stree_get_parent(tree, node);
    
-        child = NULL;
-        children = (STREE_NODE *)node->children;
-        for (i = 0; i < ALPHABET_SIZE; i++) {
-            if (children[i] != NULL) {
-                if (child != NULL)
-                    return;
-                child = children[i];
-            }
+#if PETER_GLOBAL
+    if (get_number_children(node->_index) != 1) {
+        return;
+    }
+    child = get_children_list(node->_index).front();
+#else
+    child = NULL;
+    STREE_NODE *children = (STREE_NODE *)node->children;
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        if (children[i] != NULL) {
+            if (child != NULL)
+                return;
+             child = children[i];
         }
-        if (child == NULL)
-            return;
-   
+    }
+    if (child == NULL)
+        return;
+#endif
+
     len = stree_get_edgelen(tree, node);
     child->edgestr -= len;
     child->edgelen += len;
@@ -1003,7 +1066,6 @@ int int_stree_remove_intleaf(SUFFIX_TREE tree, STREE_NODE node,
 void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
 {
   int i;
-  STREE_NODE  *children;
   STREE_INTLEAF ileaf, itemp;
 
   if (int_stree_isaleaf(tree, node)) {
@@ -1013,8 +1075,11 @@ void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
             itemp = ileaf->next;
             int_stree_free_intleaf(tree, ileaf);
         }
-
-        children = (STREE_NODE *) node->children;
+#ifdef PETER_GLOBAL
+        map<CHAR_TYPE, stree_node *> children = get_children_map(node->_index);
+#else
+        STREE_NODE  *children = (STREE_NODE *) node->children;
+#endif
         for (i = 0; i < ALPHABET_SIZE; i++) {
             if (children[i] != NULL)
                 int_stree_delete_subtree(tree, children[i]);
@@ -1101,6 +1166,9 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
  *
  * Return:  nothing.
  */
+#if 1 // HACK !@#$
+void int_stree_set_idents(SUFFIX_TREE tree) {}
+#else
 void int_stree_set_idents(SUFFIX_TREE tree)
 {
     enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
@@ -1171,7 +1239,7 @@ void int_stree_set_idents(SUFFIX_TREE tree)
 
     tree->idents_dirty = 0;
 }
-
+#endif
 /*
  * int_stree_new_intleaf
  *
@@ -1219,10 +1287,9 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
 {
     STREE_LEAF leaf;
 
-    if ((leaf = (STREE_LEAF)my_malloc(sizeof(SLEAF_STRUCT))) == NULL)
+    if ((leaf = (STREE_LEAF)my_calloc(sizeof(SLEAF_STRUCT), 1)) == NULL)
         return NULL;
 
-    memset(leaf, 0, sizeof(SLEAF_STRUCT));
     leaf->isaleaf = 1;
     leaf->strid = strid;
     leaf->pos = leafpos;
@@ -1231,6 +1298,11 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
 
 #ifdef STATS
     tree->tree_size += OPT_LEAF_SIZE;
+#endif
+
+#ifdef PETER_GLOBAL
+    leaf->_index = get_node_index();
+    add_node(leaf->_index, (stree_node*)leaf);
 #endif
 
     return leaf;
@@ -1251,19 +1323,20 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
 {
     STREE_NODE node;
  
-    if ((node = (STREE_NODE)my_calloc(sizeof(SNODE_STRUCT),1)) == NULL)
+    if ((node = (STREE_NODE)my_calloc(sizeof(SNODE_STRUCT), 1)) == NULL)
         return NULL;
         
     node->edgestr = edgestr;
     node->edgelen = edgelen;
-       
+ 
+#ifndef PETER_GLOBAL
     node->children = (STREE_NODE)my_malloc(ALPHABET_SIZE * sizeof(STREE_NODE));
     if (node->children == NULL) {
         free(node);
         return NULL;
     }
-
     memset(node->children, 0, ALPHABET_SIZE * sizeof(STREE_NODE));
+#endif
 
 #ifdef STATS
     tree->tree_size += ALPHABET_SIZE * sizeof(STREE_NODE);
@@ -1311,8 +1384,9 @@ void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
 #endif
 #ifdef PETER_GLOBAL
     delete_node(node->_index);
-#endif
+#else
     free(node->children);
+#endif
     free(node);
 }
 

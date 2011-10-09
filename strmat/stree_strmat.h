@@ -11,6 +11,9 @@ typedef struct stree_intleaf {
 } SINTLEAF_STRUCT, *STREE_INTLEAF;
 
 typedef struct stree_leaf {
+#ifdef PETER_GLOBAL
+    int _index;
+#endif
     int isaleaf, id;
 
     CHAR_TYPE *edgestr;
