@@ -156,7 +156,8 @@ int main(int argc, char *argv[])
             test2(num_strings, num_unique, length, max_char);
         }
         break;
-    case 3:     // Stree binary example
+    case 3:     // Stress binary example
+        stree_print_flag = FALSE;
         test3();
         break;
     }

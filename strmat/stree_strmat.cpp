@@ -1118,66 +1118,58 @@ void int_stree_set_idents(SUFFIX_TREE tree)
     nextid = 0;
     node = root = stree_get_root(tree);
     state = START;
-     while (1) {
-    /*
-     * The first time we get to a node.
-     */
+    while (true) {
+        /*
+         * The first time we get to a node.
+         */
         if (state == START) {
             node->id = nextid++;
+            num = stree_get_num_children(tree, node);
+            state = (num > 0) ? FIRST: DONELEAF;
+        }
 
-        num = stree_get_num_children(tree, node);
-        if (num > 0)
-            state = FIRST;
-        else
-            state = DONELEAF;
-    }
-
-    /*
-     * Start or continue recursing on the children of the node.
-     */
-    if (state == FIRST || state == MIDDLE) {
-      /*
-       * Look for the next child to traverse down to.
-       */
-      if (state == FIRST)
-            childnum = 0;
-      else
-            childnum = node->isaleaf;
-           
-      
-        children = (STREE_NODE *) node->children;
-        for (i = childnum; i < ALPHABET_SIZE; i++)
-          if (children[i] != NULL)
-            break;
-        child = (i < ALPHABET_SIZE ? children[i] : NULL);
+        /*
+         * Start or continue recursing on the children of the node.
+         */
+        if (state == FIRST || state == MIDDLE) {
+            /*
+            * Look for the next child to traverse down to.
+            */
+            childnum = (state == FIRST) ? 0 : node->isaleaf;
+                 
+            children = (STREE_NODE *) node->children;
+            for (i = childnum; i < ALPHABET_SIZE; i++) {
+                if (children[i] != NULL)
+                    break;
+            }
+            child = (i < ALPHABET_SIZE ? children[i] : NULL);
     
+            if (child == NULL) {
+                state = DONE;
+            } else {
+                node->isaleaf = i + 1;
+                node = child;
+                state = START;
+            }
+        }
 
-      if (child == NULL)
-            state = DONE;
-      else {
-            node->isaleaf = i + 1;
-            node = child;
-            state = START;
+       /*
+        * Last time we get to a node, do the post-processing and move back up,
+        * unless we're at the root of the traversal, in which case we stop.
+        */
+        if (state == DONE || state == DONELEAF) {
+            if (state == DONE)
+                 node->isaleaf = 0;
+
+            if (node == root)
+                break;
+            
+            node = node->parent;
+            state = MIDDLE;
         }
     }
 
-    /*
-     * Last time we get to a node, do the post-processing and move back up,
-     * unless we're at the root of the traversal, in which case we stop.
-     */
-    if (state == DONE || state == DONELEAF) {
-      if (state == DONE)
-        node->isaleaf = 0;
-
-      if (node == root)
-        break;
-
-      node = node->parent;
-      state = MIDDLE;
-    }
-  }
-
-  tree->idents_dirty = 0;
+    tree->idents_dirty = 0;
 }
 
 /*
