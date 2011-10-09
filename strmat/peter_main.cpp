@@ -9,7 +9,7 @@
 #include "strmat_stubs2.h"
 
 
-static int stree_print_flag = FALSE;
+static int stree_print_flag = TRUE;
 static int stats_flag = TRUE;
 
 #define NUM_STRINGS 4
@@ -140,22 +140,22 @@ static BOOL test3()
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 3;
+    int test_num = 2;
 
-    int num_strings = 2;
+    int num_strings = 4;
     int num_unique = 2;
-    int length = 4;
+    int length = 6;
     int max_char = 4;
 
     switch(test_num) {
     
-    case 1: 
+    case 1:     // ASCII example
         test1(); 
         break;
-    case 2:
+    case 2:     // Simple binary example
         test2(num_strings, num_unique, length, max_char);
         break;
-    case 3:
+    case 3:     // Stree binary example
         test3();
         break;
     }
