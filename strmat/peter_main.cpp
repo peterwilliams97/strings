@@ -221,7 +221,7 @@ static BOOL test6()
 
 int main(int argc, char *argv[]) 
 {
-   int test_num = 2;
+   int test_num = 6;
     
    switch(test_num) {
     

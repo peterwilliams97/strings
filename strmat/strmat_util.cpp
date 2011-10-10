@@ -240,12 +240,12 @@ void terse_print_string(STRING *spt)
 __int64 total_bytes = 0;
 int number_allocs = 0;
 
-#define THRESHOLD (1024 * 1024)
+#define THRESHOLD (10 * 1024 * 1024)
 void *my_malloc(size_t size)
 {
     void *ptr = malloc(size);
     if (size > THRESHOLD) {
-        printf( "malloc(%u) total_bytes = %.1f MB number_allocs = %d\n", 
+        printf( "  malloc(%u) total_bytes = %.1f MB number_allocs = %d\n", 
             size, (double)total_bytes/1024.0/1024.0, number_allocs);
     }
     if (!ptr) {
@@ -261,7 +261,7 @@ void *my_malloc(size_t size)
 void *my_calloc(size_t size, size_t number) {
     void *ptr = calloc(size, number);
     if (size * number > THRESHOLD) {
-        printf( "calloc(%u, %u) total_bytes = %.1f MB number_allocs = %d\n", 
+        printf( "  calloc(%u, %u) total_bytes = %.1f MB number_allocs = %d\n", 
             size, number, (double)total_bytes/1024.0/1024.0, number_allocs);
     }
     if (!ptr) {

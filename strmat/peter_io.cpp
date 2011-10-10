@@ -5,6 +5,17 @@
 
 using namespace std;
 
+FileData::FileData(long size, byte *data) {
+    cout << "  FileData(" << size << ")" << endl;
+    _size = size;
+     _data = data;
+}
+FileData::~FileData() {
+    delete[] _data;
+}
+int FileData::get_size() { return _size; }
+byte *FileData::get_data() { return _data; }
+
 FileData read_file_data(string file_name)
 {
     ifstream file(file_name, ios::in|ios::binary|ios::ate);
