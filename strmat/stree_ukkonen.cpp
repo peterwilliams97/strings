@@ -341,8 +341,9 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok,
 
     for (i = 0; i < num_strings; i++) {
         char buffer[CHAR_BUFFER_LEN];
-        if (print_flag) {
-            printf("Adding string %2d : %s\n", i, get_char_array(strings[i]->sequence, strings[i]->length, buffer));
+        if (print_flag || TRUE) {
+            printf("Adding string %2d : %6d %s\n", i, strings[i]->length, 
+                get_char_array(strings[i]->sequence, strings[i]->length, buffer));
         }
         if (i == 128) {
             // Original strmat is limited to 128 strings

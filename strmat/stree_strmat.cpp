@@ -727,7 +727,7 @@ STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node)
 {
     int len, edgelen;
 #ifdef STATS
-    int temp;
+    _int64 temp;
 #endif
     CHAR_TYPE *edgestr;
     STREE_NODE parent;
@@ -1071,12 +1071,15 @@ int int_stree_remove_intleaf(SUFFIX_TREE tree, STREE_NODE node,
  */
 void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
 {
-  int i;
-  STREE_INTLEAF ileaf, itemp;
+#ifdef PETER_NO_DELETE
+    return;
+#else
+    int i;
+    STREE_INTLEAF ileaf, itemp;
 
-  if (int_stree_isaleaf(tree, node)) {
+    if (int_stree_isaleaf(tree, node)) {
         int_stree_free_leaf(tree, (STREE_LEAF) node);
-  } else {
+    } else {
         for (ileaf=node->leaves; ileaf != NULL; ileaf=itemp) {
             itemp = ileaf->next;
             int_stree_free_intleaf(tree, ileaf);
@@ -1092,6 +1095,7 @@ void int_stree_delete_subtree(SUFFIX_TREE tree, STREE_NODE node)
         }
         int_stree_free_node(tree, node);
     }
+#endif // #ifdef PETER_NO_DELETE
 }
 
 /*

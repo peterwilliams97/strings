@@ -28,7 +28,8 @@
  */
 int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int print_tree)
 {
-    int i, max_length, total_length;
+    int i;
+    _int64  max_length, total_length;
     SUFFIX_TREE tree;
     BOOL ok;
 
@@ -56,20 +57,19 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
     if (print_stats) {
         printf("\nStatistics:\n");
 #ifdef STATS
-        printf("   Sum of Sequence Sizes:       %d\n", total_length);
-        printf("   Number of Tree Nodes:        %d\n", stree_get_num_nodes(tree));
-        printf("   Size of Optimized Tree:      %d (%.1f MB)\n", tree->tree_size, (double)tree->tree_size/1024.0/1024.0);
-        printf("   Bytes per Character:         %.2f\n",  (float) tree->tree_size / (float) total_length);
+        printf("   Sum of Sequence Sizes:       %9I64d (%7.1f MB)\n", total_length, mb(total_length));
+        printf("   Number of Tree Nodes:        %9I64d (%7.1f M)\n", stree_get_num_nodes(tree), mb(stree_get_num_nodes(tree)));
+        printf("   Size of Optimized Tree:      %9I64d (%7.1f MB)\n", tree->tree_size, mb(tree->tree_size));
+        printf("   Bytes per Character:         %9.2f\n",  (float) tree->tree_size / (float) total_length);
         printf("\n");
-        printf("   Number of Comparisons:       %d\n", tree->num_compares);
-        printf("   Cost of Constructing Edges:  %d\n", tree->creation_cost);
-        printf("   Number of Edges Traversed:   %d\n", tree->edges_traversed);
-        printf("   Cost of Traversing Edges:    %d\n", tree->child_cost);
-        printf("   Number of Links Traversed:   %d\n", tree->links_traversed);
+        printf("   Number of Comparisons:       %9I64d\n", tree->num_compares);
+        printf("   Cost of Constructing Edges:  %9I64d\n", tree->creation_cost);
+        printf("   Number of Edges Traversed:   %9I64d\n", tree->edges_traversed);
+        printf("   Cost of Traversing Edges:    %9I64d\n", tree->child_cost);
+        printf("   Number of Links Traversed:   %9I64d\n", tree->links_traversed);
 #else
         printf("   No statistics available.\n");
 #endif
-        
     }
 
     if (print_tree) {
@@ -134,12 +134,11 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
   return 1;
 }
 
-
 int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int print_stats)
 {
-  int flag, pos, matchlen;
+    int flag, pos, matchlen;
 #ifdef STATS
-  int num_compares, edges_traversed, child_cost;
+    _int64 num_compares, edges_traversed, child_cost;
 #endif
   MATCHES back, current, next;
   STREE_NODE node;
@@ -284,7 +283,8 @@ int strmat_stree_naive_lca(STRING **strings, int num_strings, int print_stats, c
 
 int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type, char *lines[])
 {
-    int i, num_nodes, num1, num2, len, num_lcas, max_length;
+    int i, num1, num2, len, num_lcas, max_length;
+    _int64 num_nodes;
     CHAR_TYPE *s;
     char **line_ptr;
     CHAR_TYPE  buffer[64];
@@ -328,7 +328,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
   /*
    * Build the map of suffix tree nodes.
    */
-    nodemap = (STREE_NODE *)my_malloc(num_nodes * sizeof(STREE_NODE));
+    nodemap = (STREE_NODE *)my_malloc((int)num_nodes * sizeof(STREE_NODE));
     if (nodemap == NULL) {
         lca_free(lcastruct);
         stree_delete_tree(tree);

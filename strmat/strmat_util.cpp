@@ -274,3 +274,8 @@ void *my_calloc(size_t size, size_t number) {
     return ptr;
 }
 
+
+double mb(_int64 n) 
+{
+    return (double)n/1024.0/1024.0;
+}

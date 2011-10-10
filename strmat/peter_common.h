@@ -10,12 +10,15 @@ typedef int BOOL;
 #define ERROR 0
 #define OK 1
 
-#define ALPHABET_SIZE 256
+#ifdef PETER_GLOBAL
+ #define ALPHABET_SIZE 0
+#else
+ #define ALPHABET_SIZE 256
+#endif
 
 typedef unsigned char byte;
-typedef short CHAR_TYPE;
+typedef unsigned char CHAR_TYPE;
 
-template <class T> T min(T a, T b) { return (a < b) ? a : b; }
 
 #define CHAR_BUFFER_LEN 49
 char *get_char_array(const CHAR_TYPE *sequence, int length, char *buffer); 

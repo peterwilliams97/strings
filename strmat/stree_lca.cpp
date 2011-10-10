@@ -159,7 +159,7 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
   lca->type = LCA_LINEAR;
   lca->tree = tree;
 
-  num_nodes = stree_get_num_nodes(tree) + 1;
+  num_nodes = (int)stree_get_num_nodes(tree) + 1;
 
   if ((lca->I = (unsigned int *)my_malloc(num_nodes * sizeof(unsigned int))) == NULL) {
     lca_free(lca);

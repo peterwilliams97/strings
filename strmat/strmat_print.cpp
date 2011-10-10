@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <algorithm>
 #include "strmat.h"
 #include "stree_strmat.h"
 #include "strmat_util.h"
 #include "strmat_print.h"
 
+using namespace std;
 /*
  * Procedures for printing a suffix tree.
  */

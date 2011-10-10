@@ -204,9 +204,18 @@ static STRING **get_oki_file_strings()
     return strings;
 }
 
+static int sortfunc(const void *p1, const void *p2)
+{
+    const STRING **s1 = (const STRING **)p1;
+    const STRING **s2 = (const STRING **)p2;
+    return +((*s1)->length - (*s2)->length);
+}
+
 static BOOL test6()
 {
     STRING **strings = get_oki_file_strings();
+    qsort(strings, NUM_OKI_STRINGS, sizeof(STRING*), sortfunc);
+    
     BOOL ok = strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag);
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
@@ -255,6 +264,7 @@ int main(int argc, char *argv[])
         test5();
         break;
     case 6:     // Read binary strings from files
+        stree_print_flag = FALSE;
         test6();
         break;
    }

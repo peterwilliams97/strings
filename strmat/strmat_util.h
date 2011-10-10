@@ -8,4 +8,6 @@ STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length, BOOL 
 STRING *make_seqn_from_bytes(const char *title, const byte* bytes, int length, BOOL print_flag);
 void free_seq(STRING *sptr); 
 
+double mb(_int64 n);
+
 #endif

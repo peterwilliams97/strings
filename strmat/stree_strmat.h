@@ -47,7 +47,7 @@ typedef struct stree_node {
 
 typedef struct {
     STREE_NODE root;
-    int num_nodes;
+    _int64 num_nodes;
 
     CHAR_TYPE **strings;
    
@@ -56,9 +56,9 @@ typedef struct {
 
     int idents_dirty;
 
-    int tree_size;
-    int num_compares, edges_traversed, links_traversed;
-    int child_cost, nodes_created, creation_cost;
+    _int64 tree_size;
+    _int64 num_compares, edges_traversed, links_traversed;
+    _int64 child_cost, nodes_created, creation_cost;
 } STREE_STRUCT, *SUFFIX_TREE;
 
 SUFFIX_TREE stree_new_tree(int copyflag);
@@ -68,7 +68,7 @@ void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE)
 void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE), int (*postorder_fn)(SUFFIX_TREE,STREE_NODE));
 
 int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out);
-int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N,  STREE_NODE *node_out, int *pos_out);
+int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out);
 
 STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch);
 int stree_get_num_children(SUFFIX_TREE tree, STREE_NODE node);
