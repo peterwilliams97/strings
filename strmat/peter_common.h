@@ -12,6 +12,7 @@ typedef int BOOL;
 
 #define ALPHABET_SIZE 256
 
+typedef unsigned char byte;
 typedef short CHAR_TYPE;
 
 template <class T> T min(T a, T b) { return (a < b) ? a : b; }

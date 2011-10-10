@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
+
+#include <string>
 #include "strmat.h"
 #include "strmat_util.h"
 #include "stree_ukkonen.h"
@@ -186,18 +188,35 @@ static const char *oki_file_list[] = {
  "pages=5-simple-oki5100.prn"
 };
 
-static STRING *get_oki_file_strings()
+static const int NUM_OKI_STRINGS = sizeof(oki_file_list)/sizeof(oki_file_list[0]);
+static STRING **get_oki_file_strings()
 {
-    int num_strings = sizeof(oki_file_list)/sizeof(oki_file_list[0]);
-    STRING **strings = (STRING **)my_calloc(sizeof(STRING *), num_strings);
+    STRING **strings = (STRING **)my_calloc(sizeof(STRING *), NUM_OKI_STRINGS);
 
-    for (int i = 0; i < num_strings; i++) {
+    for (int i = 0; i < NUM_OKI_STRINGS; i++) {
         string fname(oki_file_list[i]);
         string fpath;
         fpath = oki_dir + fname;
+        cout << "path = " << fpath << endl;
         FileData file_data = read_file_data(fpath);
-        strings[i] = make_seqn(fname, file_data._data, file_data._size, stree_print_flag);
+        strings[i] = make_seqn_from_bytes(fname.c_str(), file_data.get_data(), file_data.get_size(), stree_print_flag);
     }   
+    return strings;
+}
+
+static BOOL test6()
+{
+    STRING **strings = get_oki_file_strings();
+    BOOL ok = strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag);
+    if (!ok) {
+        fprintf(stderr, "strmat_ukkonen_build failed\n");
+    }
+    for (int i = 0; i < NUM_OKI_STRINGS; i++) {
+        free_seq(strings[i]);
+    }
+    free(strings);
+    return ok;
+
 }
 
 int main(int argc, char *argv[]) 
@@ -234,6 +253,9 @@ int main(int argc, char *argv[])
         break;
     case 5:     // Many tests
         test5();
+        break;
+    case 6:     // Read binary strings from files
+        test6();
         break;
    }
 

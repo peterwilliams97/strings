@@ -100,6 +100,32 @@ STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length, BOOL 
  *                                                                    
  *  Parameter:                                                        
  *                                                                    
+ * Convert a byte array to a STRING
+ * 
+ **********************************************************************/
+STRING *make_seqn_from_bytes(const char *title, const byte *bytes, int length, BOOL print_flag)
+{
+    CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
+    if (!cstring) {
+        fprintf(stderr, "Ran out of memory. Unable to add new sequence.\n");
+        return NULL;
+    }
+    
+    for (int i = 0; i < length; i++) {
+        cstring[i] = bytes[i];
+    }
+    
+    STRING *sptr = make_seqn(title, cstring, length, print_flag);
+    
+    free(cstring);
+    return sptr;
+}
+
+/********************************************************************** 
+ *  Function: make_seq() by Peter                                           
+ *                                                                    
+ *  Parameter:                                                        
+ *                                                                    
  * Convert a c string to a STRING
  * 
  **********************************************************************/

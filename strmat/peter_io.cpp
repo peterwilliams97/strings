@@ -1,3 +1,4 @@
+#include <string>
 #include <iostream>
 #include <fstream>
 #include "peter_io.h"
@@ -18,3 +19,15 @@ FileData read_file_data(string file_name)
     file.close();
     return FileData(size, data);
 }
+
+
+//static void test()
+//{
+//    string a = "a";
+//    string b = "b";
+//    string c = "c";
+//    c = a +  b;
+//    cout << "a=" << a << endl;
+//    cout << "b=" << b << endl;
+//    cout << "c=" << c << endl;
+//}
