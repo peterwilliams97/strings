@@ -51,22 +51,23 @@ static int init_flag = 0;
  */
 static void init_tables(void)
 {
-  int i, j, lsb, msb, mask;
+    int i, j, lsb, msb, mask;
 
-  j = 1;
-  msb = -1;
-  for (i=1; i < 256; i++) {
-    if (i == j) {
-      j <<= 1;
-      msb++;
+    j = 1;
+    msb = -1;
+    for (i=1; i < 256; i++) {
+        if (i == j) {
+            j <<= 1;
+            msb++;
+        }
+        msb_table[i] = msb;
+
+        for (lsb=0,mask=1; !(mask & i); lsb++,mask<<=1) 
+            ;;
+        lsb_table[i] = lsb;
     }
-    msb_table[i] = msb;
 
-    for (lsb=0,mask=1; !(mask & i); lsb++,mask<<=1) ;
-    lsb_table[i] = lsb;
-  }
-
-  init_flag = 1;
+    init_flag = 1;
 }
 
 /*
@@ -80,22 +81,22 @@ static void init_tables(void)
  */
 static unsigned int h(unsigned int number)
 {
-  if (!init_flag)
-    init_tables();
+    if (!init_flag)
+        init_tables();
 
-  if (number & 0xff)
-    return lsb_table[number & 0xff];
-  number >>= 8;
-  if (number & 0xff)
-    return 8 + lsb_table[number & 0xff];
-  number >>= 8;
-  if (number & 0xff)
-    return 16 + lsb_table[number & 0xff];
-  number >>= 8;
-  if (number & 0xff)
-    return 24 + lsb_table[number & 0xff];
+    if (number & 0xff)
+        return lsb_table[number & 0xff];
+    number >>= 8;
+    if (number & 0xff)
+        return 8 + lsb_table[number & 0xff];
+    number >>= 8;
+    if (number & 0xff)
+        return 16 + lsb_table[number & 0xff];
+    number >>= 8;
+    if (number & 0xff)
+        return 24 + lsb_table[number & 0xff];
 
-  return 32;
+    return 32;
 }
 
 /*
@@ -109,22 +110,21 @@ static unsigned int h(unsigned int number)
  */
 static unsigned int MSB(unsigned int number)
 {
-  if (!init_flag)
-    init_tables();
+    if (!init_flag)
+        init_tables();
 
-  if (number & (0xff << 24))
-    return 24 + msb_table[number >> 24];
-  if (number & (0xff << 16))
-    return 16 + msb_table[number >> 16];
-  if (number & (0xff << 8))
-    return 8 + msb_table[number >> 8];
-  if (number & 0xff)
-    return msb_table[number];
+    if (number & (0xff << 24))
+        return 24 + msb_table[number >> 24];
+    if (number & (0xff << 16))
+        return 16 + msb_table[number >> 16];
+    if (number & (0xff << 8))
+        return 8 + msb_table[number >> 8];
+    if (number & 0xff)
+        return msb_table[number];
 
-  return 32;
+    return 32;
 }
   
-
 
 /*
  *
@@ -146,46 +146,43 @@ static unsigned int MSB(unsigned int number)
  */
 LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
 {
-  int num_nodes;
-  LCA_STRUCT *lca;
+    int num_nodes;
+    LCA_STRUCT *lca;
 
-  if (tree == NULL)
-    return NULL;
+    if (tree == NULL)
+        return NULL;
 
-  if ((lca = (LCA_STRUCT *)my_malloc(sizeof(LCA_STRUCT))) == NULL)
-    return NULL;
+    if ((lca = (LCA_STRUCT *)my_malloc(sizeof(LCA_STRUCT))) == NULL)
+        return NULL;
 
-  memset(lca, 0, sizeof(LCA_STRUCT));
-  lca->type = LCA_LINEAR;
-  lca->tree = tree;
+    memset(lca, 0, sizeof(LCA_STRUCT));
+    lca->type = LCA_LINEAR;
+    lca->tree = tree;
 
-  num_nodes = (int)stree_get_num_nodes(tree) + 1;
+    num_nodes = (int)stree_get_num_nodes(tree) + 1;
 
-  if ((lca->I = (unsigned int *)my_malloc(num_nodes * sizeof(unsigned int))) == NULL) {
-    lca_free(lca);
-    return NULL;
-  }
-  memset(lca->I, 0, num_nodes * sizeof(unsigned int));
+    if ((lca->I = (unsigned int *)my_calloc(num_nodes, sizeof(unsigned int))) == NULL) {
+        lca_free(lca);
+        return NULL;
+    }
+  
+    if ((lca->A = (unsigned int *)my_calloc(num_nodes, sizeof(unsigned int))) == NULL) {
+        lca_free(lca);
+        return NULL;
+    }
 
-  if ((lca->A = (unsigned int *)my_malloc(num_nodes * sizeof(unsigned int))) == NULL) {
-    lca_free(lca);
-    return NULL;
-  }
-  memset(lca->A, 0, num_nodes * sizeof(unsigned int));
+    if ((lca->L = (STREE_NODE *)my_calloc(num_nodes, sizeof(STREE_NODE))) == NULL) {
+        lca_free(lca);
+        return NULL;
+    }
 
-  if ((lca->L = (STREE_NODE *)my_malloc(num_nodes * sizeof(STREE_NODE))) == NULL) {
-    lca_free(lca);
-    return NULL;
-  }
-  memset(lca->L, 0, num_nodes * sizeof(STREE_NODE));
-
-  /*
-   * Compute the I and L values, then compute the A values.
-   */
-  compute_I_and_L(lca, tree, stree_get_root(tree));
-  compute_A(lca, tree, stree_get_root(tree), 0);
+   /*
+    * Compute the I and L values, then compute the A values.
+    */
+    compute_I_and_L(lca, tree, stree_get_root(tree));
+    compute_A(lca, tree, stree_get_root(tree), 0);
     
-  return lca;
+    return lca;
 }
 
 /*
@@ -206,37 +203,34 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
  */
 static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
 {
-  unsigned int id, Ival, Imax;
-  STREE_NODE child;
+    unsigned int id, Ival, Imax;
+    STREE_NODE child;
 
   /*
    * Shift idents so that they go from 1..num_nodes.
    */
-  id = (unsigned int) stree_get_ident(tree, node) + 1;
+    id = (unsigned int) stree_get_ident(tree, node) + 1;
 
   /*
    * Find the node with the maximum I value in the subtree.
    */
-  Imax = id;
-  child = stree_get_children(tree, node);
-  while (child != NULL) {
-    Ival = compute_I_and_L(lca, tree, child);
-    if (h(Ival) > h(Imax))
-      Imax = Ival;
-
+    Imax = id;
+    child = stree_get_children(tree, node);
+    while (child != NULL) {
+        Ival = compute_I_and_L(lca, tree, child);
+        if (h(Ival) > h(Imax))
+            Imax = Ival;
 #ifdef STATS
-    lca->num_prep++;
+        lca->num_prep++;
 #endif
+        child = stree_get_next(tree, child);
+    }
 
-    child = stree_get_next(tree, child);
-  }
+    lca->I[id] = Imax;
+    lca->L[Imax] = node;    /* will be overwritten by the highest node in run */
 
-  lca->I[id] = Imax;
-  lca->L[Imax] = node;    /* will be overwritten by the highest node in run */
-
-  return Imax;
+    return Imax;
 }
-
 
 /*
  * compute_A
@@ -256,27 +250,25 @@ static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
 static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
                       unsigned int Amask)
 {
-  unsigned int id;
-  STREE_NODE child;
+    unsigned int id;
+    STREE_NODE child;
 
-  /*
-   * Shift idents so that they go from 1..num_nodes.
-   */
-  id = (unsigned int) stree_get_ident(tree, node) + 1;
+   /*
+    * Shift idents so that they go from 1..num_nodes.
+    */
+    id = (unsigned int) stree_get_ident(tree, node) + 1;
 
-  Amask |= 1 << h(lca->I[id]);
-  lca->A[id] = Amask;
+    Amask |= 1 << h(lca->I[id]);
+    lca->A[id] = Amask;
 
-  child = stree_get_children(tree, node);
-  while (child != NULL) {
-    compute_A(lca, tree, child, Amask);
-
+    child = stree_get_children(tree, node);
+    while (child != NULL) {
+        compute_A(lca, tree, child, Amask);
 #ifdef STATS
-    lca->num_prep++;
+        lca->num_prep++;
 #endif
-
-    child = stree_get_next(tree, child);
-  }
+        child = stree_get_next(tree, child);
+    }
 }
 
 
@@ -294,17 +286,17 @@ static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
  */
 STREE_NODE lca_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
 {
-  unsigned int xid, yid, k, b, j, l, Iw, mask, *I, *A;
-  STREE_NODE *L, w, xbar, ybar;
-  SUFFIX_TREE tree;
+    unsigned int xid, yid, k, b, j, l, Iw, mask, *I, *A;
+    STREE_NODE *L, w, xbar, ybar;
+    SUFFIX_TREE tree;
 
-  if (lca == NULL || lca->type != LCA_LINEAR || x == NULL || y == NULL)
-    return NULL;
+    if (lca == NULL || lca->type != LCA_LINEAR || x == NULL || y == NULL)
+        return NULL;
   
-  tree = lca->tree;
-  I = lca->I;
-  A = lca->A;
-  L = lca->L;
+    tree = lca->tree;
+    I = lca->I;
+    A = lca->A;
+    L = lca->L;
 
   /*
    * Shift idents so that they go from 1..num_nodes.
