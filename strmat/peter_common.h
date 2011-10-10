@@ -17,7 +17,7 @@ typedef short CHAR_TYPE;
 
 template <class T> T min(T a, T b) { return (a < b) ? a : b; }
 
-#define CHAR_BUFFER_LEN 129
+#define CHAR_BUFFER_LEN 49
 char *get_char_array(const CHAR_TYPE *sequence, int length, char *buffer); 
 CHAR_TYPE *str_to_sequence(const char* cstring, CHAR_TYPE *sequence, int length);
 
