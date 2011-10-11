@@ -3,6 +3,12 @@
 
 #include "peter_common.h"
 
+#ifdef STATS
+ #define IF_STATS(s) s
+#else
+ #define IF_STATS(s)
+#endif
+
 // Original strmat definitions
 
 typedef struct stree_intleaf {

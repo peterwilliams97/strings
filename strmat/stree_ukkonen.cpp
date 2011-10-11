@@ -1,14 +1,9 @@
 /*
  * stree_ukkonen.c
  *
- * The implementation of Ukkonen's suffix tree algorithm, for use with
+ * The UC Davis implementation of Ukkonen's suffix tree algorithm, for use with
  * strmat's suffix tree implementation.
  *
- * NOTES:
- *    9/95  -  Separated Ukkonen's algorithm from stree.c as part
- *             of suffix tree reimplementation  (James Knight)
- *    4/96  -  Modularized the code  (James Knight)
- *    7/96  -  Finished the modularization  (James Knight)
  */
 
 #include <stdio.h>
@@ -84,7 +79,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
    */
     root = stree_get_root(tree);
     node = lastnode = root;
-    g = 0;
+    g = 0;              // g is the number of characters along node's edge
     edgelen = 0;
     edgestr = NULL;
 
@@ -101,19 +96,12 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
            *       ends at the g'th character of node's edge.
            */
             if (g == 0 || g == edgelen) {
-                if (i < M) {
-                  /*
-                   * If an outgoing edge matches the next character, move down
-                   * that edge.
-                   */
-#ifdef STATS
-                    tree->num_compares++;
-#endif
+                if (i < M) {   
+                    // If an outgoing edge matches the next character, move down that edge.
+                    IF_STATS(tree->num_compares++);
                     child = stree_find_child(tree, node, S[i]);
                     if (child != NULL) {
-#ifdef STATS
-                        tree->edges_traversed++;
-#endif
+                        IF_STATS(tree->edges_traversed++);
                         node = child;
                         g = 1;
                         edgestr = stree_get_edgestr(tree, node);
@@ -121,9 +109,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
                         break;
                     }
 
-                    /*
-                    * Otherwise, add a new leaf out of the current node.
-                    */
+                    // Otherwise, add a new leaf out of the current node.
                     if ((leaf = int_stree_new_leaf(tree, id, i, j)) == NULL 
                         || (node = int_stree_connect(tree, node, (STREE_NODE) leaf)) == NULL) {
                         if (leaf != NULL) {
@@ -133,13 +119,12 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
                     }
                     tree->num_nodes++;
                 } else {
-                  /*
-                   * If i == M, then the suffix ends inside the tree, so
-                   * add a new intleaf at the current node.
-                   */
-                    if (int_stree_isaleaf(tree, node)  &&  (node = int_stree_convert_leafnode(tree, node)) == NULL)
-                        return 0;
-
+                   // If i == M, then the suffix ends inside the tree, so
+                   // add a new intleaf at the current node.
+                    if (int_stree_isaleaf(tree, node)) {
+                        if  (!(node = int_stree_convert_leafnode(tree, node)))
+                            return 0;
+                    }
                     if (!int_stree_add_intleaf(tree, node, id, j))
                         return 0;
                 }
@@ -159,10 +144,10 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
                  * split the edge at that point and add a new leaf for the
                  * suffix.
                  */
-#ifdef STATS
-                tree->num_compares++;
-#endif
+                IF_STATS(tree->num_compares++);
+
                 if (i < M && S[i] == edgestr[g]) {
+                    // Match so keep moving down the string
                     g++;
                     break;
                 }

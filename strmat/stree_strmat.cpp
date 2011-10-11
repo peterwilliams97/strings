@@ -826,9 +826,7 @@ void int_stree_reconnect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE oldchil
 #ifdef PETER_GLOBAL
     pglob_set_child_node(parent->_index, stree_getch(tree, newchild), newchild->_index);
 #else
-    STREE_NODE  *children;
-      
-    children = (STREE_NODE *) parent->children;
+    STREE_NODE *children = (STREE_NODE *) parent->children;
     children[(int) stree_getch(tree, newchild)] = newchild;
 #endif  
 
@@ -913,6 +911,8 @@ STREE_NODE int_stree_edge_split(SUFFIX_TREE tree, STREE_NODE node, int len)
 {
     STREE_NODE newnode, parent;
 
+    // Assertions ? !@#$
+    assert(node != stree_get_root(tree) && len > 0 && stree_get_edgelen(tree, node) > len);
     if (node == stree_get_root(tree) || len == 0 || stree_get_edgelen(tree, node) <= len)
         return NULL;
 
@@ -1005,12 +1005,15 @@ void int_stree_edge_merge(SUFFIX_TREE tree, STREE_NODE node)
  *
  * Returns:  Non-zero on success, zero on error.
  */
-int int_stree_add_intleaf(SUFFIX_TREE tree, STREE_NODE node,
-                          int strid, int pos)
+int int_stree_add_intleaf(SUFFIX_TREE tree, STREE_NODE node, int strid, int pos)
 {
     STREE_INTLEAF intleaf;
 
-    if (int_stree_isaleaf(tree, node) || (intleaf = int_stree_new_intleaf(tree, strid, pos)) == NULL)
+    assert(!int_stree_isaleaf(tree, node)); // !@#$ Is this the intention?
+    if (int_stree_isaleaf(tree, node))
+        return 0;
+
+    if ((intleaf = int_stree_new_intleaf(tree, strid, pos)) == NULL)
         return 0;
 
     intleaf->next = node->leaves;
@@ -1250,6 +1253,7 @@ void int_stree_set_idents(SUFFIX_TREE tree)
     tree->idents_dirty = 0;
 }
 #endif
+
 /*
  * int_stree_new_intleaf
  *
@@ -1266,10 +1270,9 @@ STREE_INTLEAF int_stree_new_intleaf(SUFFIX_TREE tree, int strid, int pos)
 {
     STREE_INTLEAF ileaf;
 
-    if ((ileaf = (STREE_INTLEAF)my_malloc(sizeof(SINTLEAF_STRUCT))) == NULL)
+    if (!(ileaf = (STREE_INTLEAF)my_calloc(sizeof(SINTLEAF_STRUCT), 1)))
         return NULL;
 
-    memset(ileaf, 0, sizeof(SINTLEAF_STRUCT));
     ileaf->strid = strid;
     ileaf->pos = pos;
 
@@ -1340,23 +1343,16 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
     node->edgelen = edgelen;
  
 #ifndef PETER_GLOBAL
-    node->children = (STREE_NODE)my_malloc(ALPHABET_SIZE * sizeof(STREE_NODE));
+    node->children = (STREE_NODE)my_calloc(ALPHABET_SIZE * sizeof(STREE_NODE), 1);
     if (node->children == NULL) {
         free(node);
         return NULL;
     }
-    memset(node->children, 0, ALPHABET_SIZE * sizeof(STREE_NODE));
-#endif
-
-#ifdef STATS
-    tree->tree_size += ALPHABET_SIZE * sizeof(STREE_NODE);
-    tree->tree_size += OPT_NODE_SIZE;
-#endif
-
-#ifdef PETER_GLOBAL
+#else
     node->_index = pglob_get_node_index();
     pglob_add_node(node->_index, node);
 #endif
+    IF_STATS(tree->tree_size += ALPHABET_SIZE * sizeof(STREE_NODE) + OPT_NODE_SIZE);
     return node;
 }
 
@@ -1372,26 +1368,19 @@ STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
  */
 void int_stree_free_intleaf(SUFFIX_TREE tree, STREE_INTLEAF ileaf)
 {
-#ifdef STATS
-    tree->tree_size -= OPT_INTLEAF_SIZE;
-#endif
+    IF_STATS(tree->tree_size -= OPT_INTLEAF_SIZE);
     free(ileaf);
 }
 
 void int_stree_free_leaf(SUFFIX_TREE tree, STREE_LEAF leaf)
 {
-#ifdef STATS
-    tree->tree_size -= OPT_LEAF_SIZE;
-#endif
+    IF_STATS(tree->tree_size -= OPT_LEAF_SIZE);
     free(leaf);
 }
 
 void int_stree_free_node(SUFFIX_TREE tree, STREE_NODE node)
 {
-#ifdef STATS
-    tree->tree_size -= ALPHABET_SIZE * sizeof(STREE_NODE);
-    tree->tree_size -= OPT_NODE_SIZE;
-#endif
+    IF_STATS(tree->tree_size -= ALPHABET_SIZE * sizeof(STREE_NODE) + OPT_NODE_SIZE);
 #ifdef PETER_GLOBAL
     pglob_delete_node(node->_index);
 #else
