@@ -5,13 +5,23 @@
 #ifndef _PETER_GLOBAL_H_
 #define _PETER_GLOBAL_H_
 
-#include <list>
+#ifdef USE_LIST
+ #include <list>
+ #define LIST_TYPE list
+#else
+ #include <vector>
+ #define LIST_TYPE vector
+#endif
 #include <map>
 #include "peter_common.h"
 
 struct stree_node;
 
 #ifdef PETER_GLOBAL 
+
+ typedef std::LIST_TYPE<CHAR_TYPE> CHAR_LIST; 
+ typedef std::LIST_TYPE<stree_node *> NODE_LIST; 
+ typedef std::map<CHAR_TYPE, stree_node *>  NODE_MAP;
 
 // Initialization & clean-up
  void        pglob_init();
@@ -30,10 +40,10 @@ struct stree_node;
  void        pglob_disconnect_child_node(int index, CHAR_TYPE ch);
  stree_node *pglob_get_child_node(int index, CHAR_TYPE ch);
  int         pglob_get_number_children(int index);
- std::list<stree_node *> 
-            pglob_get_children_list(int index);
- std::map<CHAR_TYPE, stree_node *> 
-            pglob_get_children_map(int index);
+ NODE_LIST   pglob_get_children_list(int index);
+ NODE_MAP    pglob_get_children_map(int index);
+ CHAR_LIST   pglob_get_children_keys(int index);
+
 
 #endif
 

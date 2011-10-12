@@ -370,10 +370,10 @@ STREE_NODE stree_get_children(SUFFIX_TREE tree, STREE_NODE node)
     }
 
 #ifdef PETER_GLOBAL    
-    list<STREE_NODE> children = pglob_get_children_list(node->_index);
+    NODE_LIST children = pglob_get_children_list(node->_index);
  
     STREE_NODE head = NULL, tail = NULL;
-    list<STREE_NODE>::iterator child;
+    NODE_LIST::iterator child;
     for (child = children.begin(); child != children.end(); child++) {
         if (head == NULL)
             head = tail = *child;
@@ -1173,52 +1173,53 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
  *
  * Return:  nothing.
  */
-#if 1 // HACK !@#$
+#if 0 // HACK !@#$
 void int_stree_set_idents(SUFFIX_TREE tree) {}
 #else
 void int_stree_set_idents(SUFFIX_TREE tree)
 {
     enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
     int i, num, childnum, nextid;
-    STREE_NODE root, node, child, *children;
+    STREE_NODE root, node, child;
 
     if (!tree->idents_dirty)
         return;
 
-  /*
-   * Use a non-recursive traversal where the 'isaleaf' field of each node
-   * is used as the value remembering the child currently being
-   * traversed.
-   */
+   /*
+    * Use a non-recursive traversal where the 'isaleaf' field of each node
+    * is used as the value remembering the child currently being
+    * traversed.
+    */
     nextid = 0;
     node = root = stree_get_root(tree);
     state = START;
     while (true) {
-        /*
-         * The first time we get to a node.
-         */
+        // The first time we get to a node.
         if (state == START) {
             node->id = nextid++;
             num = stree_get_num_children(tree, node);
             state = (num > 0) ? FIRST: DONELEAF;
         }
 
-        /*
-         * Start or continue recursing on the children of the node.
-         */
+        // Start or continue recursing on the children of the node.
         if (state == FIRST || state == MIDDLE) {
-            /*
-            * Look for the next child to traverse down to.
-            */
+            
+            // Look for the next child to traverse down to.
             childnum = (state == FIRST) ? 0 : node->isaleaf;
-                 
-            children = (STREE_NODE *) node->children;
+#ifdef PETER_GLOBAL
+            map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(node->_index);
+            //CHAR_LIST keys = get_keys(children);
+            CHAR_LIST keys = pglob_get_children_keys(node->_index);
+            i = childnum + 1;
+            child = (i < (int)keys.size()) ? children[keys[i]] : NULL;
+#else
+            STREE_NODE *children = (STREE_NODE *)node->children;
             for (i = childnum; i < ALPHABET_SIZE; i++) {
                 if (children[i] != NULL)
                     break;
             }
-            child = (i < ALPHABET_SIZE ? children[i] : NULL);
-    
+            child = (i < ALPHABET_SIZE) ? children[i] : NULL;
+#endif    
             if (child == NULL) {
                 state = DONE;
             } else {

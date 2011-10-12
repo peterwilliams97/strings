@@ -24,15 +24,6 @@ static map<int, stree_node*> _node_dict;
  static map<int, map<CHAR_TYPE, int>> _child_node_dict2;
 #endif
 
-void pglob_init()
-{
-    pglob_clear();
-    
-    _node_index = 0;
-    _node_dict = map<int, stree_node*>(); 
-    _child_node_dict2 = map<int, map<CHAR_TYPE, int>>();
-}
-
 void pglob_clear()
 {
     _node_dict.clear();
@@ -42,6 +33,14 @@ void pglob_clear()
     _child_node_dict2.clear();
 }
 
+void pglob_init()
+{
+    pglob_clear();
+    
+    _node_index = 0;
+    _node_dict = map<int, stree_node*>(); 
+    _child_node_dict2 = map<int, map<CHAR_TYPE, int>>();
+}
 
 int pglob_get_node_index()
 {
@@ -114,12 +113,12 @@ int pglob_get_number_children(int index)
 #endif
 }
 
-list<stree_node *> pglob_get_children_list(int index)
+LIST_TYPE<stree_node *> pglob_get_children_list(int index)
 {
 #if COMPOUND_CHILD
 #else
     map<CHAR_TYPE, int> index_map = _child_node_dict2[index];
-    list<stree_node *> node_list = list<stree_node *>();
+    LIST_TYPE<stree_node *> node_list  = LIST_TYPE<stree_node *>();
 
     for (map<CHAR_TYPE,int>::iterator it = index_map.begin(); it != index_map.end(); it++) {
         node_list.push_back(pglob_get_node(it->second));
@@ -140,4 +139,25 @@ map<CHAR_TYPE, stree_node *> pglob_get_children_map(int index)
     }
     return node_map;
 #endif
+}
+
+template <class K, class V> 
+LIST_TYPE<K> get_keys(map<K,V> m)
+{
+    LIST_TYPE<K> keys;
+    for (map<K,V>::iterator it = m.begin(); it != m.end(); ++it) {
+        keys.push_back(it->first);
+    }
+    return keys;
+}
+
+LIST_TYPE<CHAR_TYPE> pglob_get_children_keys(int index)
+{
+    map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(index);
+    return get_keys(children);
+    //vector<CHAR_TYPE> keys;
+    //for (map<CHAR_TYPE, stree_node *>::iterator it = children.begin(); it != children.end(); ++it) {
+    //    keys.push_back(it->first);
+    //}
+    //return keys;
 }

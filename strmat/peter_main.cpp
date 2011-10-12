@@ -230,9 +230,9 @@ static BOOL test6()
 
 int main(int argc, char *argv[]) 
 {
-   int test_num = 6;
+    int test_num = 2;
     
-   switch(test_num) {
+    switch(test_num) {
     
     case 1:     // ASCII example
         test1(); 
