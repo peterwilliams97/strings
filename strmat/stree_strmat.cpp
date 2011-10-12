@@ -1043,7 +1043,7 @@ int int_stree_remove_intleaf(SUFFIX_TREE tree, STREE_NODE node,
 
     back = NULL;
     intleaf = int_stree_get_intleaves(tree, node);
-    for (back=NULL; intleaf != NULL; back=intleaf,intleaf=intleaf->next) {
+    for (back = NULL; intleaf != NULL; back=intleaf,intleaf=intleaf->next) {
         if (intleaf->strid == strid && intleaf->pos == pos)
             break;
     }
@@ -1137,18 +1137,12 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
         while (len < N && pos < edgelen && T[len] == edgestr[pos]) {
             pos++;
             len++;
- #ifdef STATS
-            tree->num_compares++;
-#endif
+            IF_STATS(tree->num_compares++);
         }
-#ifdef STATS
-        tree->num_compares++;
-#endif
-       if (len == N || pos < edgelen || (child = stree_find_child(tree, node, T[len])) == NULL)
+        IF_STATS(tree->num_compares++);;
+        if (len == N || pos < edgelen || (child = stree_find_child(tree, node, T[len])) == NULL)
             break;
-#ifdef STATS
-        tree->edges_traversed++;
-#endif
+        IF_STATS(tree->edges_traversed++);
         if (int_stree_isaleaf(tree, child)) {
             *node_out = child;
             *pos_out = 0;

@@ -146,7 +146,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
                  */
                 IF_STATS(tree->num_compares++);
 
-                if (i < M && S[i] == edgestr[g]) {
+                if (i < M && S[i] == edgestr[g]) {  
                     // Match so keep moving down the string
                     g++;
                     break;
@@ -188,51 +188,43 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 
           /* Now, having extended S[j..i-1] to S[j..i] by rule 2, find where
            * S[j+1..i-1] is.  Note that the values of node and g have not
-           * changed in the above code (since stree_edge_split splits the
+           * changed in the above code (since stree_edge_split() splits the
            * node on the g'th character), so either g == 0 and node == root
            * or the string S[j..i-1] ends at the g-1'th character of node's
            * edge (and node is not the root).
            */
-            if (node == root)
+            if (node == root) {
                 ;
-            else if (g == edgelen && node->suffix_link != NULL) {
-                node = node->suffix_link;
-#ifdef STATS
-                tree->links_traversed++;
-#endif
+            } else if (g == edgelen && node->suffix_link != NULL) {
+                // At end of edge. Follow suffix link
+                IF_STATS(tree->links_traversed++);
+                 node = node->suffix_link;
                 edgestr = stree_get_edgestr(tree, node);
                 edgelen = stree_get_edgelen(tree, node);
-
                 g = edgelen;
                 continue;
 
             } else {
-            /*
-             * Move across the suffix link of the parent (unless the
-             * parent is the root).
-             */
+                // Move across the suffix link of the parent (unless the
+                // parent is the root).
                 parent = stree_get_parent(tree, node);
                 if (parent != root) {
+                    IF_STATS(tree->links_traversed++);
                     node = parent->suffix_link;
-#ifdef STATS
-                    tree->links_traversed++;
-#endif
                 } else {
                     node = root;
                     g--;
                 }
                 edgelen = stree_get_edgelen(tree, node);
 
-                /*
-                 * Use the skip/count trick to move g characters down the tree.
-                 */
-                h = i - g;
+                // Use the skip/count trick to move g characters down the tree.
+                h = i - g;          // Index in S for end of edge
                 while (g > 0) {
                     node = stree_find_child(tree, node, S[h]);
-#ifdef STATS
-                    tree->num_compares++;
-                    tree->edges_traversed++;
-#endif
+                    
+                    IF_STATS(tree->num_compares++);
+                    IF_STATS(tree->edges_traversed++);
+                    
                     gprime = stree_get_edgelen(tree, node);
                     if (gprime > g)
                         break;

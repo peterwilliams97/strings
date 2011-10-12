@@ -11,6 +11,8 @@ Replace inefficient edge (substring) and node storage with external maps. See pe
 TODO
 ----
 Out of memory exceptions to remove clutter of result == null handling everywhere
-Reduce map memory usage. e.g Custom maps
+Reduce map memory usage. Goal is suffix tree ~ 2 x size of all strings
+- e.g Custom maps.
+- Look at ileaf
 Remove VC++ specific code
 
