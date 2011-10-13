@@ -9,6 +9,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#include <iostream>
 #include "stree_strmat.h"
 #include "peter_global.h"
 
@@ -726,9 +727,6 @@ STREE_NODE int_stree_convert_leafnode(SUFFIX_TREE tree, STREE_NODE node)
 STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node)
 {
     int len, edgelen;
-#ifdef STATS
-    _int64 temp;
-#endif
     CHAR_TYPE *edgestr;
     STREE_NODE parent;
 
@@ -750,10 +748,7 @@ STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node)
         edgestr++;
         edgelen--;
     }
-
-#ifdef STATS
-    temp = tree->child_cost;
-#endif
+    IF_STATS(_int64  temp = tree->child_cost);
 
     node = parent;
     while (edgelen > 0) {
@@ -764,9 +759,7 @@ STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node)
         edgestr += len;
         edgelen -= len;
     }
-#ifdef STATS
-    tree->child_cost = temp;
-#endif
+    IF_STATS(tree->child_cost = temp);
     return node;
 }
 
@@ -1208,10 +1201,16 @@ void int_stree_set_idents(SUFFIX_TREE tree)
             childnum = (state == FIRST) ? 0 : node->isaleaf;
 #ifdef PETER_GLOBAL
             map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(node->_index);
-            //CHAR_LIST keys = get_keys(children);
+            //pglob_dump_map(children, "children");
             CHAR_LIST keys = pglob_get_children_keys(node->_index);
-            i = childnum + 1;
-            child = (i < (int)keys.size()) ? children[keys[i]] : NULL;
+            i = childnum;
+            child = (childnum < (int)keys.size()) ? children[keys[childnum]] : NULL;
+            //cout << "num children=" << keys.size() << ", childnum=" << childnum;
+            //if (childnum < (int)keys.size())
+            //    cout << ",val=" << (int)keys[childnum]; 
+            //else
+            //    cout << "<end>" ;
+            //cout << endl;
 #else
             STREE_NODE *children = (STREE_NODE *)node->children;
             for (i = childnum; i < ALPHABET_SIZE; i++) {

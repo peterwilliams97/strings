@@ -155,9 +155,4 @@ LIST_TYPE<CHAR_TYPE> pglob_get_children_keys(int index)
 {
     map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(index);
     return get_keys(children);
-    //vector<CHAR_TYPE> keys;
-    //for (map<CHAR_TYPE, stree_node *>::iterator it = children.begin(); it != children.end(); ++it) {
-    //    keys.push_back(it->first);
-    //}
-    //return keys;
 }

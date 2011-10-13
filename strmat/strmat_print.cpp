@@ -9,10 +9,10 @@
 #include "strmat_print.h"
 
 using namespace std;
+
 /*
  * Procedures for printing a suffix tree.
  */
-
 int large_print_tree(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag)
 {
     int j, pos, edgelen, leafnum, index;

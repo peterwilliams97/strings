@@ -13,6 +13,7 @@
  #define LIST_TYPE vector
 #endif
 #include <map>
+#include <string>
 #include "peter_common.h"
 
 struct stree_node;
@@ -44,6 +45,14 @@ struct stree_node;
  NODE_MAP    pglob_get_children_map(int index);
  CHAR_LIST   pglob_get_children_keys(int index);
 
+ template <class K, class V> 
+ void pglob_dump_map(std::map<K,V> m, std::string desc)
+ {
+     cout << "pglob_dump_map: " << desc << endl;   
+     for (std::map<K,V>::iterator it = m.begin(); it != m.end(); ++it) {
+        cout << "  "<< (int)it->first << " : " << it->second << endl;
+    }
+ }
 
 #endif
 
