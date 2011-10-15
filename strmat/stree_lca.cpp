@@ -3,12 +3,6 @@
  *
  * Implementations of several least common ancestor algorithms for
  * suffix trees.
- *
- * NOTES:
- *    5/96  -  Original Implementation of linear time algorithm
- *             (Bill Coffman)
- *    7/96  -  Modularized that code, and added the naive algorithm
- *             (James Knight)
  */
 
 #include <stdio.h>
@@ -16,10 +10,9 @@
 #include <string.h>
 #include "stree_strmat.h"
 #include "stree_lca.h"
+
 /*
- *
  * Forward References.
- *
  */
 static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node);
 static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node, unsigned int Amask);
@@ -152,10 +145,9 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
     if (tree == NULL)
         return NULL;
 
-    if ((lca = (LCA_STRUCT *)my_malloc(sizeof(LCA_STRUCT))) == NULL)
+    if ((lca = (LCA_STRUCT *)my_calloc(sizeof(LCA_STRUCT), 1)) == NULL)
         return NULL;
 
-    memset(lca, 0, sizeof(LCA_STRUCT));
     lca->type = LCA_LINEAR;
     lca->tree = tree;
 
@@ -220,9 +212,7 @@ static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
         Ival = compute_I_and_L(lca, tree, child);
         if (h(Ival) > h(Imax))
             Imax = Ival;
-#ifdef STATS
-        lca->num_prep++;
-#endif
+        IF_STATS(lca->num_prep++);
         child = stree_get_next(tree, child);
     }
 
@@ -264,13 +254,10 @@ static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
     child = stree_get_children(tree, node);
     while (child != NULL) {
         compute_A(lca, tree, child, Amask);
-#ifdef STATS
-        lca->num_prep++;
-#endif
+        IF_STATS(lca->num_prep++);
         child = stree_get_next(tree, child);
     }
 }
-
 
 /*
  * lca_lookup
@@ -286,107 +273,85 @@ static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
  */
 STREE_NODE lca_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
 {
-    unsigned int xid, yid, k, b, j, l, Iw, mask, *I, *A;
-    STREE_NODE *L, w, xbar, ybar;
-    SUFFIX_TREE tree;
+    unsigned int xid, yid, k, b, j, l, Iw, mask;
+    STREE_NODE w, xbar, ybar;
 
     if (lca == NULL || lca->type != LCA_LINEAR || x == NULL || y == NULL)
         return NULL;
   
-    tree = lca->tree;
-    I = lca->I;
-    A = lca->A;
-    L = lca->L;
+    SUFFIX_TREE tree = lca->tree;
+    unsigned int *I = lca->I;
+    unsigned int *A = lca->A;
+    STREE_NODE *L = lca->L;
+      
+    // Shift idents so that they go from 1..num_nodes.
+    xid = (unsigned int)stree_get_ident(tree, x) + 1;
+    yid = (unsigned int)stree_get_ident(tree, y) + 1;
 
-  /*
-   * Shift idents so that they go from 1..num_nodes.
-   */
-  xid = (unsigned int) stree_get_ident(tree, x) + 1;
-  yid = (unsigned int) stree_get_ident(tree, y) + 1;
-
-  /*
-   * Steps 1 and 2.
-   *
-   * Step 1 here differs from the book in that it returns the most
-   * significant bit counting from the right (and starting the count
-   * with 0), and then simply OR's the k+1..32 bits of I[xid] and the
-   * number 2^k.
-   */
-  k = MSB(I[xid] ^ I[yid]);
-  mask = ~0 << (k + 1);
-  b = (I[xid] & mask) | (1 << k);
-
-  mask = ~0 << h(b);
-  j = h( (A[xid] & A[yid]) & mask );
-
-#ifdef STATS
-  lca->num_compares++;
-#endif
-
-  /*
-   * Step 3.
-   */
-  l = h(A[xid]);
-  if (l == j)
-    xbar = x;
-  else {
-    mask = ~(~0 << j);       /* The bit-complement of setting bits j..32 */
-    k = MSB(A[xid] & mask);
-
+   /*
+    * Steps 1 and 2.
+    *
+    * Step 1 here differs from the book in that it returns the most
+    * significant bit counting from the right (and starting the count
+    * with 0), and then simply OR's the k+1..32 bits of I[xid] and the
+    * number 2^k.
+    */
+    k = MSB(I[xid] ^ I[yid]);
     mask = ~0 << (k + 1);
-    Iw = (I[xid] & mask) | (1 << k);
-    w = L[Iw];
-    xbar = stree_get_parent(tree, w);
-  }
+    b = (I[xid] & mask) | (1 << k);
 
-#ifdef STATS
-  lca->num_compares++;
-#endif
+    mask = ~0 << h(b);
+    j = h( (A[xid] & A[yid]) & mask );
 
-  /*
-   * Step 4.
-   */
-  l = h(A[yid]);
-  if (l == j)
-    ybar = y;
-  else {
-    mask = ~(~0 << j);
-    k = MSB(A[yid] & mask);
+    IF_STATS(lca->num_compares++);
 
-    mask = ~0 << (k + 1);
-    Iw = (I[yid] & mask) | (1 << k);
-    w = L[Iw];
-    ybar = stree_get_parent(tree, w);
-  }
+    // Step 3.
+    
+    l = h(A[xid]);
+    if (l == j) {
+        xbar = x;
+    } else {
+        mask = ~(~0 << j);       // The bit-complement of setting bits j..32 
+        k = MSB(A[xid] & mask);
 
-#ifdef STATS
-  lca->num_compares++;
-#endif
+        mask = ~0 << (k + 1);
+        Iw = (I[xid] & mask) | (1 << k);
+        w = L[Iw];
+        xbar = stree_get_parent(tree, w);
+    }
+    
+    IF_STATS(lca->num_compares++);
+   
+    //  Step 4.
+    
+    l = h(A[yid]);
+    if (l == j) {
+        ybar = y;
+    } else {
+        mask = ~(~0 << j);
+        k = MSB(A[yid] & mask);
 
-  /*
-   * Step 5.
-   */
-#ifdef STATS
-  lca->num_compares++;
-#endif
+        mask = ~0 << (k + 1);
+        Iw = (I[yid] & mask) | (1 << k);
+        w = L[Iw];
+        ybar = stree_get_parent(tree, w);
+    }
 
-  if (stree_get_ident(tree, xbar) < stree_get_ident(tree, ybar))
-    return xbar;
-  else
-    return ybar;
+    IF_STATS(lca->num_compares++);
+
+    // Step 5.
+   
+    IF_STATS(lca->num_compares++);
+
+    return (stree_get_ident(tree, xbar) < stree_get_ident(tree, ybar)) ? xbar : ybar;
 }
-
 
 void lca_free(LCA_STRUCT *lca)
 {
-  if (lca->I != NULL)
     free(lca->I);
-  if (lca->A != NULL)
     free(lca->A);
-  if (lca->L != NULL)
     free(lca->L);
-
-  free(lca);
+    free(lca);
 }
 
 

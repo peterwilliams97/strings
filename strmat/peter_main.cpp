@@ -32,11 +32,7 @@ static int test1()
         int length = 0;
         int j;
         sprintf(title, "string %02d", i+1);
- 
-        //sprintf(cstring, "hello_%02d,testing-%02d", i+1, i+1); 
-        //sprintf(cstring, "ab%02dx", i+1);
-        //sprintf(cstring, "%c%c%02d%c", 'a' + i, 'm' + i, i+1, 'x' + i);
-        
+      
         if (i % UNIQUE_STRINGS == 0) {
             sprintf(cstring, "abc");
         } else if (i % UNIQUE_STRINGS == 1) {
@@ -50,16 +46,11 @@ static int test1()
         strcat(dstring, cstring);
         strcat(dstring, "yyy");
            
-        //printf("String %2d: '%s' '%s'\n", i, title, dstring);
 #if 1
         length = 5;
         for (j = 0; j < length; j++) {
             dstring[j] = j + i % UNIQUE_STRINGS;
         }
-
-        //length = strlen(dstring);
-        //dstring[4] = 0;
-
         strings[i] = make_seqn(title, str_to_sequence(cstring, sequence, 257), length, stree_print_flag);
 #else
         strings[i] = make_seq(title, dstring);
@@ -77,43 +68,52 @@ static int test1()
    return 1;
 }
 
-static int num_calls = 0;
-static BOOL base_test(int num_strings, int num_unique, int length, int max_char)
+static STRING **make_test_strings(int num_strings, int num_unique, int length, int max_char)
 {
-    int i;
-    BOOL ok;
     STRING **strings = (STRING **)my_calloc(num_strings, sizeof(STRING *));
     CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
     char title[129];
     
+    printf("make_test_strings(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
+        num_strings, num_unique, length, max_char);
+
+    for (int i = 0; i < num_strings; i++) {
+        sprintf(title, "string %2d", i+1);
+        for (int j = 0; j < length; j++) {
+            cstring[j] = (j + i % num_unique) % max_char;
+        }
+        strings[i] = make_seqn(title, cstring, length, stree_print_flag);
+    }
+    free(cstring);
+    return strings;
+}
+
+static void free_test_strings(int num_strings, STRING **strings)
+{
+    for (int i = 0; i < num_strings; i++) {
+        free_seq(strings[i]);
+    }
+    free(strings);
+}
+
+static int num_calls = 0;
+static bool base_test(int num_strings, int num_unique, int length, int max_char)
+{
+    STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
+     
     printf("\n %3d: base_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
         num_calls++, num_strings, num_unique, length, max_char);
 
-    for (i = 0; i < num_strings; i++) {
-        int j;
-        sprintf(title, "string %2d", i+1);
-        
-        for (j = 0; j < length; j++) {
-            cstring[j] = (j + i % num_unique) % max_char;
-        }
-
-        strings[i] = make_seqn(title, cstring, length, stree_print_flag);
-    }
-
-    ok = strmat_ukkonen_build(strings, num_strings, stats_flag, stree_print_flag);
-
+    bool ok = boolize(strmat_ukkonen_build(strings, num_strings, stats_flag, stree_print_flag));
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
     }
 
-    for (i = 0; i < num_strings; i++) {
-        free_seq(strings[i]);
-    }
-    free(strings);
+    free_test_strings(num_strings, strings);  
     return ok;
 }
 
-static BOOL test2(int num_strings, int num_unique, int length, int max_char)
+static bool test2(int num_strings, int num_unique, int length, int max_char)
 {
     return base_test(num_strings, num_unique, length, max_char);
 }
@@ -226,6 +226,31 @@ static BOOL test6()
     free(strings);
     return ok;
 
+}
+
+void print_node(const STREE_NODE node)
+{
+    char buffer[CHAR_BUFFER_LEN];
+
+    cout << "Node" << endl;
+    cout << "   id=" << node->id;
+    cout << "index=" << node->_index;
+    cout << " edge=" << get_char_array(node->edgestr, node->edgelen, buffer) << "  " << node->edgelen << endl;
+}
+
+static void match_pattern(SUFFIX_TREE tree, CHAR_TYPE *pattern, int n)
+{    
+    STREE_NODE node;
+    int pos = -1;
+    memset(&node, 0, sizeof(node));
+
+   int len = stree_match(tree, pattern, n, &node, &pos);
+
+   char buffer[CHAR_BUFFER_LEN];
+   cout << "Matched " << get_char_array(pattern, n, buffer) << endl;
+   cout << "len  = " << len << endl;
+   cout << "pos  = " << pos << endl;
+   print_node(node);
 }
 
 int main(int argc, char *argv[]) 

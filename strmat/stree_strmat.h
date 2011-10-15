@@ -102,9 +102,7 @@ int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum, CHAR_TYPE **s
 void stree_reset_stats(SUFFIX_TREE tree);
 
 /*
- *
  * Internal procedures to use when building and manipulating trees.
- *
  */
 int int_stree_insert_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid);
 void int_stree_delete_string(SUFFIX_TREE tree, int strid);

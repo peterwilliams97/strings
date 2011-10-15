@@ -30,4 +30,6 @@ int my_itoalen(int n);
 #define mputs(s) printf("%s", s)
 #define mputc(c) printf("%c", c)
 
+inline bool boolize(int n) { return n != 0; }
+
 #endif

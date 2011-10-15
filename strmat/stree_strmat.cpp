@@ -240,12 +240,12 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
  *
  * Returns:  The number of characters of T matched.
  */
-int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N,  STREE_NODE *node_out, int *pos_out)
+int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out)
 {
-  return stree_walk(tree, stree_get_root(tree), 0, T, N, node_out, pos_out);
+    return stree_walk(tree, stree_get_root(tree), 0, T, N, node_out, pos_out);
 }
 
-int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N,  STREE_NODE *node_out, int *pos_out)
+int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out)
 {
     int len, endpos, edgelen;
     CHAR_TYPE *edgestr;
@@ -1270,10 +1270,7 @@ STREE_INTLEAF int_stree_new_intleaf(SUFFIX_TREE tree, int strid, int pos)
     ileaf->strid = strid;
     ileaf->pos = pos;
 
-#ifdef STATS
-    tree->tree_size += OPT_INTLEAF_SIZE;
-#endif
-
+    IF_STATS(tree->tree_size += OPT_INTLEAF_SIZE);
     return ileaf;
 }
   
@@ -1303,9 +1300,7 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
     leaf->edgestr = int_stree_get_string(tree, strid) + edgepos;
     leaf->edgelen = int_stree_get_length(tree, strid) - edgepos;
 
-#ifdef STATS
-    tree->tree_size += OPT_LEAF_SIZE;
-#endif
+    IF_STATS(tree->tree_size += OPT_LEAF_SIZE);
 
 #ifdef PETER_GLOBAL
     leaf->_index = pglob_get_node_index();
