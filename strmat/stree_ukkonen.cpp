@@ -39,7 +39,7 @@
  *
  * Returns:  non-zero on success, zero on error.
  */
-int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
+bool stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 {
     int i, j, g, h, gprime, edgelen, id;
     CHAR_TYPE *edgestr = NULL;
@@ -48,7 +48,7 @@ int stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
 
     id = int_stree_insert_string(tree, S,  M, strid);
     if (id == -1)
-        return 0;
+        return false;
   /*
    * Run Ukkonen's algorithm to add the string to the suffix tree.
    *
@@ -286,7 +286,7 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
     if (tree == NULL)
         return NULL;
 
-    if (stree_ukkonen_add_string(tree, string->sequence, string->length, 1) < 1) {
+    if (!stree_ukkonen_add_string(tree, string->sequence, string->length, 1)) {
         stree_delete_tree(tree);
         return NULL;
     }
@@ -303,12 +303,12 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok, BOOL print_flag)
+SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, bool *ok, bool print_flag)
 {
     int i;
     SUFFIX_TREE tree;
 
-    *ok = TRUE;
+    *ok = true;
     if (strings == NULL || num_strings == 0)
         return NULL;
 
@@ -326,8 +326,8 @@ SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, BOOL *ok,
             // Original strmat is limited to 128 strings
             printf("Testing strings above 128\n");
         }
-        if (stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->length, i+1) < 1) {
-            *ok = FALSE;
+        if (!stree_ukkonen_add_string(tree, strings[i]->sequence, strings[i]->length, i+1)) {
+            *ok = false;
             fprintf(stderr, "stree_ukkonen_add_string() failed !!!\n");
             break;
             // !@#$ No need to delete as caller does this

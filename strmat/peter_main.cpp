@@ -13,8 +13,9 @@
 
 using namespace std;
 
-static int stree_print_flag = TRUE;
-static int stats_flag = TRUE;
+static bool do_match = true;
+static bool stree_print_flag = true;
+static bool stats_flag = true;
 
 #define NUM_STRINGS 4
 #define UNIQUE_STRINGS 2
@@ -97,14 +98,14 @@ static void free_test_strings(int num_strings, STRING **strings)
 }
 
 static int num_calls = 0;
-static bool base_test(int num_strings, int num_unique, int length, int max_char)
+static bool base_construction_test(int num_strings, int num_unique, int length, int max_char)
 {
     STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
      
-    printf("\n %3d: base_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
+    printf("\n %3d: base_construction_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
         num_calls++, num_strings, num_unique, length, max_char);
 
-    bool ok = boolize(strmat_ukkonen_build(strings, num_strings, stats_flag, stree_print_flag));
+    bool ok = strmat_ukkonen_build(strings, num_strings, stats_flag, stree_print_flag);
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
     }
@@ -113,9 +114,43 @@ static bool base_test(int num_strings, int num_unique, int length, int max_char)
     return ok;
 }
 
-static bool test2(int num_strings, int num_unique, int length, int max_char)
+static bool base_match_test(int num_strings, int num_unique, int length, int max_char, int max_match)
+{   
+    STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
+    int match_len = (max_match >= 0) ? min(max_match,(length+1)/2) : (length+1)/2;  
+    STRING *pattern = make_seqn("pattern", strings[0]->sequence + 2, match_len, stree_print_flag);
+     
+    printf("\n %3d: base_match_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
+        num_calls++, num_strings, num_unique, length, max_char);
+
+    bool ok = strmat_stree_match(pattern, strings, num_strings, stats_flag, stree_print_flag);
+    if (!ok) {
+        fprintf(stderr, "strmat_stree_match failed\n");
+    }
+
+    free_seq(pattern);
+    free_test_strings(num_strings, strings);  
+    return ok;
+}
+
+
+static bool base_test(int num_strings, int num_unique, int length, int max_char, int max_match = -1)
 {
-    return base_test(num_strings, num_unique, length, max_char);
+    if (do_match) {
+        return base_match_test(num_strings, num_unique, length, max_char, max_match);
+    } else {
+        return base_construction_test(num_strings, num_unique, length, max_char);
+    }
+}
+
+static bool test2(int num_strings, int num_unique, int length, int max_char, int max_match)
+{
+    return base_test(num_strings, num_unique, length, max_char, max_match);
+}
+
+static bool test2a(int num_strings, int num_unique, int length, int max_char)
+{
+    return base_match_test(num_strings, num_unique, length, max_char, -1);
 }
 
 static _int64 _last_val = 0;
@@ -216,7 +251,7 @@ static bool test6()
     STRING **strings = get_oki_file_strings();
     qsort(strings, NUM_OKI_STRINGS, sizeof(STRING*), sortfunc);
     
-    bool ok = boolize(strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag));
+    bool ok = strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag);
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
     }
@@ -234,7 +269,9 @@ void print_node(const STREE_NODE node)
 
     cout << "Node" << endl;
     cout << "   id=" << node->id;
+#ifdef PETER_GLOBAL
     cout << "index=" << node->_index;
+#endif
     cout << " edge=" << get_char_array(node->edgestr, node->edgelen, buffer) << "  " << node->edgelen << endl;
 }
 
@@ -255,7 +292,7 @@ static void match_pattern(SUFFIX_TREE tree, CHAR_TYPE *pattern, int n)
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 2;
+    int test_num = 7;
     
     switch(test_num) {
     
@@ -268,21 +305,24 @@ int main(int argc, char *argv[])
             int num_unique = 2;
             int length = 6;
             int max_char = 4;
-            test2(num_strings, num_unique, length, max_char);
+            int max_match = 2;
+            test2(num_strings, num_unique, length, max_char, max_match);
+            //test2a(num_strings, num_unique, length, max_char);
         }
         break;
     case 3:     // Stress binary example
-        stree_print_flag = FALSE;
+        stree_print_flag = do_match;
         test3();
         break;
     case 4:     // big binary example
-        stree_print_flag = FALSE;
+        stree_print_flag = do_match;
         {
             int num_strings = 40;
             int num_unique = 20;
             int length = 10000;
             int max_char = 200;
-            test2(num_strings, num_unique, length, max_char);
+            int max_match = 10;
+            test2(num_strings, num_unique, length, max_char, max_match);
         }
         break;
     case 5:     // Many tests
@@ -291,6 +331,17 @@ int main(int argc, char *argv[])
     case 6:     // Read binary strings from files
         stree_print_flag = FALSE;
         test6();
+        break;
+     case 7:     // Another simple binary example
+        {
+            int num_strings = 8;
+            int num_unique = 2;
+            int length = 6;
+            int max_char = 3;
+            int max_match = 2;
+            test2(num_strings, num_unique, length, max_char, max_match);
+            //test2a(num_strings, num_unique, length, max_char);
+        }
         break;
    }
 

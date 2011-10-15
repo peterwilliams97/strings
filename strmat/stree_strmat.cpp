@@ -153,9 +153,8 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
     root = node;
     state = START;
     while (true) {
-        /*
-         * The first time we get to a node.
-         */
+  
+        // The first time we get to a node.
         if (state == START) {
             if (preorder_fn != NULL) {
                 (*preorder_fn)(tree, node);
@@ -165,13 +164,10 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
             state = (num > 0) ? FIRST : DONELEAF;
         }
 
-        /*
-         * Start or continue recursing on the children of the node.
-         */
+        // Start or continue recursing on the children of the node.
         if (state == FIRST || state == MIDDLE) {
-            /*
-            * Look for the next child to traverse down to.
-            */
+            
+            // Look for the next child to traverse down to.
             childnum = (state == FIRST) ? 0 : node->isaleaf;
 #ifdef PETER_GLOBAL
             map<CHAR_TYPE, stree_node *>children = pglob_get_children_map(node->_index);
@@ -200,10 +196,8 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
             }
         }
 
-        /*
-         * Last time we get to a node, do the post-processing and move back up,
-         * unless we're at the root of the traversal, in which case we stop.
-         */
+        // Last time we get to a node, do the post-processing and move back up,
+        // unless we're at the root of the traversal, in which case we stop.
         if (state == DONE || state == DONELEAF) {
             if (state == DONE)
                 node->isaleaf = 0;
@@ -240,11 +234,6 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
  *
  * Returns:  The number of characters of T matched.
  */
-int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out)
-{
-    return stree_walk(tree, stree_get_root(tree), 0, T, N, node_out, pos_out);
-}
-
 int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out)
 {
     int len, endpos, edgelen;
@@ -263,21 +252,21 @@ int stree_walk(SUFFIX_TREE tree, STREE_NODE node, int pos, CHAR_TYPE *T, int N, 
     edgelen = stree_get_edgelen(tree, endnode);
 
     while (len < N && endpos < edgelen && T[len] == edgestr[endpos]) {
+        IF_STATS(tree->num_compares++);
         len++;
         endpos++;
-#ifdef STATS
-        tree->num_compares++;
-#endif
     }
-#ifdef STATS
-    tree->num_compares++;
-#endif
 
+    IF_STATS(tree->num_compares++);
     *node_out = endnode;
     *pos_out = endpos;
     return len;
 }
 
+int stree_match(SUFFIX_TREE tree, CHAR_TYPE *T, int N, STREE_NODE *node_out, int *pos_out)
+{
+    return stree_walk(tree, stree_get_root(tree), 0, T, N, node_out, pos_out);
+}
 
 /*
  * stree_find_child
@@ -296,9 +285,7 @@ STREE_NODE stree_find_child(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE ch)
     if (int_stree_isaleaf(tree, node) || !node_has_children(node))
         return NULL;
 
-#ifdef STATS
-    tree->child_cost++;
-#endif
+    IF_STATS(tree->child_cost++);
 
 #ifdef PETER_GLOBAL
     STREE_NODE child_node = pglob_get_child_node(node->_index, ch);
@@ -1126,15 +1113,17 @@ int int_stree_walk_to_leaf(SUFFIX_TREE tree, STREE_NODE node, int pos,
     edgestr = stree_get_edgestr(tree, node);
     edgelen = stree_get_edgelen(tree, node);
     len = 0;
-    while (1) {
+    while (true) {
         while (len < N && pos < edgelen && T[len] == edgestr[pos]) {
+            IF_STATS(tree->num_compares++);
             pos++;
             len++;
-            IF_STATS(tree->num_compares++);
         }
+        
         IF_STATS(tree->num_compares++);;
         if (len == N || pos < edgelen || (child = stree_find_child(tree, node, T[len])) == NULL)
             break;
+        
         IF_STATS(tree->edges_traversed++);
         if (int_stree_isaleaf(tree, child)) {
             *node_out = child;

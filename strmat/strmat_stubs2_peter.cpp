@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -11,7 +12,7 @@
 //#include "stree_weiner.h"
 #include "stree_lca.h"
 //#include "stree_decomposition.h"
-//#include "strmat_stubs2.h"
+#include "strmat_stubs2.h"
 
 /*
  * strmat_ukkonen_build
@@ -26,19 +27,15 @@
  *
  * Returns:  non-zero on success, zero on error
  */
-int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int print_tree)
+bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, bool print_tree)
 {
     int i;
     _int64  max_length, total_length;
     SUFFIX_TREE tree;
-    BOOL ok;
-
-    if (strings == NULL)
-        return 0;
-
-   /*
-    * Find the total and maximum length of the input strings.
-    */
+ 
+    assert(strings);
+ 
+    // Find the total and maximum length of the input strings.
     max_length = -1;
     total_length = 0;
     for (i=0; i < num_strings; i++) {
@@ -50,9 +47,10 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
     /*
     * Build the tree, then print the output.
     */
+    bool ok;
     tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_tree);
     if (tree == NULL)
-        return 0;
+        return false;
 
     if (print_stats) {
         printf("\nStatistics:\n");
@@ -82,7 +80,6 @@ int strmat_ukkonen_build(STRING **strings, int num_strings, int print_stats, int
     }
 
     stree_delete_tree(tree);
-
     return ok;
 }
 
@@ -118,9 +115,7 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
       return 0;
     }
 
-    /*
-     * Shift positions by 1 here (from 0..N-1 to 1..N).
-     */
+    // Shift positions by 1 here (from 0..N-1 to 1..N).
     newmatch->type = TEXT_SET_EXACT;
     newmatch->lend = pos + 1;
     newmatch->rend = pos + patlen;
@@ -134,128 +129,113 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
   return 1;
 }
 
-int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int print_stats)
+bool strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, bool print_stats, bool do_print_matches)
 {
     int flag, pos, matchlen;
 #ifdef STATS
     _int64 num_compares, edges_traversed, child_cost;
 #endif
-  MATCHES back, current, next;
-  STREE_NODE node;
-  SUFFIX_TREE tree;
-  BOOL ok = TRUE;
+    MATCHES back, current, next;
+    STREE_NODE node;
+    SUFFIX_TREE tree;
+    bool ok = true;
 
-  if (pattern == NULL || strings == NULL)
-    return 0;
+    assert(pattern && strings);
 
-  /*
-   * Build the suffix tree.
-   */
-  printf("Building the tree...\n\n");
-  tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
-  if (tree == NULL)
-    return 0;
+    // Build the suffix tree.
+    printf("Building the tree...\n\n");
+    tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
+    if (tree == NULL)
+        return false;
 
-  stree_reset_stats(tree);
+    stree_reset_stats(tree);
 
-  /*
-   * Match the pattern string to a path in the suffix tree.
-   */
-  matchlen = stree_match(tree, pattern->sequence, pattern->length,
-                         &node, &pos);
-  if (matchlen < 0) {
-    stree_delete_tree(tree);
-    return 0;
-  }
+    // Match the pattern string to a path in the suffix tree.
+    matchlen = stree_match(tree, pattern->sequence, pattern->length, &node, &pos);
+    if (matchlen < 0) {
+        stree_delete_tree(tree);
+        return false;
+    }
 
 #ifdef STATS
-  num_compares = tree->num_compares;
-  edges_traversed = tree->edges_traversed;
-  child_cost = tree->child_cost;
-
-  stree_reset_stats(tree);
+    num_compares = tree->num_compares;
+    edges_traversed = tree->edges_traversed;
+    child_cost = tree->child_cost;
+    stree_reset_stats(tree);
 #endif
 
-  /*
-   * Traverse the subtree, finding the matches.
-   */
-  matchlist = NULL;
-  matchcount = matcherror = 0;
-  patlen = pattern->length;
+    // Traverse the subtree, finding the matches.
+    matchlist = NULL;
+    matchcount = matcherror = 0;
+    patlen = pattern->length;
 
-  if (matchlen == pattern->length) {
-    stree_traverse_subtree(tree, node, add_match, NULL);
-    if (matcherror) {
-      stree_delete_tree(tree);
-      return 0;
-    }
+    if (matchlen == pattern->length) {
+        stree_traverse_subtree(tree, node, add_match, NULL);
+        if (matcherror) {
+            stree_delete_tree(tree);
+            return false;
+        }
       
-    /*
-     * Bubble sort the matches.
-     */
-    flag = 1;
-    while (flag) {
-      flag = 0;
-      back = NULL;
-      current = matchlist;
-      while (current->next != NULL) {
-        if (current->next->textid < current->textid ||
-            (current->next->textid == current->textid &&
-             current->next->lend < current->lend)) {
-          /*
-           * Move current->next before current in the list.
-           */
-          next = current->next;
-          current->next = next->next;
-          next->next = current;
-          if (back == NULL)
-            back = matchlist = next;
-          else
-            back = back->next = next;
-          
-          flag = 1;
+        // Bubble sort the matches.
+        flag = 1;
+        while (flag) {
+            flag = 0;
+            back = NULL;
+            current = matchlist;
+            while (current->next != NULL) {
+                if (current->next->textid < current->textid || (current->next->textid == current->textid  &&  current->next->lend < current->lend)) {
+                    // Move current->next before current in the list.
+                    next = current->next;
+                    current->next = next->next;
+                    next->next = current;
+                    if (back == NULL)
+                        back = matchlist = next;
+                    else
+                        back = back->next = next;
+                    flag = 1;
+                } else {
+                    back = current;
+                    current = current->next;
+                }
+            }
         }
-        else {
-          back = current;
-          current = current->next;
-        }
-      }
     }
-  }
 
-  /*
-   * Print the matches and the statistics.
-   */
-  print_matches(NULL, strings, num_strings, matchlist, matchcount);
 
-  if (print_stats) {
-    printf("Statistics:\n");
+    // Print the matches and the statistics.
+    if (do_print_matches) {
+   
+        printf("\nSuffix Tree:\n");
+        small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
+
+        print_matches(NULL, strings, num_strings, matchlist, matchcount);
+    }
+
+    if (print_stats) {
+        printf("Statistics:\n");
 #ifdef STATS
-    printf("   Matching:\n");
-    printf("      Pattern Length:          %d\n", pattern->length);
-    printf("      Number of Comparisons:   %d\n", num_compares);
-    printf("      Number Edges Traversed:  %d\n", edges_traversed);
-    printf("      Cost of Edge Traversal:  %d\n", child_cost);
-    printf("\n");
-    printf("   Subtree Traversal:\n");
-    printf("      Number of Matches:       %d\n", matchcount);
-    printf("      Number Edges Traversed:  %d\n", tree->edges_traversed);
-    printf("      Cost of Edge Traversal:  %d\n", tree->child_cost);
+        printf("   Matching:\n");
+        printf("      Pattern Length:          %d\n", pattern->length);
+        printf("      Number of Comparisons:   %d\n", num_compares);
+        printf("      Number Edges Traversed:  %d\n", edges_traversed);
+        printf("      Cost of Edge Traversal:  %d\n", child_cost);
+        printf("\n");
+        printf("   Subtree Traversal:\n");
+        printf("      Number of Matches:       %d\n", matchcount);
+        printf("      Number Edges Traversed:  %d\n", tree->edges_traversed);
+        printf("      Cost of Edge Traversal:  %d\n", tree->child_cost);
 #else
-    printf("   No statistics available.\n");
+        printf("   No statistics available.\n");
 #endif
-    mputc('\n');
-  }
+        mputc('\n');
+    }
 
-  /*
-   * Free everything allocated.
-   */
-  free_matches(matchlist);
-  stree_delete_tree(tree);
+    // Free everything allocated.
+    free_matches(matchlist);
+    stree_delete_tree(tree);
 
-  return 1;
+    return true;
 }
-
 
 /*
  * strmat_stree_lca
@@ -270,18 +250,9 @@ int strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, int p
  * Returns:  non-zero on success, zero on error
  */
 static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodemap);
-int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type, char *lines[]);
 
-int strmat_stree_lca(STRING **strings, int num_strings, int print_stats, char *lines[])
-{  
-    return int_strmat_stree_lca(strings, num_strings,  print_stats, LCA_LINEAR, lines);  
-}
-int strmat_stree_naive_lca(STRING **strings, int num_strings, int print_stats, char *lines[])
-{  
-    return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE, lines);  
-}
 
-int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA_TYPE type, char *lines[])
+bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, LCA_TYPE type, char *lines[])
 {
     int i, num1, num2, len, num_lcas, max_length;
     _int64 num_nodes;
@@ -291,15 +262,13 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
     STREE_NODE x, y, z, *nodemap;
     SUFFIX_TREE tree;
     LCA_STRUCT *lcastruct;
-    BOOL ok = TRUE;
-
-    if (strings == NULL)
-        return 0;
-
-  /*
-   * Build the tree.
-   */
+    
+    assert(strings);
+    
+    // Build the tree.
+   
     printf("Building the suffix tree...\n");
+    bool ok = true;
     tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
     if (tree == NULL)
         return 0;
@@ -310,9 +279,7 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
         if (max_length == -1 || strings[i]->length > max_length)
             max_length = strings[i]->length;
 
-   /*
-    * Preprocess the suffix tree.
-    */
+    // Preprocess the suffix tree.
     printf("Preprocessing...\n");
     lcastruct = NULL;
     switch (type) {
@@ -452,7 +419,15 @@ int int_strmat_stree_lca(STRING **strings, int num_strings, int print_stats, LCA
     return 1;
 }
 
+bool strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, char *lines[])
+{  
+    return int_strmat_stree_lca(strings, num_strings,  print_stats, LCA_LINEAR, lines);  
+}
 
+bool strmat_stree_naive_lca(STRING **strings, int num_strings, bool print_stats, char *lines[])
+{  
+    return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE, lines);  
+}
 /*
  * compute_nodemap
  *
@@ -477,7 +452,6 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *map)
     child = stree_get_next(tree, child);
   }
 }
-
 
 /*
  * strmat_stree_walkaround
@@ -591,8 +565,7 @@ static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_fl
  *
  * Returns: nothing
  */
-static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node,
-                             int gen_stree_flag, int mend_num_lines)
+static void print_stree_node(SUFFIX_TREE tree, STREE_NODE node, int gen_stree_flag, int mend_num_lines)
 {
   int i, j, index, ident, idwidth, labellen, edgelen;
   int leafnum, pos;
