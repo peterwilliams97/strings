@@ -139,18 +139,15 @@ void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE)
     stree_traverse_subtree(tree, stree_get_root(tree), preorder_fn,  postorder_fn);
 }
 
-void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_fn)(SUFFIX_TREE,STREE_NODE),  int (*postorder_fn)(SUFFIX_TREE,STREE_NODE))
+void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE), int (*postorder_fn)(SUFFIX_TREE,STREE_NODE))
 {
     enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
     int i, num, childnum;
     STREE_NODE root, child = NULL;
 
-  /*
-   * Use a non-recursive traversal where the 'isaleaf' field of each node
-   * is used as the value remembering the child currently being
-   * traversed.
-   */
-    root = node;
+   // Use a non-recursive traversal where the 'isaleaf' field of each node
+   // is used as the value remembering the child currently being traversed.
+      root = node;
     state = START;
     while (true) {
   
@@ -178,10 +175,7 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
                 if (children[i] != NULL)
                     break;
                 child = children[i];
-
-#ifdef STATS
-                tree->child_cost++;
-#endif
+                IF_STATS(tree->child_cost++);
             }
 
             if (child == NULL) {
@@ -189,9 +183,7 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node,  int (*preorder_f
             } else {
                 node->isaleaf = i + 1;
                 node = child;
-#ifdef STATS
-                tree->edges_traversed++;
-#endif
+                IF_STATS(tree->edges_traversed++);
                 state = START;
             }
         }
@@ -765,17 +757,13 @@ STREE_NODE int_stree_get_suffix_link(SUFFIX_TREE tree, STREE_NODE node)
  */
 STREE_NODE int_stree_connect(SUFFIX_TREE tree, STREE_NODE parent, STREE_NODE child)
 {
-    CHAR_TYPE ch;
-    
     if (int_stree_isaleaf(tree, parent) && (parent = int_stree_convert_leafnode(tree, parent)) == NULL)
         return NULL;
 
     child->parent = parent;
-    ch = stree_getch(tree, child);
+    CHAR_TYPE ch = stree_getch(tree, child);
+    IF_STATS(tree->creation_cost++);
 
-#ifdef STATS
-    tree->creation_cost++;
-#endif
 
 #ifdef PETER_GLOBAL
     pglob_set_child_node(parent->_index, ch, child->_index);

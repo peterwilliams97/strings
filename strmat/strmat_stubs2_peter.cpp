@@ -89,7 +89,6 @@ bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, b
  * Perform an exact matching of a pattern to a suffix tree of one or
  * more strings.
  *
- *
  * Parameters:   pattern          -  the input pattern
  *               strings          -  the input strings
  *               num_strings      -  the number of input strings
@@ -102,31 +101,31 @@ static int matchcount, matcherror, patlen;
 
 static int add_match(SUFFIX_TREE tree, STREE_NODE node)
 {
-  int i, pos, id;
-  CHAR_TYPE *seq;
-  MATCHES newmatch;
+    int pos, id;
+    CHAR_TYPE *seq;
+    MATCHES newmatch;
   
-  for (i=1; stree_get_leaf(tree, node, i, &seq, &pos, &id); i++) {
-    newmatch = alloc_match();
-    if (newmatch == NULL) {
-      free_matches(matchlist);
-      matchlist = NULL;
-      matcherror = 1;
-      return 0;
+    for (int i = 1; stree_get_leaf(tree, node, i, &seq, &pos, &id); i++) {
+        newmatch = alloc_match();
+        if (newmatch == NULL) {
+            free_matches(matchlist);
+            matchlist = NULL;
+            matcherror = 1;
+            return 0;
+        }
+
+        // Shift positions by 1 here (from 0..N-1 to 1..N).
+        newmatch->type = TEXT_SET_EXACT;
+        newmatch->lend = pos + 1;
+        newmatch->rend = pos + patlen;
+        newmatch->textid = id;
+
+        newmatch->next = matchlist;
+        matchlist = newmatch;
+        matchcount++;
     }
 
-    // Shift positions by 1 here (from 0..N-1 to 1..N).
-    newmatch->type = TEXT_SET_EXACT;
-    newmatch->lend = pos + 1;
-    newmatch->rend = pos + patlen;
-    newmatch->textid = id;
-
-    newmatch->next = matchlist;
-    matchlist = newmatch;
-    matchcount++;
-  }
-
-  return 1;
+    return 1;
 }
 
 bool strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, bool print_stats, bool do_print_matches)

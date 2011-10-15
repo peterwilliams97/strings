@@ -201,7 +201,7 @@ static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
   /*
    * Shift idents so that they go from 1..num_nodes.
    */
-    id = (unsigned int) stree_get_ident(tree, node) + 1;
+    id = (unsigned int)stree_get_ident(tree, node) + 1;
 
   /*
    * Find the node with the maximum I value in the subtree.
@@ -217,7 +217,7 @@ static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
     }
 
     lca->I[id] = Imax;
-    lca->L[Imax] = node;    /* will be overwritten by the highest node in run */
+    lca->L[Imax] = node;    // will be overwritten by the highest node in run 
 
     return Imax;
 }
@@ -377,19 +377,18 @@ void lca_free(LCA_STRUCT *lca)
  */
 LCA_STRUCT *lca_naive_prep(SUFFIX_TREE tree)
 {
-  LCA_STRUCT *lca;
+    LCA_STRUCT *lca;
 
-  if (tree == NULL)
-    return NULL;
+    if (tree == NULL)
+        return NULL;
 
-  if ((lca = (LCA_STRUCT *)my_malloc(sizeof(LCA_STRUCT))) == NULL)
-    return NULL;
+    if ((lca = (LCA_STRUCT *)my_calloc(sizeof(LCA_STRUCT), 1)) == NULL)
+        return NULL;
 
-  memset(lca, 0, sizeof(LCA_STRUCT));
-  lca->type = LCA_NAIVE;
-  lca->tree = tree;
+    lca->type = LCA_NAIVE;
+    lca->tree = tree;
 
-  return lca;
+    return lca;
 }
 
 
@@ -413,41 +412,33 @@ LCA_STRUCT *lca_naive_prep(SUFFIX_TREE tree)
  */
 STREE_NODE lca_naive_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
 {
-  int xid, yid;
-  SUFFIX_TREE tree;
+    int xid, yid;
+    SUFFIX_TREE tree;
 
-  if (lca == NULL || lca->type != LCA_NAIVE || x == NULL || y == NULL)
-    return NULL;
+    if (lca == NULL || lca->type != LCA_NAIVE || x == NULL || y == NULL)
+        return NULL;
 
-  tree = lca->tree;
+    tree = lca->tree;
 
-  xid = stree_get_ident(tree, x);
-  yid = stree_get_ident(tree, y);
-  while (xid != yid) {
-    while (xid > yid) {
-      x = stree_get_parent(tree, x);
-      xid = stree_get_ident(tree, x);
+    xid = stree_get_ident(tree, x);
+    yid = stree_get_ident(tree, y);
+    while (xid != yid) {
+        
+        while (xid > yid) {
+            x = stree_get_parent(tree, x);
+            xid = stree_get_ident(tree, x);
+            IF_STATS(lca->num_compares++);
+        }
 
-#ifdef STATS
-      lca->num_compares++;
-#endif
+        while (xid < yid) {
+            y = stree_get_parent(tree, y);
+            yid = stree_get_ident(tree, y);
+            IF_STATS(lca->num_compares++);
+        }
     }
 
-    while (xid < yid) {
-      y = stree_get_parent(tree, y);
-      yid = stree_get_ident(tree, y);
-
-#ifdef STATS
-      lca->num_compares++;
-#endif
-    }
-  }
-
-#ifdef STATS
-  lca->num_compares++;
-#endif
-
-  return x;
+    IF_STATS(lca->num_compares++);
+    return x;
 }
 
 

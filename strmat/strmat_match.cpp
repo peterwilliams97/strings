@@ -35,22 +35,22 @@ void free_matches(MATCHES list)
   freelist = list;
 }
 
-int print_matches(STRING *string, STRING **strings, int num_strings,  MATCHES list, int num_matches)
+int print_matches(STRING *string, STRING **strings, int num_strings, MATCHES list, int num_matches)
 {
-  int i, j, N, count, matchdigs, minwidth, maxwidth;
-  int width, maxposdigs, maxiddigs, multistring_mode;
-  CHAR_TYPE *T;
-  char format[32];
-  MATCHES ptr;
+    int i, j, N, count, matchdigs, minwidth, maxwidth;
+    int width, maxposdigs, maxiddigs, multistring_mode;
+    CHAR_TYPE *T;
+    char format[32];
+    MATCHES ptr;
 
-  if (num_matches == 0) {
-    mputs("Found 0 matches:\n");
-    return 1;
-  }
+    if (num_matches == 0) {
+        mputs("Found 0 matches:\n");
+        return 1;
+    }
 
-  multistring_mode = (list->type == TEXT_SET_EXACT);
-  if ((!multistring_mode && string == NULL) ||
-      (multistring_mode && strings == NULL))
+    multistring_mode = (list->type == TEXT_SET_EXACT);
+    if ((!multistring_mode && string == NULL) 
+        || (multistring_mode && strings == NULL))
     return 0;
 
   /*
