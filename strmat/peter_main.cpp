@@ -128,9 +128,9 @@ static int range(int val, int min_val, int max_val)
     return result;
 }
 
-static BOOL test3()
+static bool test3()
 {
-    BOOL ok = TRUE;
+    bool ok = true;
     for (int i = 0; i < 10; i++) {
              
         int num_strings = range(i, 1, 100);
@@ -140,27 +140,27 @@ static BOOL test3()
 
         if (!base_test(num_strings, num_unique, length, max_char)) {
             fprintf(stderr, "FAILURE !!!\n");
-            ok = FALSE;
+            ok = false;
             break;
         }
     }
     return ok;
 }
 
-static BOOL test5()
+static bool test5()
 {
     int num_strings = 4;
     int num_unique = 2; 
     int length = 200;
     int max_char = 155;
-    BOOL ok = TRUE;
+    bool ok = true;
     
     for (int i = 0; i < 1000; i++) {
         stree_print_flag = (i == 999); 
         stats_flag = (i == 0) || stree_print_flag;
         if (!base_test(num_strings, num_unique, length, max_char)) {
             fprintf(stderr, "FAILURE !!!\n");
-            ok = FALSE;
+            ok = false;
             break;
         }
     }
@@ -211,12 +211,12 @@ static int sortfunc(const void *p1, const void *p2)
     return +((*s1)->length - (*s2)->length);
 }
 
-static BOOL test6()
+static bool test6()
 {
     STRING **strings = get_oki_file_strings();
     qsort(strings, NUM_OKI_STRINGS, sizeof(STRING*), sortfunc);
     
-    BOOL ok = strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag);
+    bool ok = boolize(strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag));
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
     }
