@@ -3,7 +3,7 @@
  *
  *  1) Run a rolling hash over input stream.
  *  2) Look up hash in "needs action" table
- *  3) If needs action then look up regex(es) and action functions(s) assocated with that hash
+ *  3) If needs action then look up regex(es) and action functions(s) associated with that hash
  *  4) For each match on regexes perform action
  *
  *  Setup is based on a set of regexes and action functions.
@@ -20,6 +20,7 @@ typedef unsigned char byte;
 class Regex;
 class RegexResults;
 
+// Binary data will be processed.
 class BinString
 {
     const int _len;
