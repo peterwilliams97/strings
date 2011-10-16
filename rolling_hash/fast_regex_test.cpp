@@ -54,23 +54,36 @@ static byte *make_hash_table(int size, double fraction_on)
             number_on++;
         }
     }
-    cout << "make_hash_table: size=" << size << ",fraction_on=" << fraction_on <<  ",number_on=" << number_on << endl;
+    int actual_on = 0;
+    for (int i = 0; i < size; i++) {
+        if (table[i]) {
+            actual_on++;
+        }
+    }
+    cout << "make_hash_table: size=" << size << ",fraction_on=" << fraction_on 
+         <<  ",number_on=" << number_on << ",actual_on=" << actual_on << endl;
+    assert(actual_on == number_on);
     return table;
 }
 
-static vector<double> exercise_hash(int n, const chartype *data, int numtests, int numchars)
+static vector<double> exercise_hash(int n, const chartype *data, int numtests, int numchars, double fraction_on)
 {
     KarpRabinHash hf = KarpRabinHash(n);
+    int table_size = 1 << hf._wordsize;
     cout << "       n=" << hf._n << endl;  
-    cout << "wordsize=" << hf._wordsize << " (" << (1 << hf._wordsize) << ")" << endl;
+    cout << "wordsize=" << hf._wordsize << " (" << table_size << ")" << endl;
 
-    unsigned char *hashtable = make_hash_table(1 << hf._wordsize, 0.001);
+    unsigned char *hashtable = make_hash_table(table_size, fraction_on);
+    int *count_table = new int[table_size];
+    memset(count_table, 0, table_size * sizeof(int));
+
 #ifdef FIND_MIN_MAX
     hashvaluetype min_hashval, max_hashval;
 #endif
     
     timer_init();
     double start_time = get_elapsed_time();
+    int num_hits = 0;
 
     for (int times = 0; times < numtests; times++) {
         // Prime the first n has values
@@ -93,6 +106,8 @@ static vector<double> exercise_hash(int n, const chartype *data, int numtests, i
             // If there is a hit then do something
             if (hashtable[hf._hashvalue]) {
                 do_something();
+                num_hits++;
+                count_table[hf._hashvalue]++;
             }
 	}
     }
@@ -106,6 +121,17 @@ static vector<double> exercise_hash(int n, const chartype *data, int numtests, i
     cout << "min hash=" << min_hashval << endl;
     cout << "max hash=" << max_hashval << endl;
 #endif
+    int expected_hits = (int)((double)numchars * fraction_on);
+    double hit_ratio = (double)num_hits/((double)numchars * fraction_on);
+    int hit_bins = 0;
+    for (int i = 0; i < table_size; i++) {
+        if (count_table[i]) {
+            hit_bins++;
+        }
+    }
+    cout << "hit_bins=" << hit_bins << endl;
+    // !@#$ Why are we getting 5x the expected hit have
+    cout << "num_hits=" << num_hits << " (expected " << expected_hits << ")  " << hit_ratio << " x expected" << endl;
     cout << "    time=" << duration << endl;
     cout << "hash/sec=" << num_hashes / duration << endl;
 
@@ -129,10 +155,11 @@ static void test()
     
     double duration = 0.0;
     double num_hashes = 0.0;
+
     for (int j = 0; j < numtests; j++) {
         cout << "test=" << j << endl;
         for (int i = 0; i < sizeof(n_vals)/sizeof(n_vals[0]); i++) {
-            vector<double> retval = exercise_hash(n_vals[i], data, numtests, numchars);
+            vector<double> retval = exercise_hash(n_vals[i], data, numtests, numchars, 0.001);
             duration += retval[0];
             num_hashes += retval[1];
             cout << "-----------------------------" << endl;
