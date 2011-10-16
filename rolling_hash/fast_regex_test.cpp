@@ -35,7 +35,7 @@ static chartype *make_test_data(int numchars)
 typedef unsigned char byte; 
 static byte *make_hash_table(int size, double fraction_on) 
 {
-    chartype *table = new byte[size];
+    byte *table = new byte[size];
     memset(table, 0, size*sizeof(byte));
 
     int target_on = (int)(fraction_on * (double)size);

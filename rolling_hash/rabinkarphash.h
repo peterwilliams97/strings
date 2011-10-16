@@ -1,7 +1,6 @@
 #ifndef KARPRABINHASH
 #define KARPRABINHASH
 
-
 #include "characterhash.h"
 
 class KarpRabinHash 
@@ -10,6 +9,7 @@ class KarpRabinHash
     static const hashvaluetype B = 37;
     const hashvaluetype _HASHMASK;
     hashvaluetype _BtoN;
+
 public:
     const int _n, _wordsize;
     hashvaluetype _hashvalue;
@@ -30,11 +30,11 @@ public:
     
     template<class container> hashvaluetype hash(container &c) 
     {
-        assert(c.size()==static_cast<uint>(_n));
-    	hashvaluetype answer(0);
-    	for (uint k = 0;  k < c.size(); k++) {
+        assert(c.size() == static_cast<uint>(_n));
+    	hashvaluetype answer = 0;
+    	for (int k = 0;  k < (int)c.size(); k++) {
     	    hashvaluetype x = 1;
-    	    for (int j = 0; j < c.size()-1-k; j++) {
+    	    for (int j = 0; j < (int)c.size()-1-k; j++) {
     	        x = (x * B) & _HASHMASK;
     	    }
     	    x = (x * _hasher.hashvalues[c[k]]) & _HASHMASK;
@@ -47,11 +47,15 @@ public:
     {
     	_hashvalue = (B*_hashvalue +  _hasher.hashvalues[inchar]) & _HASHMASK;
     }
+
+
     
     inline void update(chartype outchar, chartype inchar) 
     {
     	_hashvalue = (B*_hashvalue +  _hasher.hashvalues[inchar] - _BtoN *  _hasher.hashvalues[outchar]) & _HASHMASK; 
     } 
+
+
 
 };
 
