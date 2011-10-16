@@ -25,24 +25,23 @@ using namespace std;
 static const int WORDSIZE = 19;
 static const int HASH_TABLE_SIZE = 1 << WORDSIZE;
 
-typedef unsigned char byte;
-
 // The "needs action" hash table
 static byte *_potential_match_table = 0;
 
 
 static const byte *dup_data(int len, const byte *data)
 {
-     byte *dup = new byte[len];
-     return (byte *)memcpy(dup, data, len*sizeof(byte));
+    byte *dup = new byte[len];
+    return (byte *)memcpy(dup, data, len*sizeof(byte));
 }
 
 BinString::BinString(int len, const byte *data):
     _len(len),
     _data(dup_data(len, data))
-     {   }
+{   
+}
 
- const vector<byte> BinString::get_as_vector() const 
+const vector<byte> BinString::get_as_vector() const 
 {
     vector<byte> v = vector<byte>(_len);
     for (int i = 0; i < _len; i++) {
@@ -71,7 +70,6 @@ RegexResults *apply_regex(const BinString input, int regex_offset, const Regex *
 {
     return 0; // !@#$ stub
 }
-
 
 
 static Regex *compile_regex(const BinString pattern)
@@ -103,7 +101,8 @@ public:
         _static_string(static_string),
         _offset(offset),
         _static_string_hash(static_string_hash),
-        _regex(compile_regex(params._pattern)) {}
+        _regex(compile_regex(params._pattern)) 
+        {}
 };
 
 /*
@@ -121,7 +120,6 @@ static int get_offset(BinString pattern, BinString static_string)
 {
     return 3;   // !@#$ dummy value
 }
-
 
 static int get_longest_string(const vector<RegexActionParams *> action_params_list)
 {

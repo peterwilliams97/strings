@@ -1,9 +1,13 @@
 #include <stdlib.h>
+#include <vector>
 #include "timer.h"
 #include "rabinkarphash.h"
 
 
 using namespace std;
+
+// Uncomment the following line to compute the min and max hash values
+//#define FIND_MIN_MAX
 
 static const int WORDSIZE = 19;
 
@@ -15,6 +19,9 @@ static void do_something()
 
 }
 
+/*
+ * Make numchars of chartype points with random values
+ */
 static chartype *make_test_data(int numchars)
 {
     chartype *data = new chartype[numchars];
@@ -51,7 +58,7 @@ static byte *make_hash_table(int size, double fraction_on)
     return table;
 }
 
-static void exercise_hash(int n, const chartype *data, int numtests, int numchars)
+static vector<double> exercise_hash(int n, const chartype *data, int numtests, int numchars)
 {
     KarpRabinHash hf = KarpRabinHash(n);
     cout << "       n=" << hf._n << endl;  
@@ -101,6 +108,11 @@ static void exercise_hash(int n, const chartype *data, int numtests, int numchar
 #endif
     cout << "    time=" << duration << endl;
     cout << "hash/sec=" << num_hashes / duration << endl;
+
+    vector<double> retval(2);
+    retval[0] = duration;
+    retval[1] = num_hashes;
+    return retval;
 }
 
 static void test()
@@ -115,17 +127,24 @@ static void test()
     chartype *data = make_test_data(numchars);
     int n_vals[] = {5, 10, 20, 50, 100};
     
-    for (int i = 0; i < sizeof(n_vals)/sizeof(n_vals[0]); i++) {
-        exercise_hash(n_vals[i], data, numtests, numchars);
+    double duration = 0.0;
+    double num_hashes = 0.0;
+    for (int j = 0; j < numtests; j++) {
+        cout << "test=" << j << endl;
+        for (int i = 0; i < sizeof(n_vals)/sizeof(n_vals[0]); i++) {
+            vector<double> retval = exercise_hash(n_vals[i], data, numtests, numchars);
+            duration += retval[0];
+            num_hashes += retval[1];
+            cout << "-----------------------------" << endl;
+        }
         cout << "=============================" << endl;
     }
-/*
-    exercise_hash(10, data, numtests, numchars);
-    exercise_hash(50, data, numtests, numchars);
-    exercise_hash(99, data, numtests, numchars);
- */   
-    delete[] data;
+
+    cout << "Totals" << endl; 
+    cout << "    time=" << duration << endl;
+    cout << "hash/sec=" << num_hashes / duration << endl;
    
+    delete[] data;
 }
 
 #if 1
