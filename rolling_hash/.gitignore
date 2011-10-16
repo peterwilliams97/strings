@@ -1,0 +1,7 @@
+unused/
+Release/
+Debug/
+/ipch
+*.obj
+*.exe
+*.o

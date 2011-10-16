@@ -99,6 +99,9 @@ bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, b
 static MATCHES matchlist;
 static int matchcount, matcherror, patlen;
 
+/*
+ * preorder_fn used to implement strmat_stree_match() with stree_traverse_subtree()
+ */
 static int add_match(SUFFIX_TREE tree, STREE_NODE node)
 {
     int pos, id;

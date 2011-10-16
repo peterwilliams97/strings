@@ -31,10 +31,7 @@ static bool node_has_children(STREE_NODE node)
 }
 
 /*
- *
  * The Suffix Tree Interface Procedures
- *
- *
  */
 
 /*
@@ -86,8 +83,6 @@ SUFFIX_TREE stree_new_tree(int copyflag)
  */
 void stree_delete_tree(SUFFIX_TREE tree)
 {
-    int i;
-      
     if (tree == NULL) {
         return;
     }
@@ -95,7 +90,7 @@ void stree_delete_tree(SUFFIX_TREE tree)
   
     if (tree->strings != NULL) {
         if (tree->copyflag) {
-            for (i = 0; i < tree->strsize; i++) {
+            for (int i = 0; i < tree->strsize; i++) {
                 free(tree->strings[i]);
             }
         }
@@ -109,7 +104,6 @@ void stree_delete_tree(SUFFIX_TREE tree)
 #if PETER_GLOBAL
     pglob_clear();
 #endif
-    
 }
 
 /*
@@ -142,42 +136,39 @@ void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE)
 void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE), int (*postorder_fn)(SUFFIX_TREE,STREE_NODE))
 {
     enum { START, FIRST, MIDDLE, DONE, DONELEAF } state;
-    int i, num, childnum;
+    int num, childnum;
     STREE_NODE root, child = NULL;
 
-   // Use a non-recursive traversal where the 'isaleaf' field of each node
-   // is used as the value remembering the child currently being traversed.
-      root = node;
+    // Use a non-recursive traversal where the 'isaleaf' field of each node
+    // is used as the value remembering the child currently being traversed.
+    root = node;
     state = START;
     while (true) {
-  
         // The first time we get to a node.
         if (state == START) {
-            if (preorder_fn != NULL) {
+            if (preorder_fn) {
                 (*preorder_fn)(tree, node);
             }
-
             num = stree_get_num_children(tree, node);
             state = (num > 0) ? FIRST : DONELEAF;
         }
-
         // Start or continue recursing on the children of the node.
         if (state == FIRST || state == MIDDLE) {
-            
             // Look for the next child to traverse down to.
             childnum = (state == FIRST) ? 0 : node->isaleaf;
 #ifdef PETER_GLOBAL
-            map<CHAR_TYPE, stree_node *>children = pglob_get_children_map(node->_index);
+            map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(node->_index);
+            child = (childnum < children.size()) ? children[pglob_get_children_keys(childnum)] : null;
 #else
             STREE_NODE *children = (STREE_NODE *) node->children;
-#endif
+            int i;
             for (i = childnum; i < ALPHABET_SIZE; i++) {
                 if (children[i] != NULL)
                     break;
                 child = children[i];
                 IF_STATS(tree->child_cost++);
             }
-
+#endif
             if (child == NULL) {
                 state = DONE;
             } else {
@@ -193,12 +184,11 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn
         if (state == DONE || state == DONELEAF) {
             if (state == DONE)
                 node->isaleaf = 0;
-            if (postorder_fn != NULL) {
+            if (postorder_fn) {
                 (*postorder_fn)(tree, node);
             }
             if (node == root)
                 break;
-
             node = stree_get_parent(tree, node);
             state = MIDDLE;
         }
