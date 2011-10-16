@@ -20,7 +20,7 @@ being run on the data and their static sub-strings are well spread and the input
 then the number of file offsets sent for sent for exact regex matching should be 
 ~ 100 in 512K ~ 1 in 5000  ~ 200 per MB.
 
-Thus overall throughput is expected to be ~75 MB/sec/core/GHz - (cost of processing 1 regex * num regex's / 512K).
+Thus overall throughput is expected to be ~75 MB/sec/core/GHz - 512KB/(time to process 1 regex * num regex's).
 
 Notes
 -----
