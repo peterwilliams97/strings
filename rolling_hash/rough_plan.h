@@ -12,6 +12,9 @@
  *          Set needs_action[h] = 1
  *          Add regex, action, h to action table
  *
+ *  Note: Since the offset of the regex is determined by the rolling hash look-up, it should be 
+ *      possible to anchor the regex searches. This may save some more time.
+ *
  */
 #include <vector>
 
