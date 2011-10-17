@@ -160,14 +160,16 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn
             map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(node->_index);
             child = (childnum < children.size()) ? children[pglob_get_children_keys(childnum)] : null;
 #else
-            STREE_NODE *children = (STREE_NODE *) node->children;
+            STREE_NODE *children = (STREE_NODE *)node->children;
             int i;
+           // cout << " node.id=" << node->id << endl;
             for (i = childnum; i < ALPHABET_SIZE; i++) {
+             //   cout << "  [" << i << ":" << (children[i] != NULL) << "]" << endl;
                 if (children[i] != NULL)
                     break;
-                child = children[i];
                 IF_STATS(tree->child_cost++);
             }
+            child = (i < ALPHABET_SIZE) ? children[i] : NULL;
 #endif
             if (child == NULL) {
                 state = DONE;
@@ -513,7 +515,7 @@ int stree_get_num_leaves(SUFFIX_TREE tree, STREE_NODE node)
  *                                (a value between 1 and the sequence length)
  *              id_out      -  address where to store the seq. identifier
  *
- * Returns:  non-zero if a leaf was returned (i.e., the `leafnum' value
+ * Returns:  non-zero if a leaf was returned (i.e., the 'leafnum' value
  *           referred to a valid leaf), and zero otherwise.
  *           NOTE: If no leaf is returned, *string_out, *pos_out and *id_out
  *                 are left untouched.
@@ -521,22 +523,17 @@ int stree_get_num_leaves(SUFFIX_TREE tree, STREE_NODE node)
 int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum,
                    CHAR_TYPE **string_out, int *pos_out, int *id_out)
 {
-    int i;
-    STREE_INTLEAF intleaf;
-    STREE_LEAF leaf;
-
     if (int_stree_isaleaf(tree, node)) {
         if (leafnum != 1)
             return 0;
-
-        leaf = (STREE_LEAF) node;
+         STREE_LEAF leaf = (STREE_LEAF)node;
         *string_out = int_stree_get_string(tree, leaf->strid);
         *pos_out = leaf->pos;
         *id_out = int_stree_get_strid(tree, leaf->strid);
         return 1;
     } else {
-        intleaf = int_stree_get_intleaves(tree, node);
-        for (i=1; intleaf != NULL; i++,intleaf=intleaf->next) {
+        STREE_INTLEAF intleaf = int_stree_get_intleaves(tree, node);
+        for (int i = 1; intleaf != NULL; i++,intleaf=intleaf->next) {
             if (i == leafnum) {
                 *string_out = int_stree_get_string(tree, intleaf->strid);
                 *pos_out = intleaf->pos;

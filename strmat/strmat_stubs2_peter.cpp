@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <iostream>
+#include <string>
 #include "strmat.h"
 #include "strmat_match.h"
 #include "strmat_print.h"
@@ -14,6 +16,7 @@
 //#include "stree_decomposition.h"
 #include "strmat_stubs2.h"
 
+using namespace std;
 /*
  * strmat_ukkonen_build
  *
@@ -104,12 +107,13 @@ static int matchcount, matcherror, patlen;
  */
 static int add_match(SUFFIX_TREE tree, STREE_NODE node)
 {
+    cout << " add_match(): node.id=" << node->id << endl;
+    
     int pos, id;
     CHAR_TYPE *seq;
-    MATCHES newmatch;
-  
+     
     for (int i = 1; stree_get_leaf(tree, node, i, &seq, &pos, &id); i++) {
-        newmatch = alloc_match();
+        MATCHES newmatch = alloc_match();
         if (newmatch == NULL) {
             free_matches(matchlist);
             matchlist = NULL;
@@ -117,6 +121,7 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
             return 0;
         }
 
+        cout << "   stree_get_leaf: i=" << i << ",pos=" << pos << ",id=" << id << endl;
         // Shift positions by 1 here (from 0..N-1 to 1..N).
         newmatch->type = TEXT_SET_EXACT;
         newmatch->lend = pos + 1;

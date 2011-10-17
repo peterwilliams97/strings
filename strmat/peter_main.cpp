@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
         break;
      case 7:     // Another simple binary example
         {
-            int num_strings = 8;
+            int num_strings = 2;
             int num_unique = 2;
             int length = 6;
             int max_char = 3;
