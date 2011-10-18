@@ -292,7 +292,7 @@ static void match_pattern(SUFFIX_TREE tree, CHAR_TYPE *pattern, int n)
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 7;
+    int test_num = 3;
     
     switch(test_num) {
     

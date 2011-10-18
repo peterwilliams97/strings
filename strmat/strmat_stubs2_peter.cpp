@@ -107,7 +107,7 @@ static int matchcount, matcherror, patlen;
  */
 static int add_match(SUFFIX_TREE tree, STREE_NODE node)
 {
-    cout << " add_match(): node.id=" << node->id << endl;
+   // cout << " add_match(): node.id=" << node->id << endl;
     
     int pos, id;
     CHAR_TYPE *seq;
@@ -121,7 +121,7 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
             return 0;
         }
 
-        cout << "   stree_get_leaf: i=" << i << ",pos=" << pos << ",id=" << id << endl;
+   //     cout << "   stree_get_leaf: i=" << i << ",pos=" << pos << ",id=" << id << endl;
         // Shift positions by 1 here (from 0..N-1 to 1..N).
         newmatch->type = TEXT_SET_EXACT;
         newmatch->lend = pos + 1;

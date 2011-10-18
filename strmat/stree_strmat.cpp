@@ -157,8 +157,11 @@ void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn
             // Look for the next child to traverse down to.
             childnum = (state == FIRST) ? 0 : node->isaleaf;
 #ifdef PETER_GLOBAL
+            // !@#$ Neeed to get this to match non-PETER_GLOBAL
+            // !@#$ Simlify this verbosity
             map<CHAR_TYPE, stree_node *> children = pglob_get_children_map(node->_index);
-            child = (childnum < children.size()) ? children[pglob_get_children_keys(childnum)] : null;
+            child = (childnum < (int)children.size()) ? children[pglob_get_children_keys(node->_index)[childnum]] : NULL;
+            int i = childnum;
 #else
             STREE_NODE *children = (STREE_NODE *)node->children;
             int i;
