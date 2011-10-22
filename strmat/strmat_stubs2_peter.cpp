@@ -30,7 +30,7 @@ using namespace std;
  *
  * Returns: true on success
  */
-bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, bool print_tree)
+bool strmat_ukkonen_build(const STRING **strings, int num_strings, bool print_stats, bool print_tree)
 {
     int i;
     _int64  max_length, total_length;
@@ -136,7 +136,7 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
  *
  * Returns:  true on success
  */
-bool strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, bool print_stats, bool do_print_matches)
+bool strmat_stree_match(const STRING *pattern, const STRING **strings, int num_strings, bool print_stats, bool do_print_matches)
 {
     int flag, pos, matchlen;
 #ifdef STATS
@@ -275,7 +275,7 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodem
  *
  * Returns:  non-zero on success, zero on error
  */
-bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, LCA_TYPE type, char *lines[])
+bool int_strmat_stree_lca(const STRING **strings, int num_strings, bool print_stats, LCA_TYPE type, char *lines[])
 {
     int num1, num2, len, num_lcas, max_length;
     _int64 num_nodes;
@@ -440,12 +440,12 @@ bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, L
     return 1;
 }
 
-bool strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, char *lines[])
+bool strmat_stree_lca(const STRING **strings, int num_strings, bool print_stats, char *lines[])
 {  
     return int_strmat_stree_lca(strings, num_strings,  print_stats, LCA_LINEAR, lines);  
 }
 
-bool strmat_stree_naive_lca(STRING **strings, int num_strings, bool print_stats, char *lines[])
+bool strmat_stree_naive_lca(const STRING **strings, int num_strings, bool print_stats, char *lines[])
 {  
     return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE, lines);  
 }

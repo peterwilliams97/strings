@@ -304,7 +304,7 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
  *
  * Returns:  the suffix tree, or NULL on an error.
  */
-SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, bool *ok, bool print_flag)
+SUFFIX_TREE stree_gen_ukkonen_build(const STRING **strings, int num_strings, bool *ok, bool print_flag)
 {
     *ok = true;
     assert(strings && num_strings > 0);

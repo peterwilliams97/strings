@@ -23,11 +23,6 @@ struct STRING {
     char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
 };
 
-/*
- * Common prototypes used by most or all of the strmat files.
- */
-#define ERROR 0
-#define OK 1
 
 
 #endif

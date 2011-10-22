@@ -17,6 +17,6 @@ typedef struct matchnode {
 
 MATCH_NODE *alloc_match(void);
 void free_matches(MATCHES list);
-int print_matches(STRING *string, STRING **strings, int num_strings, MATCHES list, int num_matches);
+int print_matches(const STRING *string, const STRING **strings, int num_strings, MATCHES list, int num_matches);
 
 #endif

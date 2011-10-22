@@ -44,9 +44,10 @@ void print_label(const SUFFIX_TREE tree, const STREE_NODE node, string title)
 {
     stringstream s;
     s << " <" << title << " id=" << node->id;
-    s << " [" << get_label(tree, node) << "]  " << node->edgelen;
+    string label = get_label(tree, node);
+    s << " [" << label << "]  " << label.size()/3;
     s << ">";
-    cout << setw(40) << left << s.str();
+    cout << setw(45) << left << s.str();
 }
 
 void print_node(const STREE_NODE node, const char *title)

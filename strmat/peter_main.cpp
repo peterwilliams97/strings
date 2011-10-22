@@ -61,7 +61,7 @@ static int test1()
 #endif
     }
 
-    ok = strmat_ukkonen_build(strings, NUM_STRINGS, stats_flag, stree_print_flag);
+    ok = strmat_ukkonen_build((const STRING **)strings, NUM_STRINGS, stats_flag, stree_print_flag);
 
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
@@ -72,7 +72,7 @@ static int test1()
    return 1;
 }
 
-static STRING **make_test_strings(int num_strings, int num_unique, int length, int max_char)
+static const STRING **make_test_strings(int num_strings, int num_unique, int length, int max_char)
 {
     STRING **strings = (STRING **)my_calloc(num_strings, sizeof(STRING *));
     CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
@@ -89,21 +89,21 @@ static STRING **make_test_strings(int num_strings, int num_unique, int length, i
         strings[i] = make_seqn(title, cstring, length, stree_print_flag);
     }
     free(cstring);
-    return strings;
+    return (const STRING **)strings;
 }
 
-static void free_test_strings(int num_strings, STRING **strings)
+static void free_test_strings(int num_strings, const STRING **strings)
 {
     for (int i = 0; i < num_strings; i++) {
-        free_seq(strings[i]);
+        free_seq((STRING *)strings[i]);
     }
-    free(strings);
+    free((STRING **)strings);
 }
 
 static int num_calls = 0;
 static bool base_construction_test(int num_strings, int num_unique, int length, int max_char)
 {
-    STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
+    const STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
      
     printf("\n %3d: base_construction_test(num_strings=%d, num_unique=%d, length=%d, max_char=%d)\n",
         num_calls++, num_strings, num_unique, length, max_char);
@@ -119,7 +119,7 @@ static bool base_construction_test(int num_strings, int num_unique, int length, 
 
 static bool base_match_test(int num_strings, int num_unique, int length, int max_char, int max_match)
 {   
-    STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
+    const STRING **strings = make_test_strings(num_strings, num_unique, length, max_char);
     int match_len = (max_match >= 0) ? min(max_match,(length+1)/2) : (length+1)/2;  
     STRING *pattern = make_seqn("pattern", strings[0]->sequence + 2, match_len, stree_print_flag);
      
@@ -226,7 +226,7 @@ static const char *oki_file_list[] = {
 };
 
 static const int NUM_OKI_STRINGS = sizeof(oki_file_list)/sizeof(oki_file_list[0]);
-static STRING **get_oki_file_strings()
+static const STRING **get_oki_file_strings()
 {
     STRING **strings = (STRING **)my_calloc(sizeof(STRING *), NUM_OKI_STRINGS);
 
@@ -238,7 +238,7 @@ static STRING **get_oki_file_strings()
         FileData file_data = read_file_data(fpath);
         strings[i] = make_seqn_from_bytes(fname.c_str(), file_data.get_data(), file_data.get_size(), stree_print_flag);
     }   
-    return strings;
+    return (const STRING **)strings;
 }
 
 static int sortfunc(const void *p1, const void *p2)
@@ -250,19 +250,16 @@ static int sortfunc(const void *p1, const void *p2)
 
 static bool test6()
 {
-    STRING **strings = get_oki_file_strings();
+    const STRING **strings = get_oki_file_strings();
     qsort(strings, NUM_OKI_STRINGS, sizeof(STRING*), sortfunc);
     
     bool ok = strmat_ukkonen_build(strings, NUM_OKI_STRINGS, stats_flag, stree_print_flag);
     if (!ok) {
         fprintf(stderr, "strmat_ukkonen_build failed\n");
     }
-    for (int i = 0; i < NUM_OKI_STRINGS; i++) {
-        free_seq(strings[i]);
-    }
-    free(strings);
-    return ok;
 
+    free_test_strings(NUM_OKI_STRINGS, strings);
+    return ok;
 }
 
 static void match_pattern(SUFFIX_TREE tree, CHAR_TYPE *pattern, int n)
@@ -282,7 +279,7 @@ static void match_pattern(SUFFIX_TREE tree, CHAR_TYPE *pattern, int n)
 
 static void lce_test(int length, int max_char, int num_tests)
 {
-    STRING **strings = make_test_strings(2, 2, length, max_char);
+    const STRING **strings = make_test_strings(2, 2, length, max_char);
      
     printf("lce_test(length=%d, max_char=%d)\n", length, max_char);
     LCE *lce_ctx = prepare_longest_common_extension(strings[0], strings[1], true);
@@ -305,7 +302,7 @@ static void lce_test(int length, int max_char, int num_tests)
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 8;
+    int test_num = 10;
     
     switch(test_num) {
     
@@ -364,6 +361,26 @@ int main(int argc, char *argv[])
             lce_test(length, max_char, num_tests);
         }
         break;
+    case 9:     // Longest common extension stress test
+        {
+            int length = 10000;
+            int max_char = 255;
+            int num_tests = 100;
+            lce_test(length, max_char, num_tests);
+        }
+        break;
+    case 10:    // Longest palindrome
+        {
+            const STRING **strings = make_test_strings(1, 1, 9, 2);
+            const STRING *s = strings[0];
+            SubString substring = find_longest_palindrome(s, true);
+            free_test_strings(1, strings);
+            cout << endl;
+            cout << "Longest palindrome: offset=" << substring._offset 
+                << ",length=" << substring._length << endl;
+        }
+        break;
+    
        
    }
 

@@ -13,7 +13,7 @@ struct LCE {
     STRING *_s2;
 };
 
-LCE *prepare_longest_common_extension(STRING *s1, STRING *s2, bool print_stats);
+LCE *prepare_longest_common_extension(const STRING *s1, const STRING *s2, bool print_stats);
 void longest_common_extension_free(LCE *lce);
 /*
  * Return longest common extension of
@@ -21,6 +21,15 @@ void longest_common_extension_free(LCE *lce);
  *      offset ofs2 into string lce->s2
  */
 STREE_NODE lookup_lce(LCE *lce, int ofs1, int ofs2);
+
+struct SubString
+{
+    const int _offset;
+    const int _length;
+    SubString(int offset, int length) : _offset(offset), _length(length) {}
+};
+
+SubString find_longest_palindrome(const STRING *s, bool print_stats);
 
 
 #endif // #define _PETER_LONGEST_COMMON_EXTENSIONL_H_

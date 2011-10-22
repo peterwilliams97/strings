@@ -1,3 +1,10 @@
+/* 
+ * This is based on Gusfield but http://homepage.usask.ca/~ctl271/810/approximate_matching.shtml 
+ *  has a nice overview of the same Gusfield text behind the code I copied.
+ */ 
+
+#include <iostream>
+#include <string>
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -9,6 +16,7 @@
 #include "stree_ukkonen.h"
 #include "stree_lca.h"
 #include "peter_longest_common_extension.h"
+
 
 using namespace std;
 
@@ -31,7 +39,7 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodem
     }
 }
 
-LCE *prepare_longest_common_extension(STRING *s1, STRING *s2, bool print_stats)
+LCE *prepare_longest_common_extension(const STRING *s1, const STRING *s2, bool print_stats)
 {
      assert(s1 && s2);
 
@@ -40,7 +48,7 @@ LCE *prepare_longest_common_extension(STRING *s1, STRING *s2, bool print_stats)
 
     bool ok = true;
     int num_strings = 2;
-    STRING *strings[2];
+    const STRING *strings[2];
     strings[0] = s1;
     strings[1] = s2;
     SUFFIX_TREE tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
@@ -71,6 +79,7 @@ void longest_common_extension_free(LCE *lce)
     free(lce);
 }
 
+static bool print_labels = true;
 /*
  * Return longest common extension of
  *      offset ofs1 into string lce->s1
@@ -81,8 +90,53 @@ STREE_NODE lookup_lce(LCE *lce, int ofs1, int ofs2)
     SUFFIX_TREE tree = lce->_lca->tree;
     STREE_NODE x = lce->_nodemap[ofs1+1];
     STREE_NODE y = lce->_nodemap[ofs2+1];
-    print_label(tree, x, "x=");
-    print_label(tree, y, "y=");
-    return lca_lookup(lce->_lca, x,  y);
+    STREE_NODE z = lca_lookup(lce->_lca, x,  y);
+    if (print_labels) {
+        print_label(tree, x, "x=");
+        print_label(tree, y, "y=");
+        cout << " => ";
+        print_label(tree, z, "z=");
+        cout << endl;
+    }
+    return z;
 }
 
+int get_label_len(STREE_NODE node)
+{
+    int len = 0;
+    while (node) {
+        len += node->edgelen;
+        node = node->parent;
+    }
+    return len;
+}
+
+SubString find_longest_palindrome(const STRING *s, bool print_stats)
+{
+    STRING *r = make_seqn("reverse", s->sequence, s->length, false);
+    int m = s->length;
+    for (int i = 0; i < m; i++) {
+        r->sequence[i] = s->sequence[m-1-i];
+    }
+
+    LCE *lce = prepare_longest_common_extension(s, r, print_stats);
+
+    STREE_NODE longest_node = 0;
+    int longest_len = 0;
+    int longest_offset = -1;
+    
+    for (int i = 0; i < m-1; i++) {
+        cout << i << ": "; 
+        STREE_NODE node = lookup_lce(lce, i, m-2-i);
+        int len = get_label_len(node); 
+        if (len > longest_len) {
+            longest_node = node;
+            longest_len = len;
+            longest_offset = i;
+        }
+    }
+
+    longest_common_extension_free(lce);
+    free_seq(r);
+    return SubString(longest_offset, longest_len);
+}
