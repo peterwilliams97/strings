@@ -4,7 +4,7 @@
  * Implementations of several least common ancestor algorithms for
  * suffix trees.
  */
-
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,16 +12,6 @@
 #include "stree_lca.h"
 
 /*
- * Forward References.
- */
-static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node);
-static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node, unsigned int Amask);
-static unsigned int h(unsigned int number);
-static unsigned int MSB(unsigned int number);
-
-/*
- *
- *
  * Functions handling the finding of the least and most significant
  * bits of a number (used by the LCA algorithm).
  *
@@ -30,37 +20,32 @@ static unsigned int MSB(unsigned int number);
  * using an 8 bit table and checking successive bytes of each number.
  */
 static unsigned int msb_table[256], lsb_table[256];
-static int init_flag = 0;
+static bool init_flag = false;
 
 /*
  * init_tables
  *
  * Initialize the tables so that the msb_table and lsb_table contain
  * the most and least significant bit positions for the numbers 1..255.
- *
- * Parameters:  none
- *
- * Returns:  nothing
  */
-static void init_tables(void)
+static void init_tables()
 {
-    int i, j, lsb, msb, mask;
-
-    j = 1;
-    msb = -1;
-    for (i=1; i < 256; i++) {
+    int j = 1;
+    int msb = -1;
+    for (int i = 1; i < 256; i++) {
         if (i == j) {
             j <<= 1;
             msb++;
         }
         msb_table[i] = msb;
 
-        for (lsb=0,mask=1; !(mask & i); lsb++,mask<<=1) 
+        int lsb, mask;
+        for (lsb=0, mask=1; !(mask & i); lsb++,mask<<=1) 
             ;;
         lsb_table[i] = lsb;
     }
 
-    init_flag = 1;
+    init_flag = true;
 }
 
 /*
@@ -117,16 +102,73 @@ static unsigned int MSB(unsigned int number)
 
     return 32;
 }
-  
 
 /*
+ * compute_I_and_L
  *
+ * Compute the I values and L values for the LCA preprocessing.  
+ *  The I values are, for each node, the identifier with the largest least
+ *   significant 1 bit in the subtree rooted at the node.  
+ *  The L values are,for each node corresponding to an I value, the node 
+ *   at the head of each "run" in the tree.
  *
- * The Constant Time LCA Algorithm
+ * Parameters:  lca   -  an LCA_STRUCT structure
+ *              tree  -  a suffix tree
+ *              node  -  a suffix tree node
  *
- *
+ * Returns:  the identifier with the largest least significant 1 bit in
+ *           the subtree rooted at node.
  */
+static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
+{
+    // Shift idents so that they go from 1..num_nodes.
+    unsigned int id = (unsigned int)stree_get_ident(tree, node) + 1;
 
+    // Find the node with the maximum I value in the subtree.
+    unsigned int Imax = id;
+    for (STREE_NODE child = stree_get_children(tree, node); child; child = stree_get_next(tree, child)) {
+        unsigned int Ival = compute_I_and_L(lca, tree, child);
+        if (h(Ival) > h(Imax))
+            Imax = Ival;
+        IF_STATS(lca->num_prep++);
+    }
+
+    lca->I[id] = Imax;
+    lca->L[Imax] = node;    // will be overwritten by the highest node in run 
+
+    return Imax;
+}
+
+/*
+ * compute_A
+ *
+ * Computes the A values for the LCA preprocessing.  
+ *  The A values are, for each node, the heights of the least significant 
+ *   bits of the ancestors of the node (where the bits of each A value are 
+ *   set to 1 for each such height of an ancestor).
+ *
+ * Parameters:  lca    -  an LCA_STRUCT structure
+ *              tree   -  a suffix tree
+ *              node   -  a suffix tree node
+ *              Amask  -  the bits set by the ancestors of node
+ */
+static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node, unsigned int Amask)
+{
+    // Shift idents so that they go from 1..num_nodes.
+    unsigned int id = (unsigned int)stree_get_ident(tree, node) + 1;
+
+    Amask |= 1 << h(lca->I[id]);
+    lca->A[id] = Amask;
+
+    for (STREE_NODE child = stree_get_children(tree, node); child; child = stree_get_next(tree, child)) {
+        compute_A(lca, tree, child, Amask);
+        IF_STATS(lca->num_prep++);
+    }
+}
+
+/*
+ * The Constant Time LCA Algorithm
+ */
 
 /*
  * lca_prep
@@ -142,9 +184,8 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
     int num_nodes;
     LCA_STRUCT *lca;
 
-    if (tree == NULL)
-        return NULL;
-
+    assert(tree);
+  
     if ((lca = (LCA_STRUCT *)my_calloc(sizeof(LCA_STRUCT), 1)) == NULL)
         return NULL;
 
@@ -168,96 +209,17 @@ LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
         return NULL;
     }
 
-   /*
-    * Compute the I and L values, then compute the A values.
-    */
+    // Compute the I and L values, then compute the A values.
     compute_I_and_L(lca, tree, stree_get_root(tree));
     compute_A(lca, tree, stree_get_root(tree), 0);
     
     return lca;
 }
 
-/*
- * compute_I_and_L
- *
- * Compute the I values and L values for the LCA preprocessing.  The I
- * values are, for each node, the identifier with the largest least
- * significant 1 bit in the subtree rooted at the node.  The L values are,
- * for each node corresponding to an I value, the node at the head of each
- * "run" in the tree.
- *
- * Parameters:  lca   -  an LCA_STRUCT structure
- *              tree  -  a suffix tree
- *              node  -  a suffix tree node
- *
- * Returns:  the identifier with the largest least significant 1 bit in
- *           the subtree rooted at node.
- */
-static int compute_I_and_L(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node)
-{
-    unsigned int id, Ival, Imax;
-    STREE_NODE child;
-
-  /*
-   * Shift idents so that they go from 1..num_nodes.
-   */
-    id = (unsigned int)stree_get_ident(tree, node) + 1;
-
-  /*
-   * Find the node with the maximum I value in the subtree.
-   */
-    Imax = id;
-    child = stree_get_children(tree, node);
-    while (child != NULL) {
-        Ival = compute_I_and_L(lca, tree, child);
-        if (h(Ival) > h(Imax))
-            Imax = Ival;
-        IF_STATS(lca->num_prep++);
-        child = stree_get_next(tree, child);
-    }
-
-    lca->I[id] = Imax;
-    lca->L[Imax] = node;    // will be overwritten by the highest node in run 
-
-    return Imax;
-}
-
-/*
- * compute_A
- *
- * Computes the A values for the LCA preprocessing.  The A values are, for
- * each node, the heights of the least significant bits of the ancestors
- * of the node (where the bits of each A value are set to 1 for each such
- * height of an ancestor).
- *
- * Parameters:  lca    -  an LCA_STRUCT structure
- *              tree   -  a suffix tree
- *              node   -  a suffix tree node
- *              Amask  -  the bits set by the ancestors of node
- *
- * Returns:  nothing
- */
-static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
-                      unsigned int Amask)
-{
-    unsigned int id;
-    STREE_NODE child;
-
-   /*
-    * Shift idents so that they go from 1..num_nodes.
-    */
-    id = (unsigned int) stree_get_ident(tree, node) + 1;
-
-    Amask |= 1 << h(lca->I[id]);
-    lca->A[id] = Amask;
-
-    child = stree_get_children(tree, node);
-    while (child != NULL) {
-        compute_A(lca, tree, child, Amask);
-        IF_STATS(lca->num_prep++);
-        child = stree_get_next(tree, child);
-    }
-}
+// All bits from b upwards including b are on
+// e.g.  HIGH_BITS(1) = 111...1110
+//       HIGH_BITS(2) = 111...1100
+#define HIGH_BITS(b) (~0 << (b))
 
 /*
  * lca_lookup
@@ -273,20 +235,16 @@ static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node,
  */
 STREE_NODE lca_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
 {
-    unsigned int xid, yid, k, b, j, l, Iw, mask;
-    STREE_NODE w, xbar, ybar;
-
-    if (lca == NULL || lca->type != LCA_LINEAR || x == NULL || y == NULL)
-        return NULL;
-  
+    assert(lca && lca->tree && lca->type == LCA_LINEAR && x && y);
+   
     SUFFIX_TREE tree = lca->tree;
     unsigned int *I = lca->I;
     unsigned int *A = lca->A;
     STREE_NODE *L = lca->L;
       
     // Shift idents so that they go from 1..num_nodes.
-    xid = (unsigned int)stree_get_ident(tree, x) + 1;
-    yid = (unsigned int)stree_get_ident(tree, y) + 1;
+    unsigned int xid = (unsigned int)stree_get_ident(tree, x) + 1;
+    unsigned int yid = (unsigned int)stree_get_ident(tree, y) + 1;
 
    /*
     * Steps 1 and 2.
@@ -296,51 +254,37 @@ STREE_NODE lca_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
     * with 0), and then simply OR's the k+1..32 bits of I[xid] and the
     * number 2^k.
     */
-    k = MSB(I[xid] ^ I[yid]);
-    mask = ~0 << (k + 1);
-    b = (I[xid] & mask) | (1 << k);
-
-    mask = ~0 << h(b);
-    j = h( (A[xid] & A[yid]) & mask );
+    //printf("xid=%3d, I[xid]=%3d\n", xid, I[xid]); 
+    // printf("yid=%3d, I[yid]=%3d\n", yid, I[yid]); 
+    unsigned int k = MSB(I[xid] ^ I[yid]);
+    unsigned int b = (I[xid] & HIGH_BITS(k+1)) | (1 << k);
+    unsigned int j = h( (A[xid] & A[yid]) & HIGH_BITS(h(b)) );
+//    printf("k=%d, b=%d, j =%d\n", k, b, j);
 
     IF_STATS(lca->num_compares++);
 
     // Step 3.
-    
-    l = h(A[xid]);
+    unsigned int l = h(A[xid]);
+    STREE_NODE xbar, ybar; 
     if (l == j) {
         xbar = x;
     } else {
-        mask = ~(~0 << j);       // The bit-complement of setting bits j..32 
-        k = MSB(A[xid] & mask);
-
-        mask = ~0 << (k + 1);
-        Iw = (I[xid] & mask) | (1 << k);
-        w = L[Iw];
-        xbar = stree_get_parent(tree, w);
+        k = MSB(A[xid] & ~HIGH_BITS(j));
+        xbar = stree_get_parent(tree, L[(I[xid] & HIGH_BITS(k+1)) | (1 << k)]);
     }
-    
     IF_STATS(lca->num_compares++);
    
     //  Step 4.
-    
     l = h(A[yid]);
     if (l == j) {
         ybar = y;
     } else {
-        mask = ~(~0 << j);
-        k = MSB(A[yid] & mask);
-
-        mask = ~0 << (k + 1);
-        Iw = (I[yid] & mask) | (1 << k);
-        w = L[Iw];
-        ybar = stree_get_parent(tree, w);
+        k = MSB(A[yid] & ~HIGH_BITS(j));
+        ybar = stree_get_parent(tree, L[(I[yid] & HIGH_BITS(k+1)) | (1 << k)]);
     }
-
     IF_STATS(lca->num_compares++);
 
     // Step 5.
-   
     IF_STATS(lca->num_compares++);
 
     return (stree_get_ident(tree, xbar) < stree_get_ident(tree, ybar)) ? xbar : ybar;
@@ -354,15 +298,8 @@ void lca_free(LCA_STRUCT *lca)
     free(lca);
 }
 
-
-
-
 /*
- *
- *
  * A Naive LCA Algorithm
- *
- *
  */
 
 /*
@@ -391,7 +328,6 @@ LCA_STRUCT *lca_naive_prep(SUFFIX_TREE tree)
     return lca;
 }
 
-
 /*
  * lca_naive_lookup
  *
@@ -412,16 +348,12 @@ LCA_STRUCT *lca_naive_prep(SUFFIX_TREE tree)
  */
 STREE_NODE lca_naive_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
 {
-    int xid, yid;
-    SUFFIX_TREE tree;
+    assert (lca && lca->type == LCA_NAIVE && x && y);
 
-    if (lca == NULL || lca->type != LCA_NAIVE || x == NULL || y == NULL)
-        return NULL;
+    SUFFIX_TREE tree = lca->tree;
 
-    tree = lca->tree;
-
-    xid = stree_get_ident(tree, x);
-    yid = stree_get_ident(tree, y);
+    int xid = stree_get_ident(tree, x);
+    int yid = stree_get_ident(tree, y);
     while (xid != yid) {
         
         while (xid > yid) {
@@ -440,7 +372,6 @@ STREE_NODE lca_naive_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y)
     IF_STATS(lca->num_compares++);
     return x;
 }
-
 
 /*
  * lca_naive_free

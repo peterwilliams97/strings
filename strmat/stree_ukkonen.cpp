@@ -5,7 +5,7 @@
  * strmat's suffix tree implementation.
  *
  */
-
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -119,8 +119,8 @@ bool stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
                     }
                     tree->num_nodes++;
                 } else {
-                   // If i == M, then the suffix ends inside the tree, so
-                   // add a new intleaf at the current node.
+                    // If i == M, then the suffix ends inside the tree, so
+                    // add a new intleaf at the current node.
                     if (int_stree_isaleaf(tree, node)) {
                         if  (!(node = int_stree_convert_leafnode(tree, node)))
                             return 0;
@@ -257,8 +257,9 @@ bool stree_ukkonen_add_string(SUFFIX_TREE tree, CHAR_TYPE *S, int M, int strid)
                         lastnode = node;
                     }
 
-                    if (node != root)
+                    if (node != root) {
                         g = edgelen;
+                    }
                 }
             }
         }
@@ -305,20 +306,16 @@ SUFFIX_TREE stree_ukkonen_build(STRING *string)
  */
 SUFFIX_TREE stree_gen_ukkonen_build(STRING **strings, int num_strings, bool *ok, bool print_flag)
 {
-    int i;
-    SUFFIX_TREE tree;
-
     *ok = true;
-    if (strings == NULL || num_strings == 0)
-        return NULL;
-
-    tree = stree_new_tree(0);
+    assert(strings && num_strings > 0);
+ 
+    SUFFIX_TREE tree = stree_new_tree(0);
     if (tree == NULL)
         return NULL;
 
-    for (i = 0; i < num_strings; i++) {
+    for (int i = 0; i < num_strings; i++) {
         char buffer[CHAR_BUFFER_LEN];
-        if (print_flag || TRUE) {
+        if (print_flag || true) {
             printf("Adding string %2d : %6d %s\n", i, strings[i]->length, 
                 get_char_array(strings[i]->sequence, strings[i]->length, buffer));
         }

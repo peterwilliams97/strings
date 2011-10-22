@@ -40,7 +40,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;STATS;PETER_GLOBAL;PETER_NO_DELETE;_DEBUG;_CONSOLE;WIN32;_CRT_SECURE_NO_WARNINGS;STRMAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;STATS;_PETER_GLOBAL;PETER_NO_DELETE;_DEBUG;_CONSOLE;WIN32;_CRT_SECURE_NO_WARNINGS;STRMAT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -70,6 +70,7 @@
   <ItemGroup>
     <ClCompile Include="peter_global.cpp" />
     <ClCompile Include="peter_io.cpp" />
+    <ClCompile Include="peter_longest_common_extension.cpp" />
     <ClCompile Include="stree_lca.cpp" />
     <ClCompile Include="stree_strmat.cpp" />
     <ClCompile Include="stree_ukkonen.cpp" />

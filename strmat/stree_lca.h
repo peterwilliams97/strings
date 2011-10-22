@@ -3,7 +3,7 @@
 
 typedef enum { LCA_NAIVE, LCA_LINEAR, LCA_NLOGN } LCA_TYPE;
 
-typedef struct {
+struct LCA_STRUCT {
   LCA_TYPE type;
   SUFFIX_TREE tree;
 
@@ -11,7 +11,7 @@ typedef struct {
   STREE_NODE *L;
 
   int num_prep, num_compares;
-} LCA_STRUCT;
+};
 
 LCA_STRUCT *lca_prep(SUFFIX_TREE tree);
 STREE_NODE lca_lookup(LCA_STRUCT *lca, STREE_NODE x, STREE_NODE y);

@@ -19,6 +19,29 @@ typedef int BOOL;
 typedef unsigned char byte;
 typedef unsigned char CHAR_TYPE;
 
+template <class T>
+inline static const T *dup_data(int len, const T *data)
+{
+    T *dup = new T[len];
+    return (T *)memcpy(dup, data, len*sizeof(T));
+}
+
+template <class T>
+class GenString
+{
+    const int _len;
+    const T *_data;
+public:
+    GenString(int len, const byte *data): _len(len),  _data(dup_data(len, data)) {}   
+    ~GenString()  { delete[] _data; }
+    int get_len() const  { return _len; }
+    const T *get_data() const { return _data; }
+};
+
+
+typedef GenString<byte> ByteString;
+typedef GenString<CHAR_TYPE> CharString;
+
 #define CHAR_BUFFER_LEN 49
 char *get_char_array(const CHAR_TYPE *sequence, int length, char *buffer); 
 CHAR_TYPE *str_to_sequence(const char* cstring, CHAR_TYPE *sequence, int length);

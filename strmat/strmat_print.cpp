@@ -1,3 +1,7 @@
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <iomanip>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +13,48 @@
 #include "strmat_print.h"
 
 using namespace std;
+
+#if 0
+void print_node(const SUFFIX_TREE tree, const STREE_NODE z)
+{
+    if (z == stree_get_root(tree)) {
+        printf("    Node %d:  (root)\n", stree_get_ident(tree, z));
+    } else {
+/*        int len = stree_get_labellen(tree, z);
+        static const int BUFFER_SIZE = 64;
+        CHAR_TYPE buffer[BUFFER_SIZE];
+        stree_get_label(tree, z, buffer, BUFFER_SIZE, 0);
+  */     
+        char char_buf[CHAR_BUFFER_LEN];
+        get_char_array(z->edgestr, z->edgelen, char_buf);
+        printf("    Node %d:  %s\n", stree_get_ident(tree, z), char_buf);
+    }
+}
+#endif
+
+void print_node(const STREE_NODE node, const char *title)
+{
+    char buffer[CHAR_BUFFER_LEN];
+    stringstream s;
+    if (title) {
+        s << " <" << title << ":" ;
+    } else {
+        s << "Node    " << endl;
+    }
+    s << "id=" << node->id;
+#if defined(PETER_GLOBAL) && 0
+    cout << " (index=" << node->_index << ")";
+#endif
+    s << " edge=[" << get_char_array(node->edgestr, node->edgelen, buffer) << "]  " << node->edgelen;
+    if (!title) {
+        s << endl;
+    } else {
+        s << ">";
+    }
+
+     cout << setw(40) << left << s.str();
+}
+
 
 /*
  * Procedures for printing a suffix tree.

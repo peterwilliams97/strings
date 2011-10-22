@@ -21,7 +21,7 @@ struct STRING {
     CHAR_TYPE *sequence;
     int length;
     char ident[IDENT_LENGTH+1], title[TITLE_LENGTH+1];
-} ;
+};
 
 /*
  * Common prototypes used by most or all of the strmat files.

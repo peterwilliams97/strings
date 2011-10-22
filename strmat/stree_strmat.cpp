@@ -39,28 +39,22 @@ static bool node_has_children(STREE_NODE node)
  *
  * Allocates a new suffix tree data structure.
  *
- * Parameters:  alphasize   -  the size of the alphabet
- *                               (all strings are assumed to use "characters"
- *                                in the range of 0..alphasize-1)
- *              copyflag    -  make a copy of each sequence?
+ * Parameters:  copyflag    -  make a copy of each sequence?
  *
  * Returns:  A SUFFIX_TREE structure
  */
 SUFFIX_TREE stree_new_tree(int copyflag)
 {
-    SUFFIX_TREE tree;
-
 #ifdef PETER_GLOBAL
     pglob_init();
 #endif            
-   /*
-    * Allocate the space.
-    */
-    if ((tree = (SUFFIX_TREE)my_malloc(sizeof(STREE_STRUCT))) == NULL) {
+
+    // Allocate the space.
+    SUFFIX_TREE tree = (SUFFIX_TREE)my_calloc(1, sizeof(STREE_STRUCT));
+    if (!tree) {
         return NULL;
     }
-    
-    memset(tree, 0, sizeof(STREE_STRUCT));
+     
     tree->copyflag = copyflag;
    
     if ((tree->root = int_stree_new_node(tree, NULL, 0)) == NULL) {
@@ -130,7 +124,7 @@ void stree_delete_tree(SUFFIX_TREE tree)
  */
 void stree_traverse(SUFFIX_TREE tree, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE), int (*postorder_fn)(SUFFIX_TREE,STREE_NODE))
 {
-    stree_traverse_subtree(tree, stree_get_root(tree), preorder_fn,  postorder_fn);
+    stree_traverse_subtree(tree, stree_get_root(tree), preorder_fn, postorder_fn);
 }
 
 void stree_traverse_subtree(SUFFIX_TREE tree, STREE_NODE node, int (*preorder_fn)(SUFFIX_TREE,STREE_NODE), int (*postorder_fn)(SUFFIX_TREE,STREE_NODE))
@@ -421,10 +415,8 @@ int stree_get_labellen(SUFFIX_TREE tree, STREE_NODE node)
  *              buffer   -  the character buffer
  *              buflen   -  the buffer length
  *              endflag  -  copy from the end of the label?
- *
- * Returns:  nothing.
  */
-void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE *buffer,  int buflen, int endflag)
+void stree_get_label(SUFFIX_TREE tree, STREE_NODE node, CHAR_TYPE *buffer, int buflen, int endflag)
 {
     int len, skip, edgelen;
     CHAR_TYPE *edgestr, *bufptr;
@@ -1290,10 +1282,10 @@ STREE_LEAF int_stree_new_leaf(SUFFIX_TREE tree, int strid, int edgepos,
  */
 STREE_NODE int_stree_new_node(SUFFIX_TREE tree, CHAR_TYPE *edgestr, int edgelen)
 {
-    STREE_NODE node;
- 
-    if ((node = (STREE_NODE)my_calloc(sizeof(SNODE_STRUCT), 1)) == NULL)
+    STREE_NODE node = (STREE_NODE)my_calloc(sizeof(SNODE_STRUCT), 1); 
+    if (!node)  {
         return NULL;
+    }
         
     node->edgestr = edgestr;
     node->edgelen = edgelen;

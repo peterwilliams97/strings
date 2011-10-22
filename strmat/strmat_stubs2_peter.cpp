@@ -28,7 +28,7 @@ using namespace std;
  *               print_stats      -  flag telling whether to print the stats
  *               print_tree       -  flag telling whether to print the tree
  *
- * Returns:  non-zero on success, zero on error
+ * Returns: true on success
  */
 bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, bool print_tree)
 {
@@ -86,19 +86,6 @@ bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, b
     return ok;
 }
 
-/*
- * strmat_stree_match
- *
- * Perform an exact matching of a pattern to a suffix tree of one or
- * more strings.
- *
- * Parameters:   pattern          -  the input pattern
- *               strings          -  the input strings
- *               num_strings      -  the number of input strings
- *               print_stats      -  flag telling whether to print the stats
- *
- * Returns:  non-zero on success, zero on error
- */
 static MATCHES matchlist;
 static int matchcount, matcherror, patlen;
 
@@ -136,6 +123,19 @@ static int add_match(SUFFIX_TREE tree, STREE_NODE node)
     return 1;
 }
 
+/*
+ * strmat_stree_match
+ *
+ * Perform an exact matching of a pattern to a suffix tree of one or
+ * more strings.
+ *
+ * Parameters:   pattern          -  the input pattern
+ *               strings          -  the input strings
+ *               num_strings      -  the number of input strings
+ *               print_stats      -  flag telling whether to print the stats
+ *
+ * Returns:  true on success
+ */
 bool strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, bool print_stats, bool do_print_matches)
 {
     int flag, pos, matchlen;
@@ -245,6 +245,25 @@ bool strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, bool
 }
 
 /*
+ * compute_nodemap
+ *
+ * Compute the mapping from identifiers to suffix tree nodes and store
+ * that mapping in "nodemap"
+ *
+ * Parameters:  tree     -  a suffix tree
+ *              node     -  a suffix tree node
+ *              nodemap  -  the nodemap being computed
+ */
+static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodemap)
+{
+    nodemap[stree_get_ident(tree, node)] = node;
+
+    for (STREE_NODE child = stree_get_children(tree, node); child; child = stree_get_next(tree, child)) {
+        compute_nodemap(tree, child, nodemap);
+    }
+}
+
+/*
  * strmat_stree_lca
  *
  * Performs the constant time LCA algorithm on a suffix tree for a
@@ -256,16 +275,13 @@ bool strmat_stree_match(STRING *pattern, STRING **strings, int num_strings, bool
  *
  * Returns:  non-zero on success, zero on error
  */
-static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodemap);
-
-
 bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, LCA_TYPE type, char *lines[])
 {
-    int i, num1, num2, len, num_lcas, max_length;
+    int num1, num2, len, num_lcas, max_length;
     _int64 num_nodes;
     CHAR_TYPE *s;
     char **line_ptr;
-    CHAR_TYPE  buffer[64];
+    CHAR_TYPE buffer[64];
     STREE_NODE x, y, z, *nodemap;
     SUFFIX_TREE tree;
     LCA_STRUCT *lcastruct;
@@ -278,13 +294,15 @@ bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, L
     bool ok = true;
     tree = stree_gen_ukkonen_build(strings, num_strings, &ok, print_stats);
     if (tree == NULL)
-        return 0;
+        return false;
 
     num_nodes = stree_get_num_nodes(tree);
     max_length = -1;
-    for (i=0; i < num_strings; i++)
+    int i;
+    for (i = 0; i < num_strings; i++) {
         if (max_length == -1 || strings[i]->length > max_length)
             max_length = strings[i]->length;
+    }
 
     // Preprocess the suffix tree.
     printf("Preprocessing...\n");
@@ -299,10 +317,8 @@ bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, L
         return 0;
     }
 
-  /*
-   * Build the map of suffix tree nodes.
-   */
-    nodemap = (STREE_NODE *)my_malloc((int)num_nodes * sizeof(STREE_NODE));
+    // Build the map of suffix tree nodes.
+    nodemap = (STREE_NODE *)my_calloc((int)num_nodes, sizeof(STREE_NODE));
     if (nodemap == NULL) {
         lca_free(lcastruct);
         stree_delete_tree(tree);
@@ -311,17 +327,15 @@ bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, L
 
     compute_nodemap(tree, stree_get_root(tree), nodemap);
 
-  /*
-   * Query the user to enter nodes, and compute the LCA of those nodes.
-   * !@#$ Now passed in as an argument
-   */
-  printf("\n");
-  printf("Commands (0-%d 0-%d - Find LCA of two nodes (identify by number),\n",
+    // Query the user to enter nodes, and compute the LCA of those nodes.
+    // !@#$ Now passed in as an argument
+    printf("\n");
+    printf("Commands (0-%d 0-%d - Find LCA of two nodes (identify by number),\n",
          num_nodes-1, num_nodes-1);
-  printf("          ! - print suffix tree, Ctl-D - quit)\n");
+    printf("          ! - print suffix tree, Ctl-D - quit)\n");
 
-  num_lcas = 0;
-  for (line_ptr = lines; line_ptr; line_ptr++) {
+    num_lcas = 0;
+    for (line_ptr = lines; line_ptr; line_ptr++) {
         char *line = *line_ptr;
         if (line[0] == '\0') {
             continue;
@@ -334,7 +348,7 @@ bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, L
                 large_print_tree(tree, stree_get_root(tree), (num_strings > 1));
             mputc('\n');
         }  else if (sscanf(line, "%d %d", &num1, &num2) == 2 && num1 >= 0 
-            &&  num1 < num_nodes && num2 >= 0 && num2 < num_nodes) {
+                &&  num1 < num_nodes && num2 >= 0 && num2 < num_nodes) {
             x = nodemap[num1];
             y = nodemap[num2];
             z = NULL;
@@ -380,9 +394,9 @@ bool int_strmat_stree_lca(STRING **strings, int num_strings, bool print_stats, L
                 printf("   Node %d:  %s\n", stree_get_ident(tree, y), buffer);
             }
 
-            if (z == stree_get_root(tree))
+            if (z == stree_get_root(tree)) {
                 printf("   LCA Node %d:  (root)\n", stree_get_ident(tree, z));
-            else {
+            } else {
                 len = stree_get_labellen(tree, z);
                 stree_get_label(tree, z, buffer, 50, 0);
                 for (s=buffer,i=0; *s && i < 50; s++,i++)
@@ -435,30 +449,7 @@ bool strmat_stree_naive_lca(STRING **strings, int num_strings, bool print_stats,
 {  
     return int_strmat_stree_lca(strings, num_strings, print_stats, LCA_NAIVE, lines);  
 }
-/*
- * compute_nodemap
- *
- * Compute the mapping from identifiers to suffix tree nodes and store
- * that mapping in "nodemap"
- *
- * Parameters:  tree     -  a suffix tree
- *              node     -  a suffix tree node
- *              nodemap  -  the nodemap being computed
- *
- * Returns: nothing
- */
-static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *map)
-{
-  STREE_NODE child;
 
-  map[stree_get_ident(tree, node)] = node;
-
-  child = stree_get_children(tree, node);
-  while (child != NULL) {
-    compute_nodemap(tree, child, map);
-    child = stree_get_next(tree, child);
-  }
-}
 
 /*
  * strmat_stree_walkaround

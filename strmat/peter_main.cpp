@@ -3,13 +3,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <conio.h>
-
 #include <string>
+
 #include "strmat.h"
 #include "strmat_util.h"
 #include "stree_ukkonen.h"
 #include "strmat_stubs2.h"
+#include "strmat_print.h"
+
 #include "peter_io.h"
+#include "peter_longest_common_extension.h"
 
 using namespace std;
 
@@ -132,7 +135,6 @@ static bool base_match_test(int num_strings, int num_unique, int length, int max
     free_test_strings(num_strings, strings);  
     return ok;
 }
-
 
 static bool base_test(int num_strings, int num_unique, int length, int max_char, int max_match = -1)
 {
@@ -263,36 +265,47 @@ static bool test6()
 
 }
 
-void print_node(const STREE_NODE node)
-{
-    char buffer[CHAR_BUFFER_LEN];
-
-    cout << "Node" << endl;
-    cout << "   id=" << node->id;
-#ifdef PETER_GLOBAL
-    cout << "index=" << node->_index;
-#endif
-    cout << " edge=" << get_char_array(node->edgestr, node->edgelen, buffer) << "  " << node->edgelen << endl;
-}
-
 static void match_pattern(SUFFIX_TREE tree, CHAR_TYPE *pattern, int n)
 {    
     STREE_NODE node;
     int pos = -1;
     memset(&node, 0, sizeof(node));
 
-   int len = stree_match(tree, pattern, n, &node, &pos);
+    int len = stree_match(tree, pattern, n, &node, &pos);
 
-   char buffer[CHAR_BUFFER_LEN];
-   cout << "Matched " << get_char_array(pattern, n, buffer) << endl;
-   cout << "len  = " << len << endl;
-   cout << "pos  = " << pos << endl;
-   print_node(node);
+    char buffer[CHAR_BUFFER_LEN];
+    cout << "Matched " << get_char_array(pattern, n, buffer) << endl;
+    cout << "len  = " << len << endl;
+    cout << "pos  = " << pos << endl;
+    print_node(node);
+}
+
+static void lce_test(int length, int max_char, int num_tests)
+{
+    STRING **strings = make_test_strings(2, 2, length, max_char);
+     
+    printf("lce_test(length=%d, max_char=%d)\n", length, max_char);
+    LCE *lce_ctx = prepare_longest_common_extension(strings[0], strings[1], true);
+
+    int delta = (length + num_tests - 1)/num_tests;
+    for (int i = 0; i < num_tests; i++) {
+        int ofs1 = ((i+1) * delta) % length;
+        int ofs2 = ((i+2) * delta) % length;
+        printf("%4d: (ofs1=%3d,ofs2=%3d) ", i, ofs1, ofs2);
+        STREE_NODE lce_node = lookup_lce(lce_ctx, ofs1, ofs2);
+        cout << " => ";
+        print_node(lce_node, "LCE");
+        cout << endl;
+    }
+      
+
+    longest_common_extension_free(lce_ctx);
+    free_test_strings(2, strings);  
 }
 
 int main(int argc, char *argv[]) 
 {
-    int test_num = 3;
+    int test_num = 8;
     
     switch(test_num) {
     
@@ -343,6 +356,15 @@ int main(int argc, char *argv[])
             //test2a(num_strings, num_unique, length, max_char);
         }
         break;
+    case 8:     // Longest common extension test
+        {
+            int length = 6;
+            int max_char = 10;
+            int num_tests = 10;
+            lce_test(length, max_char, num_tests);
+        }
+        break;
+       
    }
 
     printf("Print any key to exit...");
