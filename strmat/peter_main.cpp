@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
         test5();
         break;
     case 6:     // Read binary strings from files
-        stree_print_flag = FALSE;
+        stree_print_flag = false;
         test6();
         break;
      case 7:     // Another simple binary example

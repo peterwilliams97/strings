@@ -75,7 +75,7 @@ bool strmat_ukkonen_build(STRING **strings, int num_strings, bool print_stats, b
 
     if (print_tree) {
         printf("\nSuffix Tree:\n");
-        if (max_length < 40 || TRUE)
+        if (max_length < 40 || true)
             small_print_tree(tree, stree_get_root(tree), 0, (num_strings > 1));
         else
             large_print_tree(tree, stree_get_root(tree), (num_strings > 1));

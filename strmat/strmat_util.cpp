@@ -74,7 +74,7 @@ static int my_strlen(const CHAR_TYPE *cstring)
  * Convert a character array to a STRING
  * 
  **********************************************************************/
-STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length, BOOL print_flag)
+STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length, bool print_flag)
 {
     STRING *sptr;
     CHAR_TYPE *sequence;
@@ -111,7 +111,7 @@ STRING *make_seqn(const char *title, const CHAR_TYPE *cstring, int length, BOOL 
  * Convert a byte array to a STRING
  * 
  **********************************************************************/
-STRING *make_seqn_from_bytes(const char *title, const byte *bytes, int length, BOOL print_flag)
+STRING *make_seqn_from_bytes(const char *title, const byte *bytes, int length, bool print_flag)
 {
     CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
     if (!cstring) {
@@ -141,7 +141,7 @@ STRING *make_seq(const char *title, const CHAR_TYPE *cstring)
 {
     printf("make_seq('%s', '%s')\n", title, cstring);
 
-    return make_seqn(title, cstring, my_strlen(cstring), TRUE);
+    return make_seqn(title, cstring, my_strlen(cstring), true);
 }
 
 void free_seq(STRING *sptr) 

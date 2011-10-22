@@ -3,13 +3,6 @@
 
 #include <string>
 
-// Peter's definitions
-
-typedef int BOOL;
-#define FALSE 0
-#define TRUE 1
-#define ERROR 0
-#define OK 1
 
 #ifdef PETER_GLOBAL
  #define ALPHABET_SIZE 0
@@ -39,7 +32,6 @@ public:
     const T *get_data() const { return _data; }
 };
 
-
 typedef GenString<byte> ByteString;
 typedef GenString<CHAR_TYPE> CharString;
 
@@ -54,7 +46,5 @@ void *my_calloc(size_t size, size_t number);
 int my_itoalen(int n);
 #define mputs(s) printf("%s", s)
 #define mputc(c) printf("%c", c)
-
-//inline bool boolize(int n) { return n != 0; }
 
 #endif

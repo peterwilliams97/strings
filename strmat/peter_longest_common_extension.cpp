@@ -79,8 +79,8 @@ void longest_common_extension_free(LCE *lce)
 STREE_NODE lookup_lce(LCE *lce, int ofs1, int ofs2)
 {
     SUFFIX_TREE tree = lce->_lca->tree;
-    STREE_NODE x = lce->_nodemap[ofs1];
-    STREE_NODE y = lce->_nodemap[ofs2];
+    STREE_NODE x = lce->_nodemap[ofs1+1];
+    STREE_NODE y = lce->_nodemap[ofs2+1];
     print_label(tree, x, "x=");
     print_label(tree, y, "y=");
     return lca_lookup(lce->_lca, x,  y);
