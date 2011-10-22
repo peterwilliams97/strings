@@ -2,8 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <string>
 #include "strmat.h"
 #include "strmat_util.h"
+
+using namespace std;
 
 int my_itoalen(int num)
 {
@@ -13,7 +16,6 @@ int my_itoalen(int num)
         num /= 10;
     return i;
 }
-
 
 char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer) 
 {
@@ -29,6 +31,12 @@ char *get_char_array(const CHAR_TYPE *cstring, int length, char *buffer)
         strcat(buffer, s);
     } 
     return buffer;
+}
+
+string str_to_string(const CHAR_TYPE *cstring, int length)
+{
+    char buffer[CHAR_BUFFER_LEN];
+    return string(get_char_array(cstring, length, buffer));
 }
 
 /*

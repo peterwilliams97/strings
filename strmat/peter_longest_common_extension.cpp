@@ -33,10 +33,6 @@ static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodem
 
 LCE *prepare_longest_common_extension(STRING *s1, STRING *s2, bool print_stats)
 {
-  //  int flag, pos, matchlen;
-//#ifdef STATS
-//    _int64 num_compares, edges_traversed, child_cost;
-//#endif
      assert(s1 && s2);
 
     // Build the suffix tree.
@@ -55,26 +51,20 @@ LCE *prepare_longest_common_extension(STRING *s1, STRING *s2, bool print_stats)
     printf("\nSuffix Tree:\n");
     small_print_tree(tree, stree_get_root(tree), 0, 2);
    
-   /* int max_length = 0;
-    for (int i = 0; i < num_strings; i++) {
-        if (strings[i]->length > max_length)
-            max_length = strings[i]->length;
-    }*/
-
+    // Build the LCA tables
     LCE *lce = (LCE *)my_calloc(sizeof(LCE),1);
     lce->_lca = lca_prep(tree);
 
      // Build the map of suffix tree nodes.
-    int num_nodes = (int)stree_get_num_nodes(tree);
-    lce->_nodemap = (STREE_NODE *)my_calloc((int)num_nodes, sizeof(STREE_NODE));
+    lce->_nodemap = (STREE_NODE *)my_calloc((int)stree_get_num_nodes(tree), sizeof(STREE_NODE));
     compute_nodemap(tree, stree_get_root(tree), lce->_nodemap);
 
     return lce;
 }
 
+ // Free everything allocated.
 void longest_common_extension_free(LCE *lce)
 {
-    // Free everything allocated.
     stree_delete_tree(lce->_lca->tree);
     lca_free(lce->_lca);
     free(lce->_nodemap);
@@ -88,10 +78,11 @@ void longest_common_extension_free(LCE *lce)
  */
 STREE_NODE lookup_lce(LCE *lce, int ofs1, int ofs2)
 {
+    SUFFIX_TREE tree = lce->_lca->tree;
     STREE_NODE x = lce->_nodemap[ofs1];
     STREE_NODE y = lce->_nodemap[ofs2];
-    print_node(x, "x=");
-    print_node(y, "y=");
+    print_label(tree, x, "x=");
+    print_label(tree, y, "y=");
     return lca_lookup(lce->_lca, x,  y);
 }
 

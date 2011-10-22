@@ -13,28 +13,44 @@
 #include "strmat_print.h"
 
 using namespace std;
-
 #if 0
-void print_node(const SUFFIX_TREE tree, const STREE_NODE z)
+string get_label(const SUFFIX_TREE tree, const STREE_NODE z)
 {
-    if (z == stree_get_root(tree)) {
-        printf("    Node %d:  (root)\n", stree_get_ident(tree, z));
-    } else {
-/*        int len = stree_get_labellen(tree, z);
+    string desc = "";
+    if (z != stree_get_root(tree))  {
+        int len = stree_get_labellen(tree, z);
         static const int BUFFER_SIZE = 64;
         CHAR_TYPE buffer[BUFFER_SIZE];
         stree_get_label(tree, z, buffer, BUFFER_SIZE, 0);
-  */     
         char char_buf[CHAR_BUFFER_LEN];
-        get_char_array(z->edgestr, z->edgelen, char_buf);
-        printf("    Node %d:  %s\n", stree_get_ident(tree, z), char_buf);
+        get_char_array(buffer, BUFFER_SIZE,char_buf);
+        desc = char_buf;
     }
+
+    return desc;
+    //stringstream out;
+    //out << stree_get_ident(tree, z) << " (" << desc << ")";
+    //return out.str();
+}
+#else
+string get_label(const SUFFIX_TREE tree, const STREE_NODE node)
+{
+    string out = node->parent ? get_label(tree, node->parent) : ""; 
+    return out + str_to_string(node->edgestr, node->edgelen);
 }
 #endif
 
+void print_label(const SUFFIX_TREE tree, const STREE_NODE node, string title)
+{
+    stringstream s;
+    s << " <" << title << " id=" << node->id;
+    s << " [" << get_label(tree, node) << "]  " << node->edgelen;
+    s << ">";
+    cout << setw(40) << left << s.str();
+}
+
 void print_node(const STREE_NODE node, const char *title)
 {
-    char buffer[CHAR_BUFFER_LEN];
     stringstream s;
     if (title) {
         s << " <" << title << ":" ;
@@ -45,16 +61,15 @@ void print_node(const STREE_NODE node, const char *title)
 #if defined(PETER_GLOBAL) && 0
     cout << " (index=" << node->_index << ")";
 #endif
+    char buffer[CHAR_BUFFER_LEN];
     s << " edge=[" << get_char_array(node->edgestr, node->edgelen, buffer) << "]  " << node->edgelen;
     if (!title) {
         s << endl;
     } else {
         s << ">";
     }
-
-     cout << setw(40) << left << s.str();
+    cout << setw(40) << left << s.str();
 }
-
 
 /*
  * Procedures for printing a suffix tree.

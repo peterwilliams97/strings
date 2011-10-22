@@ -1,6 +1,7 @@
 #ifndef _PETER_COMMON_H_
 #define _PETER_COMMON_H_
 
+#include <string>
 
 // Peter's definitions
 
@@ -45,6 +46,7 @@ typedef GenString<CHAR_TYPE> CharString;
 #define CHAR_BUFFER_LEN 49
 char *get_char_array(const CHAR_TYPE *sequence, int length, char *buffer); 
 CHAR_TYPE *str_to_sequence(const char* cstring, CHAR_TYPE *sequence, int length);
+std::string str_to_string(const CHAR_TYPE *cstring, int length);
 
 void *my_malloc(size_t size);
 void *my_calloc(size_t size, size_t number);
