@@ -92,6 +92,28 @@ static const STRING **make_test_strings(int num_strings, int num_unique, int len
     return (const STRING **)strings;
 }
 
+static const STRING *make_palindrome(int length, int pal_ofs, int pal_len)
+{
+    printf("make_palindrome(length=%d,pal_ofs=%d,pal_len=%d)\n",
+        length, pal_ofs, pal_len);
+
+    CHAR_TYPE *cstring = (CHAR_TYPE *)my_calloc(length, sizeof(CHAR_TYPE));
+    for (int i = 0; i < length; i++) {
+        cstring[i] = i % 100;
+    }
+    int center = pal_ofs + pal_len/2;
+    for (int i = 0; i < pal_len/2; i++) {
+        cstring[center - i] = 100 + i % 100;
+        cstring[center + i] = 100 + i % 100;
+    }
+
+    char title[129];
+    sprintf(title, "palindrome(ofs=%d,len=%d)", pal_ofs, pal_len);
+    STRING *str = make_seqn(title, cstring, length, stree_print_flag);
+    free(cstring);
+    return (const STRING *)str;
+}
+
 static void free_test_strings(int num_strings, const STRING **strings)
 {
     for (int i = 0; i < num_strings; i++) {
@@ -371,10 +393,14 @@ int main(int argc, char *argv[])
         break;
     case 10:    // Longest palindrome
         {
-            const STRING **strings = make_test_strings(1, 1, 9, 2);
-            const STRING *s = strings[0];
-            SubString substring = find_longest_palindrome(s, true);
-            free_test_strings(1, strings);
+            //const STRING **strings = make_test_strings(1, 1, 9, 2);
+            //const STRING *s = strings[0];
+            int length = 9;
+            int pal_ofs = 2;
+            int pal_len = 4;
+            const STRING *str = make_palindrome(length, pal_ofs, pal_len);
+            SubString substring = find_longest_palindrome(str, true);
+            free_seq((STRING *)str);
             cout << endl;
             cout << "Longest palindrome: offset=" << substring._offset 
                 << ",length=" << substring._length << endl;

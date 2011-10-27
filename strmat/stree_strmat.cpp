@@ -519,9 +519,10 @@ int stree_get_leaf(SUFFIX_TREE tree, STREE_NODE node, int leafnum,
                    CHAR_TYPE **string_out, int *pos_out, int *id_out)
 {
     if (int_stree_isaleaf(tree, node)) {
-        if (leafnum != 1)
+        if (leafnum != 1) {
             return 0;
-         STREE_LEAF leaf = (STREE_LEAF)node;
+        }
+        STREE_LEAF leaf = (STREE_LEAF)node;
         *string_out = int_stree_get_string(tree, leaf->strid);
         *pos_out = leaf->pos;
         *id_out = int_stree_get_strid(tree, leaf->strid);

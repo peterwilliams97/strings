@@ -1,6 +1,8 @@
 #ifndef _PETER_LONGEST_COMMON_EXTENSIONL_H_
 #define _PETER_LONGEST_COMMON_EXTENSIONL_H_
 
+#include <map>
+
 struct LCA_STRUCT;
 struct STRING;
 //struct STREE_NODE;
@@ -9,6 +11,7 @@ struct stree_node;
 struct LCE { 
     LCA_STRUCT *_lca;
     stree_node **_nodemap;
+    std::map<int, std::map<int, int>> _suffix_node_map;
     STRING *_s1;
     STRING *_s2;
 };

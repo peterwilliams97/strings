@@ -181,18 +181,17 @@ static void compute_A(LCA_STRUCT *lca, SUFFIX_TREE tree, STREE_NODE node, unsign
  */
 LCA_STRUCT *lca_prep(SUFFIX_TREE tree)
 {
-    int num_nodes;
-    LCA_STRUCT *lca;
-
     assert(tree);
-  
-    if ((lca = (LCA_STRUCT *)my_calloc(sizeof(LCA_STRUCT), 1)) == NULL)
+
+    LCA_STRUCT *lca = (LCA_STRUCT *)my_calloc(sizeof(LCA_STRUCT), 1);
+    if (!lca) {
         return NULL;
+    }
 
     lca->type = LCA_LINEAR;
     lca->tree = tree;
 
-    num_nodes = (int)stree_get_num_nodes(tree) + 1;
+    int num_nodes = (int)stree_get_num_nodes(tree) + 1;
 
     if ((lca->I = (unsigned int *)my_calloc(num_nodes, sizeof(unsigned int))) == NULL) {
         lca_free(lca);

@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include <map>
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -16,7 +17,6 @@
 #include "stree_ukkonen.h"
 #include "stree_lca.h"
 #include "peter_longest_common_extension.h"
-
 
 using namespace std;
 
@@ -32,19 +32,60 @@ using namespace std;
  */
 static void compute_nodemap(SUFFIX_TREE tree, STREE_NODE node, STREE_NODE *nodemap)
 {
-    nodemap[stree_get_ident(tree, node)] = node;
-
+    int ident = stree_get_ident(tree, node);
+    nodemap[ident] = node;
+    cout << "nodemap[" << ident << "] isaleaf=" << node->isaleaf << ",leaves=" << node->leaves << endl;
+    
     for (STREE_NODE child = stree_get_children(tree, node); child; child = stree_get_next(tree, child)) {
         compute_nodemap(tree, child, nodemap);
     }
 }
+
+static map<int, map<int, int>> compute_suffix_node_map(SUFFIX_TREE tree, STREE_NODE *nodemap)
+{
+    map<int, map<int, int>> suffix_node_map;
+    suffix_node_map[0] = map<int, int>();
+    suffix_node_map[1] = map<int, int>();
+
+    int num_nodes = (int)stree_get_num_nodes(tree);
+
+    for (int i = 0; i < num_nodes; i++) {
+        STREE_NODE node = nodemap[i];
+     
+        cout << " Node id=" << node->id;
+        if (!node->isaleaf)  {
+            cout << endl;
+            continue;
+        }
+        cout << ", Leaves:" << endl;
+        for (STREE_INTLEAF leaf = node->leaves; leaf; leaf = leaf->next) {
+            cout << "leaf=" << leaf;
+            cout << "    strid=" << leaf->strid << ",pos=" << leaf->pos << endl;
+            suffix_node_map[leaf->strid-1][leaf->pos] = node->id;
+        }
+/*        CHAR_TYPE *string_out;
+        int pos_out;
+        int id_out;
+ */       //for (int leafnum = 0; leafnum < 2; leafnum++) {
+        //    if (stree_get_leaf(tree, node, leafnum+1, &string_out, &pos_out, &id_out)) {
+        //        cout << "leafnum=" << leafnum << ",pos_out=" << pos_out 
+        //             << ",id_out=" << id_out << endl; 
+        //         suffix_node_map[leafnum][pos_out] = id_out;
+        //    }
+        //}
+    }
+
+    return suffix_node_map;
+  
+}
+
 
 LCE *prepare_longest_common_extension(const STRING *s1, const STRING *s2, bool print_stats)
 {
      assert(s1 && s2);
 
     // Build the suffix tree.
-    printf("Building the tree...\n\n");
+    cout << "Building the tree... " << endl << endl;
 
     bool ok = true;
     int num_strings = 2;
@@ -66,6 +107,7 @@ LCE *prepare_longest_common_extension(const STRING *s1, const STRING *s2, bool p
      // Build the map of suffix tree nodes.
     lce->_nodemap = (STREE_NODE *)my_calloc((int)stree_get_num_nodes(tree), sizeof(STREE_NODE));
     compute_nodemap(tree, stree_get_root(tree), lce->_nodemap);
+    lce->_suffix_node_map = compute_suffix_node_map(tree, lce->_nodemap);
 
     return lce;
 }
@@ -88,8 +130,10 @@ static bool print_labels = true;
 STREE_NODE lookup_lce(LCE *lce, int ofs1, int ofs2)
 {
     SUFFIX_TREE tree = lce->_lca->tree;
-    STREE_NODE x = lce->_nodemap[ofs1+1];
-    STREE_NODE y = lce->_nodemap[ofs2+1];
+    int ident1 = lce->_suffix_node_map[0][ofs1];
+    int ident2 = lce->_suffix_node_map[1][ofs2];
+    STREE_NODE x = lce->_nodemap[ident1];
+    STREE_NODE y = lce->_nodemap[ident2];
     STREE_NODE z = lca_lookup(lce->_lca, x,  y);
     if (print_labels) {
         print_label(tree, x, "x=");
@@ -122,21 +166,21 @@ SubString find_longest_palindrome(const STRING *s, bool print_stats)
     LCE *lce = prepare_longest_common_extension(s, r, print_stats);
 
     STREE_NODE longest_node = 0;
-    int longest_len = 0;
-    int longest_offset = -1;
+    int longest_radius = -1;
+    int longest_center = -1;
     
     for (int i = 0; i < m-1; i++) {
         cout << i << ": "; 
         STREE_NODE node = lookup_lce(lce, i, m-2-i);
         int len = get_label_len(node); 
-        if (len > longest_len) {
+        if (len > longest_radius) {
             longest_node = node;
-            longest_len = len;
-            longest_offset = i;
+            longest_radius = len;
+            longest_center = i;
         }
     }
 
     longest_common_extension_free(lce);
     free_seq(r);
-    return SubString(longest_offset, longest_len);
+    return SubString(longest_center - longest_radius, longest_radius * 2);
 }

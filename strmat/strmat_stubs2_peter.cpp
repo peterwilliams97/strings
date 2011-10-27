@@ -347,8 +347,9 @@ bool int_strmat_stree_lca(const STRING **strings, int num_strings, bool print_st
             else
                 large_print_tree(tree, stree_get_root(tree), (num_strings > 1));
             mputc('\n');
-        }  else if (sscanf(line, "%d %d", &num1, &num2) == 2 && num1 >= 0 
-                &&  num1 < num_nodes && num2 >= 0 && num2 < num_nodes) {
+        }  else if (sscanf(line, "%d %d", &num1, &num2) == 2 
+                && num1 >= 0 && num1 < num_nodes 
+                && num2 >= 0 && num2 < num_nodes) {
             x = nodemap[num1];
             y = nodemap[num2];
             z = NULL;

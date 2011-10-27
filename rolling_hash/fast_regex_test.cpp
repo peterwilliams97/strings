@@ -66,7 +66,19 @@ static byte *make_hash_table(int size, double fraction_on)
     return table;
 }
 
-static vector<double> exercise_hash(int n, const chartype *data, int numtests, int numchars, double fraction_on)
+/*
+ * Exercise the hash function and record its performance
+ * 
+ * Params:
+ *  n:    Length of hash
+ *  data: Test data to run the hash over 
+ *  numchars: Number of elements in data
+ *  fraction_on: Fraction of the data that should have hash matches
+ *  numtests: Number of times the test is repeated
+ * Returns:
+ *  2 element vector: 1st element is duration, 2nd element is number of hashes matched
+ */
+static vector<double> exercise_hash(int n, const chartype *data, int numchars, double fraction_on, int numtests)
 {
     KarpRabinHash hf = KarpRabinHash(n);
     int table_size = 1 << hf._wordsize;
@@ -86,7 +98,7 @@ static vector<double> exercise_hash(int n, const chartype *data, int numtests, i
     int num_hits = 0;
 
     for (int times = 0; times < numtests; times++) {
-        // Prime the first n has values
+        // Prime the first n hash values
         for (int k = 0; k < n; k++) {
 	    hf.eat(data[k]);
 	}
@@ -94,7 +106,7 @@ static vector<double> exercise_hash(int n, const chartype *data, int numtests, i
 #ifdef FIND_MIN_MAX        
         min_hashval = max_hashval = hf._hashvalue;
 #endif
-        // Compute the remainibng hash values by the rolling hash method
+        // Compute the remaining hash values by the rolling hash method
         for (int k = n; k < numchars; k++) {
 	    hf.update(data[k-n], data[k]);
 #ifdef FIND_MIN_MAX
@@ -159,7 +171,7 @@ static void test()
     for (int j = 0; j < numtests; j++) {
         cout << "test=" << j << endl;
         for (int i = 0; i < sizeof(n_vals)/sizeof(n_vals[0]); i++) {
-            vector<double> retval = exercise_hash(n_vals[i], data, numtests, numchars, 0.001);
+            vector<double> retval = exercise_hash(n_vals[i], data, numchars, 0.001, numtests);
             duration += retval[0];
             num_hashes += retval[1];
             cout << "-----------------------------" << endl;
