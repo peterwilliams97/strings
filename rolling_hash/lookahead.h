@@ -6,6 +6,8 @@
  * It should be efficient enough as 
  *      - contains() is called far more than push()
  *      - n > _highest + _max_lookahead far more often than it is not.
+ *
+ * NOTE: It is assumed that push() is called with monotically increasing values.
  */
 class LookAheadBuffer {
     const int _max_lookahead;
