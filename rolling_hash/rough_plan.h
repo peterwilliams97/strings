@@ -71,3 +71,20 @@ void  fastregex_term();
  *      appropriate functions on those exact matches.
  */
 bool fastregex_process(const BinString input); 
+
+/*
+ * Process some data using fast regex's.
+ *
+ * Like fastregex_process() except that it guarantees the order of processing is the 
+ *  same as if the regex's where performed sequentially on every byte on the input data.
+ *
+ * This is achieved with a lookahead buffer that runs all the regex's that match the
+ *  the static string.
+ *
+ * Run through the data and compute a rolling hash for each byte
+ *  If the rolling hash shows a potential match then call perform_actions()
+ *      on the rolling hash value to find exact regex matches and run 
+ *      appropriate functions on those exact matches.
+ */
+
+bool fastregex_process_in_order(const BinString input); 
