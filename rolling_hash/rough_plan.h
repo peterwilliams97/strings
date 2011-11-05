@@ -32,7 +32,7 @@ public:
     BinString(int len, const byte *data);
     ~BinString()  { delete[] _data; }
     int get_len() const  { return _len; }
-    const byte * get_data() const { return _data; }
+    const byte *get_data() const { return _data; }
     const std::vector<byte> get_as_vector() const;
 };
 

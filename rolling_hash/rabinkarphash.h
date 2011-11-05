@@ -32,12 +32,26 @@ public:
     {
         assert(c.size() == static_cast<uint>(_n));
     	hashvaluetype answer = 0;
-    	for (int k = 0;  k < (int)c.size(); k++) {
+    	for (int k = 0;  k < _n; k++) {
     	    hashvaluetype x = 1;
-    	    for (int j = 0; j < (int)c.size()-1-k; j++) {
+    	    for (int j = 0; j < _n-1-k; j++) {
     	        x = (x * B) & _HASHMASK;
     	    }
     	    x = (x * _hasher.hashvalues[c[k]]) & _HASHMASK;
+    	    answer = (answer+x) & _HASHMASK;
+    	}
+    	return answer;
+    }
+
+    hashvaluetype get_hash(const chartype *data) 
+    {
+    	hashvaluetype answer = 0;
+    	for (int k = 0;  k < _n; k++) {
+    	    hashvaluetype x = 1;
+    	    for (int j = 0; j < _n-1-k; j++) {
+    	        x = (x * B) & _HASHMASK;
+    	    }
+    	    x = (x * _hasher.hashvalues[data[k]]) & _HASHMASK;
     	    answer = (answer+x) & _HASHMASK;
     	}
     	return answer;
@@ -47,9 +61,7 @@ public:
     {
     	_hashvalue = (B*_hashvalue +  _hasher.hashvalues[inchar]) & _HASHMASK;
     }
-
-
-    
+        
     inline void update(chartype outchar, chartype inchar) 
     {
     	_hashvalue = (B*_hashvalue +  _hasher.hashvalues[inchar] - _BtoN *  _hasher.hashvalues[outchar]) & _HASHMASK; 

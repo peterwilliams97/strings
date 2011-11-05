@@ -1,8 +1,10 @@
 #include <memory.h>
+#include <list>
 #include <string>
 #include <vector>
 #include <map>
 #include "rabinkarphash.h"
+#include "lookahead.h"
 #include "rough_plan.h"
 
 /*
@@ -28,6 +30,11 @@ static const int HASH_TABLE_SIZE = 1 << WORDSIZE;
 // The "needs action" hash table
 static byte *_potential_match_table = 0;
 
+// Maximum number of bytes to look ahead
+int _max_lookahead;
+
+// A lookahead buffer
+LookAheadBuffer *_lookahead;
 
 static const byte *dup_data(int len, const byte *data)
 {
@@ -60,7 +67,6 @@ static byte *make_hash_table()
     return table;
 }
 
-
 static bool is_match(const RegexResults *results)
 {
     return true;  // !@#$ stub
@@ -70,7 +76,6 @@ RegexResults *apply_regex(const BinString input, int regex_offset, const Regex *
 {
     return 0; // !@#$ stub
 }
-
 
 static Regex *compile_regex(const BinString pattern)
 {
@@ -132,6 +137,7 @@ static int get_longest_string(const vector<RegexActionParams *> action_params_li
     }
     return longest;
 }
+
 
 static KarpRabinHash *_hash_central = 0;
 
@@ -203,19 +209,26 @@ bool fastregex_init(const vector<RegexActionParams *> action_params_list)
     // Initialize the rolling hash
     _hash_central = new KarpRabinHash(hash_len);
 
+     _max_lookahead = 0;
     // Build the action map
     for (int i = 0; i < (int)action_params_list.size(); i++) {
         BinString static_string(hash_len, action_params_list[i]->_pattern.get_data());
         int offset = get_offset(action_params_list[i]->_pattern, static_string);
         hashvaluetype static_string_hash = _hash_central->hash(static_string.get_as_vector());
-        add_to_action_map(new RegexAction(*action_params_list[i], static_string, offset, static_string_hash)); 
+        add_to_action_map(new RegexAction(*action_params_list[i], static_string, offset, static_string_hash));
+        if (offset >  _max_lookahead) {
+             _max_lookahead = offset;
+        }
     }
+
+    _lookahead = new LookAheadBuffer(_max_lookahead);
     return true;
 }
 
 void fastregex_term()
 {
     // !@#$ Need to destroy all the tables created in fastregex_init()
+
 }
 
 /*
@@ -250,3 +263,59 @@ bool fastregex_process(const BinString input)
 
     return true;
 }
+
+/*
+ * Process some data using fast regex's.
+ *
+ * Like fastregex_process() except that it guarantees the order of processing is the 
+ *  same as if the regex's where performed sequentially on every byte on the input data.
+ *
+ * This is achieved with a lookahead buffer that runs all the regex's that match the
+ *  the static string.
+ *
+ * Run through the data and compute a rolling hash for each byte
+ *  If the rolling hash shows a potential match then call perform_actions()
+ *      on the rolling hash value to find exact regex matches and run 
+ *      appropriate functions on those exact matches.
+ */
+
+bool fastregex_process_in_order(const BinString input) 
+{
+    const byte *data = input.get_data();
+    int numchars = input.get_len();
+    int n = _hash_central->_n;          // Hash length
+    
+    // Prime the first n has values
+    for (int offset = 0; offset < n; offset++) {
+        _hash_central->eat(data[offset]);
+    }
+
+    // Compute the remaining hash values by the rolling hash method
+    for (int offset = n; offset < numchars; offset++) {
+        _hash_central->update(data[offset-n], data[offset]);
+        if (_potential_match_table[_hash_central->_hashvalue]) {
+            // If there is a hit then look ahead for all potential matches around this offset
+            for (int i = 0; i < _max_lookahead; i++) {
+                // Careful here. offset + i is the offset we are looking ahead to
+                int lookahead_offset = offset + i;
+                // !@#$ This is slow. We could re-use the rolling hash here
+                hashvaluetype lookahead_hashvalue = _hash_central->get_hash(data + lookahead_offset);
+                // If we have not already processessed this offset in a previous lookahead
+                if (!_lookahead->contains(lookahead_offset)) {
+                    // Match anywere in the look ahead?
+                    if (_potential_match_table[lookahead_hashvalue]) {
+                        // Act 
+                        if (!perform_actions(input, lookahead_hashvalue, lookahead_offset)) {
+                            return false;
+                        }
+                        // Mark this offset as done so we don't hit it again
+                       _lookahead->push(lookahead_offset);
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
