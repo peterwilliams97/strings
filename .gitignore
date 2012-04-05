@@ -1,0 +1,8 @@
+Debug/
+*.obj
+*.exe
+*.pyc
+*.csv
+*.class
+*.jar
+*.stackdump

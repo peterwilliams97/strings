@@ -1,0 +1,40 @@
+
+The Procedures:
+
+
+int read_sequence(fp, s)
+FILE *fp;
+STRING *s;
+
+This procedure reads the next sequence entry from the file pointer
+'fp' and sets all of the fields in the STRING structure appropriately.
+It returns 1 for a successful read, 0 for end of file, -1 if the text
+read in does not conform to the format above or the entry is not
+complete (i.e. end of file reached before end of sequence reached), -2
+if the number of characters in the sequence does not match the length
+or non-alphabetic characters appear in the sequence.
+
+
+int write_sequence(fp, s)
+FILE *fp;
+STRING *s;
+
+This procedure writes the sequence entry for STRING structure s into
+the file pointed to by fp.  Remember, this procedure will have to
+handle long lines of an ASCII sequence correctly (see format above).
+It returns 1 for a successful write, 0 if some write error occurred
+during the write, and -1 if any of the values in the STRING data
+structure are invalid.
+
+
+int print_sequence(fp, s, column_width)
+FILE *fp;
+STRING *s;
+int column_width;
+
+This procedure prints the sequence out to the file pointed to by fp
+(which may be stdout).  No printed line may be longer than
+column_width characters, folding long lines with a '\' character.  It
+returns 1 on success and 0 on failure.
+
+

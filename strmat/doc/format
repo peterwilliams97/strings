@@ -1,0 +1,86 @@
+
+
+                        Sequence Entry Format
+
+
+The current format consists of six header lines, and then the
+sequence.  The entry's end is signalled by a '//' appearing by itself
+on a line.  Any blank lines before an entry or in the header are
+ignored.  All of the header 'lines' are contained on a single line in
+the file.  No line in the file (whether sequence or header) will be
+longer that 256 characters.  Any header line may contain trailing
+blanks which must be ignored.  All whitespace between the field name
+and the first non-whitespace character on the line must also be
+ignored. The format of the sequence lines will be discussed
+momentarily.
+
+The first header line is the type of database it came from, and
+can have values "Text" or "GenBank" (or other databases as we
+incorporate them).  The value of this is stored in the 'db_type' field
+of the STRING structure.
+
+The second line is the identifier used by that database to identify
+the sequence.  For GenBank, this is the accession number.  For Text,
+the line is empty (The 'IDENT:' will be there, but no non-whitespace
+characterns appear after it).  This identifier must be no longer that
+50 characters. The value of this is stored in the 'ident' field
+of the STRING structure.
+
+The third line gives the title of the sequence.  This title must be no
+longer than 200 characters, and must occur on a single line.  For
+GenBank, this is the TITLE field of the GenBank entry.  For Text, this
+will be a string typed in by the user.  The value of this is stored in
+the 'title' field of the STRING structure.
+
+The fourth line names the alphabet.  The valid values for this line
+are 'DNA', 'PROTEIN' and 'ASCII'.  The value of this is stored in the
+'alphabet' field of the STRING structure.
+
+The fifth line gives the length of the sequence.  The value of this is
+stored in the 'length' field of the STRING structure.
+
+The sixth line contains only the text "SEQUENCE:".
+
+Following the header lines, any number of sequence lines give the
+sequence.  No line will be longer than 79 characters.  For DNA and
+PROTEIN sequences, any whitespace and all newline characters are to be
+ignored.  For ASCII text, all whitespace and newlines are part of the
+of sequence, with the following two exceptions.
+
+First, any ASCII line which contains more than 78 characters must be
+broken into multiple lines as follows: The first 78 characters are
+placed on the line, then a newline character is placed as the
+79th character of the line.  The next line in the file
+then begins with the 79th character of the ASCII line, and this rule
+is applied recursively.  The newline character does not form
+part of the sequence.  This means that for an ASCII sequence, no more
+than 78 characters of the ASCII sequence will appear on a
+line of the sequence entry.  Anytime a sequence entry line for an
+ASCII sequence has a 79th character on it, it is the
+added newline and must be ignored.
+
+Second, an extra newline is added to every ASCII sequence to take care
+of the case where the sequence does not end in a newline.  This last
+newline must be ignored.
+
+
+Two Example:
+
+TYPE:  GenBank
+IDENT:  L14433
+TITLE:  C. elegans cosmid C50C3.
+ALPHABET:  DNA
+LENGTH:  44733
+SEQUENCE:
+GATCTGAAAAACAAGACGATGGTAGTAGTCACATGAGCGTAAAAGAGACGAGATGAGTGA
+TACAATAAACTGGAGAGG...
+//
+TYPE:  Text
+IDENT:
+TITLE:  Generic Pattern
+ALPHABET:  DNA
+LENGTH:  12
+SEQUENCE:
+ACGTACGTACGT
+//
+
