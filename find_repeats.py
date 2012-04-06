@@ -1,28 +1,28 @@
 from __future__ import division
 """
     Script to find the longest string(s) that is repeated M times in a corpus 
-    of test files where M is given for each file.
+    of test files where M is generally different for each file.
 
     This script works by 
         - finding all <n>grams (strings of length n) that are repeated M or
-            more times for each file in the corpus (M generally depends on file)
-            These called the valid ngrams 
-        - constructing the <n+1>grams consistent with these <n>grams. There
-            can be no more than 512 as many such <n+1>grams as <n>grams
+            more times for each file in the corpus (M generally depends on 
+            file). These called the valid <n>grams, or ngrams in the code. 
+        - constructing the <n+1>grams consistent with the valid <n>grams. 
+            There can be no more than 512 as many <n+1>grams as <n>grams.
         - repeating for n <- n+1 util there are no valid <n+1> grams
 
-    This script was written to be efficient for a particular corpus of files. 
+     his script was written to be efficient for a particular corpus of files. 
     There is no reason to believe that it will be efficient for all corpora.
 
-    It worked for a corpus where
+    This script worked for a corpus where
         - there was no human readable high level structure identifing the M
             repeats. Hence the need for a brute force method like this.
         - There were a small (<30%) fraction of valid 1grams and 2grams. 
-            This vastly reduces the number of strings that needed to be
-            checked.
+            This substantially reduced the number of strings that needed to 
+            be checked.
             
     Keys to performance:
-        1. A corpus that has a low fraction of vaild 1grams and 2grams
+        1. A corpus that has a low fraction of valid 1grams and 2grams.
         2. Innermost loop (see sufficient(s) in code below) is fast because
           a) Python text.count(s) is fast 
           b) all(text.count(s) >= numpages for ...) terminates on first False
