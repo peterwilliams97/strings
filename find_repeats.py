@@ -6,12 +6,12 @@ from __future__ import division
     This script works by 
         - finding all <n>grams (strings of length n) that are repeated M or
             more times for each file in the corpus (M generally depends on 
-            file). These called the valid <n>grams, or ngrams in the code. 
+            file). These are called the valid <n>grams (ngrams in the code). 
         - constructing the <n+1>grams consistent with the valid <n>grams. 
             There can be no more than 512 as many <n+1>grams as <n>grams.
         - repeating for n <- n+1 util there are no valid <n+1> grams
 
-     his script was written to be efficient for a particular corpus of files. 
+    This script was written to be efficient for a particular corpus of files. 
     There is no reason to believe that it will be efficient for all corpora.
 
     This script worked for a corpus where
