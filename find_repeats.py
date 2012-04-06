@@ -39,27 +39,6 @@ def get_files(file_pattern):
     """Simple glob. Return files matching file_pattern"""
     return [p for p in glob.glob(file_pattern) if not os.path.isdir(p)]    
 
-# Distance to either side of a page boundary retained in compress()    
-RANGE = 1024*1024       
-
-def compress(text, numpages):
-    """Markers are likely to be near start of end of pages
-        We simplistically assume pages of roughly equal size 
-        and use only the data within RANGE of multiples of 
-        size of file/numbers
-    """
-    # Offsets of for equally sized pages
-    breaks = [int(len(text) * n/numpages) for n in range(numpages)] + [len(text)]
-    
-    # Boundaries of RANGE bytes before and after each break
-    boundaries = [[max(0,i-RANGE),min(len(text),i+RANGE)] for i in breaks]
-    for i in range(1, len(boundaries)):
-        boundaries[i][0] = max(boundaries[i][0], boundaries[i-1][1])
-    boundaries = [(s,f) for (s,f) in boundaries if f > s]  
-    
-    # Return the data within the boundaries    
-    return ''.join([text[s:f] for (s,f) in boundaries])
-
 def get_numpages(filename):
     """Return number of pages indicated by our file naming convention
         Exit if filename does not match convention
@@ -69,12 +48,8 @@ def get_numpages(filename):
     return int(m.group(1))    
 
 def get_data(filename):
-   """Return (filename,numpages,text) for filename
-        text is the compressed contents of the file
-   """
-   numpages = get_numpages(filename)
-   text = compress(file(filename, 'rb').read(), numpages)
-   return filename, numpages, text
+   """Return (filename,numpages,file contents) for filename"""
+   return filename, get_numpages(filename), file(filename, 'rb').read()
    
 def analyze(path_list):
     """Find longest string that is repeated >= numpages times for all files 
