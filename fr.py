@@ -2,9 +2,9 @@
 import glob, os, re, sys
 assert len(sys.argv) > 1, 'Usage: python %s <file pattern>' % sys.argv[0]
 files = [fn for fn in glob.glob(sys.argv[1]) if not os.path.isdir(fn)]
-corpus = [(int(re.search(r'pages(\d+)', fn).group(1)), file(fn, 'rb').read()) 
+corpus = [(int(re.search(r'repeats(\d+)', fn).group(1)), file(fn, 'rb').read()) 
         for fn in files]
-assert corpus, r'No files matching "pages(\d+)"'
+assert corpus, r'No files matching "repeats(\d+)"'
 
 def valid(words):
     return [w for w in words if all(text.count(w) >= n for (_,n,text) in corpus)]
