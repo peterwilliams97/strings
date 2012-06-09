@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hacked_strmat", "hacked_strmat.vcxproj", "{5E53CCA7-EC20-19C3-E8D6-BCCFEB7D0434}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hacked_strmat", "hacked_strmat.vcxproj", "{A3FF8A52-9F14-34D0-199D-D032E6E74D60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5E53CCA7-EC20-19C3-E8D6-BCCFEB7D0434}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5E53CCA7-EC20-19C3-E8D6-BCCFEB7D0434}.Debug|Win32.Build.0 = Debug|Win32
-		{5E53CCA7-EC20-19C3-E8D6-BCCFEB7D0434}.Release|Win32.ActiveCfg = Release|Win32
-		{5E53CCA7-EC20-19C3-E8D6-BCCFEB7D0434}.Release|Win32.Build.0 = Release|Win32
+		{A3FF8A52-9F14-34D0-199D-D032E6E74D60}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A3FF8A52-9F14-34D0-199D-D032E6E74D60}.Debug|Win32.Build.0 = Debug|Win32
+		{A3FF8A52-9F14-34D0-199D-D032E6E74D60}.Release|Win32.ActiveCfg = Release|Win32
+		{A3FF8A52-9F14-34D0-199D-D032E6E74D60}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
