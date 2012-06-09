@@ -15,20 +15,22 @@ typedef offset_t *p_offset_t;
  * http://en.wikipedia.org/wiki/Inverted_index
  */
 struct Postings {
-    int  total_terms;                   // Total # occurences of term in all documents 
-    int total_docs;                     // # documents that term occurs in
-    vector<int> doc_indexes;           // Indexes of docs that term occurs in  
-    map<int,vector<offset_t>> offsets_map;  // offsets[i] = offsets of term in document with index i      
+    int  total_terms;                       // Total # occurences of term in all documents 
+    int total_docs;                         // # documents that term occurs in
+    vector<int> doc_indexes;                // Indexes of docs that term occurs in  
+    map<int,vector<offset_t>> offsets_map;  // offsets[i] = offsets of term in document with index i 
+    // Optional
+    map<int,vector<offset_t>> ends_map;     // ends[i] = offset of end of term in document with index i 
 };
 
 struct InvertedIndex {
-    // Inverted index for bytes across files
-    map<byte, Postings> _terms;
+    // Inverted index for strings across files
+    map<string, Postings> _terms;
   
     // doc_list[i] = filename of document with index i
     vector<string> _docs;
 
-    InvertedIndex(map<byte, Postings> terms, vector<string> docs) { 
+    InvertedIndex(map<string, Postings> terms, vector<string> docs) { 
         _terms = terms;
         _docs = docs;
     }
@@ -92,7 +94,7 @@ make_doc_inverted_index(const string filename) {
 InvertedIndex 
 make_inverted_index(const vector<string> filenames) {
  
-    map<byte, Postings> terms;
+    map<string, Postings> terms;
     list<string> docs;
    
     for (unsigned int i = 0; i < filenames.size(); i++) {
@@ -102,14 +104,17 @@ make_inverted_index(const vector<string> filenames) {
             docs.push_back(filenames[i]);
 
             for (map<byte, vector<offset_t>>::iterator it = offsets.begin(); it != offsets.end(); it++) {
-
+                
                 byte b = it->first;
                 vector<offset_t> &offsets = it->second;
-                terms[b].total_terms += offsets.size();
-                terms[b].total_docs++;
+                string s;
+                s.push_back(b);
+
+                terms[s].total_terms += offsets.size();
+                terms[s].total_docs++;
                 int doc_idx = docs.size() - 1;  
-                terms[b].doc_indexes.push_back(doc_idx);
-                copy(offsets.begin(), offsets.end(), terms[b].offsets_map[doc_idx].begin());
+                terms[s].doc_indexes.push_back(doc_idx);
+                copy(offsets.begin(), offsets.end(), terms[s].offsets_map[doc_idx].begin());
             }
         }
     }
@@ -128,22 +133,27 @@ struct Occurrence {
  */
 vector<byte>
 get_repeated_bytes(InvertedIndex *index, vector<Occurrence> occurrences) {
-    map<byte, Postings> terms = index->_terms;
+    map<string, Postings> terms = index->_terms;
     list<byte> result;
-    for (map<byte, Postings>::iterator it = terms.begin(); it != terms.end(); it++) {
-         byte b = it->first;
-         Postings &postings = it->second; 
-         bool match = true;
-         for (unsigned int i = 0; i < occurrences.size(); i++) {
-            map<int,vector<offset_t>>::iterator ofs = postings.offsets_map.find(occurrences[i].doc_index); 
-            if (!(ofs != postings.offsets_map.end() && postings.offsets_map[occurrences[i].doc_index].size() >= occurrences[i].num)) {
-                match = false;
-                break;
-            }
+    for (map<string, Postings>::iterator it = terms.begin(); it != terms.end(); it++) {
+         string s = it->first;
+
+         // We are only interested in single byte strings
+         if (s.size() == 1) {
+             byte b = s[0];
+             Postings &postings = it->second; 
+             bool match = true;
+             for (unsigned int i = 0; i < occurrences.size(); i++) {
+                map<int,vector<offset_t>>::iterator ofs = postings.offsets_map.find(occurrences[i].doc_index); 
+                if (!(ofs != postings.offsets_map.end() && postings.offsets_map[occurrences[i].doc_index].size() >= occurrences[i].num)) {
+                    match = false;
+                    break;
+                }
+             }
+             if (match) {
+                 result.push_back(b);
+             }  
          }
-         if (match) {
-             result.push_back(b);
-         }  
     }
     return vector<byte>(result.begin(), result.end());
 }
