@@ -2,7 +2,7 @@ from __future__ import division
 """
 Make test files for https://github.com/peterwilliams97/strings/tree/master/repeats/repeats
 """
-import random
+import random, os
 
 REPEATED_STRING = 'repeated'
 
@@ -33,14 +33,19 @@ def make_repeats_file(size, num_repeats):
     name = 'repeats=%d.txt' % num_repeats
     print 'make_repeats_file(%d, %d) name="%s"' % (size, num_repeats, name)
     file(name, 'wb').write(make_repeats_safe(size, num_repeats))
+    return os.path.abspath(name).replace('\\', '\\\\')
 
 MBYTE = 1024 * 1024    
 def main():
     # The Nelson! 
     random.seed(111)
     
+    entries = []
     for num_repeats in range(1,21):
-        make_repeats_file(MBYTE, num_repeats)
+        path = make_repeats_file(MBYTE, num_repeats)
+        entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
+    
+    print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     
         
 main()
 
