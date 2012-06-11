@@ -35,14 +35,17 @@ def make_repeats_file(size, num_repeats):
     file(name, 'wb').write(make_repeats_safe(size, num_repeats))
     return os.path.abspath(name).replace('\\', '\\\\')
 
-MBYTE = 1024 * 1024    
+KBYTE = 1024
+MBYTE = KBYTE ** 2
+GBYTE = KBYTE ** 3
+
 def main():
     # The Nelson! 
     random.seed(111)
     
     entries = []
     for num_repeats in range(1,21):
-        path = make_repeats_file(MBYTE, num_repeats)
+        path = make_repeats_file(10 * KBYTE, num_repeats)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
     
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     

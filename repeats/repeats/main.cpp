@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include "utils.h"
 #include "inverted_index.h"
 
 // for lower_bound/upper_bound example
@@ -52,6 +53,7 @@ void test() {
         cout << " of length " << repeats[0].size();
     }
     cout << endl;
+    print_vector("Repeated strings", repeats);
 }
 
 // lower_bound/upper_bound example
@@ -61,21 +63,20 @@ static void upper_bound_test() {
   vector<int> v(myints,myints+8);           // 10 20 30 30 20 10 10 20
   vector<int>::iterator low,up;
 
-  sort (v.begin(), v.end());                // 10 10 10 20 20 20 30 30
+  sort(v.begin(), v.end());                // 10 10 10 20 20 20 30 30
 
   low= lower_bound (v.begin(), v.end(), 20); //          ^
   up = upper_bound (v.begin(), v.end(), 20); //                   ^
 
-  cout << "lower_bound at position " << int(low- v.begin()) << endl;
+  cout << "lower_bound at position " << int(low - v.begin()) << endl;
   cout << "upper_bound at position " << int(up - v.begin()) << endl;
-
-
+ 
 }
 
 int main() {
 
-    upper_bound_test();
-    //test();
+    //upper_bound_test();
+    test();
     return 0;
 }
 

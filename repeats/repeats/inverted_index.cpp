@@ -73,26 +73,20 @@ static const int NUM_CHARS = 256;
 map<byte, vector<offset_t>> 
 get_doc_offsets_map(const string filename) {
 	
-    map<byte, vector<offset_t>> index;
+    map<byte, list<offset_t>> offsets_map;
 
     for (int i = 0; i < NUM_CHARS; i++) {
-        index[i] = vector<offset_t>();
+        offsets_map[i] = list<offset_t>();
     }
 	
     ifstream f;
     f.open(filename, ios::in | ios::binary);
     if (!f.is_open()) {
 	cerr << "could not open " << filename << endl;
-	return index;
+	return map<byte, vector<offset_t>>();
     }
 
     const int BUF_SIZE = 64 * 1024;
-    p_offset_t *buffers = new p_offset_t[NUM_CHARS];
-    p_offset_t *ptrs = new p_offset_t[NUM_CHARS];
-    for (int i = 0; i < NUM_CHARS; i++) {
-        buffers[i] = new offset_t[BUF_SIZE];
-	ptrs[i] = buffers[i];
-    }
     byte *filebuf = new byte[BUF_SIZE];
 
     offset_t offset = 0;
@@ -101,36 +95,36 @@ get_doc_offsets_map(const string filename) {
 	streamsize n = f.gcount(); 
 	for (streamsize i = 0; i < n; i++) {
 	    byte b = filebuf[i];
-	    *(ptrs[b]++) = offset++;
+            offsets_map[b].push_back(offset);
+            offset++;
 	}
-
-	for (int i = 0; i < NUM_CHARS; i++) { 
-	    if (ptrs[i] > buffers[i]) {
-		size_t old_size = index[i].size();
-		index[i].resize(index[i].size() + ptrs[i] - buffers[i]);
-		copy(buffers[i], ptrs[i], index[i].begin());
-		ptrs[i] = buffers[i];
-	    }
-			
-	}
-
     }
+
     f.close();
+    delete[] filebuf;
 
     // Get rid of all the empty lists
     map<byte, vector<offset_t>> offsets;
-    for (map<byte, vector<offset_t>>::iterator it = index.begin(); it != index.end(); it++) {
+    for (map<byte, list<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
         if (it->second.size() > 0) {
-            offsets[it->first] = it->second;
+            offsets[it->first] = vector<offset_t>(it->second.begin(), it->second.end());
         }
     }
-
+#if 1
     cout << "get_doc_offsets_map(" << filename << ") " << offsets.size() << " {";
     for (map<byte, vector<offset_t>>::iterator it = offsets.begin(); it != offsets.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
     }
     cout << "}" << endl;
+    
+    for (map<byte, vector<offset_t>>::iterator it = offsets.begin(); it != offsets.end(); it++) {
+        vector<offset_t> ofs = it->second; 
+        if (ofs[0] > 1000) {
+            cout << " *** " << it->first << ":" << ofs[0] << endl;
+        }
+    }
     return offsets;
+#endif
 }
 
 InvertedIndex 
@@ -162,6 +156,7 @@ InvertedIndex
                 current_offsets.resize(current_offsets.size() + offsets.size());
                 //cout << "s='" << s << "',doc_idx=" << doc_idx << ",offsets=" << offsets.size() << ",current_offsets=" << current_offsets.size() << endl;
                 copy(offsets.begin(), offsets.end(), current_offsets.begin());
+                assert(current_offsets[0] < 1000);
 
             }
         }
@@ -251,13 +246,13 @@ has_sufficient_occurrences(map<string, Postings> &terms, const vector<Occurrence
     Postings &s_postings = terms[s];
     Postings &b_postings = terms[string(1, (char)b)];
 
-    cout << "has_sufficient_occurrences(s='" << s << "',b=" << b << ")" << endl;
+    //cout << "has_sufficient_occurrences(s='" << s << "',b=" << b << ")" << endl;
     
     for (unsigned int i = 0; i < occurrences.size(); i++) {
         vector<offset_t> &strings = s_postings.offsets_map[occurrences[i].doc_index];
         vector<offset_t> &bytes = b_postings.offsets_map[occurrences[i].doc_index];
 
-        cout << " strings='" << strings.size() << ",bytes='" << bytes.size() << endl; 
+       // cout << " strings='" << strings.size() << ",bytes='" << bytes.size() << endl; 
 
         if (!occurs(strings, m, bytes, occurrences[i].num)) {
             return false;
@@ -275,9 +270,10 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
     vector<byte> repeated_bytes = get_repeated_bytes(inverted_index, occurrences); 
     vector<string> repeated_strings = get_repeated_strings(repeated_bytes);  
 
-    cout << "repeated_bytes=" << repeated_bytes.size() << ",repeated_strings=" << repeated_strings.size() << endl;
+    cout << "get_all_repeats: repeated_bytes=" << repeated_bytes.size() << ",repeated_strings=" << repeated_strings.size() << endl;
 
     while (true) {
+        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << repeated_strings[0].size() << endl;
         list<string> repeated_strings_n1;
         for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
             for (vector<byte>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
