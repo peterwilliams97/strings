@@ -44,7 +44,7 @@ def main():
     random.seed(111)
     
     entries = []
-    for num_repeats in range(1,21):
+    for num_repeats in range(11,31):
         path = make_repeats_file(10 * KBYTE, num_repeats)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
     

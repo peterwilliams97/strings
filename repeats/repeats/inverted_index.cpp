@@ -166,9 +166,9 @@ InvertedIndex
 }
 
 /*
- * Return list of bytes that occur >= specified number of times in docs
+ * Return maps of bytes and their offset in docs that occur >= specified number of times in docs
  */
-vector<byte>
+map<string, Postings>
 get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurrences) {
     map<string, Postings> terms = index->_terms;
     
@@ -178,7 +178,7 @@ get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurren
     }
     cout << endl;
 
-    list<byte> result;
+    map<string, Postings> result;
     for (map<string, Postings>::iterator it = terms.begin(); it != terms.end(); it++) {
          string s = it->first;
 
@@ -195,24 +195,16 @@ get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurren
                 }
              }
              if (match) {
-                 result.push_back(b);
+                 result[s] = it->second;
              }  
          }
     }
-    return vector<byte>(result.begin(), result.end());
+    return result;
 }
 
-vector<string>
-get_repeated_strings(const vector<byte> &repeated_bytes) {
-    list<string> repeated_strings;
-    for (vector<byte>::const_iterator it = repeated_bytes.begin(); it != repeated_bytes.end(); it++) {
-        repeated_strings.push_back(string(1, (char)*it));
-    }
-    return vector<string>(repeated_strings.begin(), repeated_strings.end());
-}
 
 /*
- * Return true if s + b occurs >= number times
+ * Return true if s + b occurs >= num times
  *  where s is a member of strings and b is a member of bytes
  *  m is size of s for s in strings
  * THIS IS THE INNER LOOP
@@ -220,7 +212,12 @@ get_repeated_strings(const vector<byte> &repeated_bytes) {
 bool occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes, int num) {
     int num_matches = 0;
     vector<offset_t>::const_iterator bytes_lower = bytes.begin();
+    
     for (vector<offset_t>::const_iterator is = strings.begin(); is != strings.end(); is++) {
+        // upper_bound() requires search val to be less than highest val in searched array
+        if ((*is) + m >= bytes.back()) {
+            break;
+        }   
         vector<offset_t>::const_iterator next = upper_bound(bytes_lower, bytes.end(), (*is) + m); 
         if ((*next) == (*is) + m + 1) {
             num_matches++;
@@ -228,7 +225,10 @@ bool occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> 
                 return true;
             }
             next++;
-            bytes_lower = next; 
+            bytes_lower = next;
+            if (bytes_lower >= bytes.end()) {
+                break;
+            }
         }
     }
     return false;
@@ -236,15 +236,16 @@ bool occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> 
 
 /*
  * Return true if s + b exists sufficient numbers of times in each document
- *  s and b are guaranteed to be in all occurrneces
+ *  s and b are guaranteed to be in all occurrences
  */
 bool 
-has_sufficient_occurrences(map<string, Postings> &terms, const vector<Occurrence> &occurrences, 
-     string s, byte b) {
+has_sufficient_occurrences(const vector<Occurrence> &occurrences,
+                        map<string, Postings> &strings_map, const string s,
+                        map<string, Postings> &bytes_map, const string b) {
     unsigned int m = s.size();
 
-    Postings &s_postings = terms[s];
-    Postings &b_postings = terms[string(1, (char)b)];
+    Postings &s_postings = strings_map[s];
+    Postings &b_postings = bytes_map[b];
 
     //cout << "has_sufficient_occurrences(s='" << s << "',b=" << b << ")" << endl;
     
@@ -265,29 +266,37 @@ has_sufficient_occurrences(map<string, Postings> &terms, const vector<Occurrence
  * Return list of strings that are repeated sufficient numbers of time
  * Start with exact match to test the c++ written so fat
  */
-vector<string>
+list<string>
 get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurrences) {
-    vector<byte> repeated_bytes = get_repeated_bytes(inverted_index, occurrences); 
-    vector<string> repeated_strings = get_repeated_strings(repeated_bytes);  
+    map<string, Postings> repeated_bytes_map = get_repeated_bytes(inverted_index, occurrences); 
+    map<string, Postings> repeated_strings_map = copy_map(repeated_bytes_map);  
+        
+    cout << "get_all_repeats: repeated_bytes=" << repeated_bytes_map.size() << ",repeated_strings=" << repeated_strings_map.size() << endl;
 
-    cout << "get_all_repeats: repeated_bytes=" << repeated_bytes.size() << ",repeated_strings=" << repeated_strings.size() << endl;
+    list<string> repeated_bytes = get_keys(repeated_bytes_map);
 
-    while (true) {
-        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << repeated_strings[0].size() << endl;
-        list<string> repeated_strings_n1;
-        for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
-            for (vector<byte>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
+    for (offset_t n = 1; ; n++) {
+        list<string> repeated_strings = get_keys(repeated_strings_map);
+        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n ;
+        print_list("  strings", repeated_strings);
+        
+        map<string, Postings>  repeated_strings_n1;
+        
+        for (list<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
+            for (list<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
                 string s = *is;
-                byte b = *ib;
-                if (has_sufficient_occurrences(inverted_index->_terms, occurrences, s, b)) {
-                    repeated_strings_n1.push_back(*is + string(1, (char)*ib));
+                string b = *ib;
+                if (has_sufficient_occurrences(occurrences, repeated_strings_map, s, repeated_bytes_map, b)) {
+                    repeated_strings_n1[s + b] = repeated_strings_map[s];
+                } else {
+                    //cout << s+b << " did not occur sufficient times";
                 }
             } 
         }
         if (repeated_strings_n1.size() == 0) {
             break;
         }
-        repeated_strings = vector<string>(repeated_strings_n1.begin(), repeated_strings_n1.end());
+        repeated_strings_map = repeated_strings_n1;
     }
-    return repeated_strings;
+    return get_keys(repeated_strings_map);
 }
