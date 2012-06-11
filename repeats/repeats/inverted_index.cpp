@@ -202,35 +202,52 @@ get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurren
     return result;
 }
 
-
 /*
  * Return true if s + b occurs >= num times
  *  where s is a member of strings and b is a member of bytes
  *  m is size of s for s in strings
  * THIS IS THE INNER LOOP
+ *
+ * Basic idea is to keep 2 pointer and move the one behind and record matches
  */
-bool occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes, int num) {
-    int num_matches = 0;
-    vector<offset_t>::const_iterator bytes_lower = bytes.begin();
+bool 
+occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes, int num) {
     
-    for (vector<offset_t>::const_iterator is = strings.begin(); is != strings.end(); is++) {
+    int num_matches = 0;
+    vector<offset_t>::const_iterator ib = bytes.begin();
+    vector<offset_t>::const_iterator is = strings.begin();
+    
+    cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
+
+    while (ib < bytes.end() && is < strings.end()) {
+              
+        // Largest value in bytes <= s_end
+        ib = upper_bound(ib, bytes.end(), *is + m) - 1; 
+
         // upper_bound() requires search val to be less than highest val in searched array
-        if ((*is) + m >= bytes.back()) {
+        if (*ib - m >= strings.back()) {
             break;
-        }   
-        vector<offset_t>::const_iterator next = upper_bound(bytes_lower, bytes.end(), (*is) + m); 
-        if ((*next) == (*is) + m + 1) {
+        } 
+                    
+        if (*ib == *is + m) {
             num_matches++;
+            cout << " match " << num_matches << " at is = " << *is << " ib = " << *is << endl;
             if (num_matches >= num) {
                 return true;
             }
-            next++;
-            bytes_lower = next;
-            if (bytes_lower >= bytes.end()) {
-                break;
-            }
+            is++;
+            continue;
+        } 
+        
+        // ib < is. move it ahead.
+        is = upper_bound(is, strings.end(), *ib - m);
+
+        // upper_bound() requires search val to be less than highest val in searched array
+        if (*is + m >= bytes.back()) {
+            break;
         }
     }
+
     return false;
 }
 
@@ -241,7 +258,8 @@ bool occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> 
 bool 
 has_sufficient_occurrences(const vector<Occurrence> &occurrences,
                         map<string, Postings> &strings_map, const string s,
-                        map<string, Postings> &bytes_map, const string b) {
+                        map<string, Postings> &bytes_map, const string b,
+                        bool debug) {
     unsigned int m = s.size();
 
     Postings &s_postings = strings_map[s];
@@ -254,7 +272,14 @@ has_sufficient_occurrences(const vector<Occurrence> &occurrences,
         vector<offset_t> &bytes = b_postings.offsets_map[occurrences[i].doc_index];
 
        // cout << " strings='" << strings.size() << ",bytes='" << bytes.size() << endl; 
-
+        if (debug) {
+            cout << " ----- " << endl;
+            cout << s << "  ";
+            print_vector("strings", strings);
+            cout << b << "  ";
+            print_vector("bytes", bytes);
+            cout << " ----- " << endl;
+        }
         if (!occurs(strings, m, bytes, occurrences[i].num)) {
             return false;
         }
@@ -286,7 +311,11 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
             for (list<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
                 string s = *is;
                 string b = *ib;
-                if (has_sufficient_occurrences(occurrences, repeated_strings_map, s, repeated_bytes_map, b)) {
+                bool debug = (s == "re" && b == "p");
+                if (debug) {
+                    cout << " $$$ re case" << endl;
+                }
+                if (has_sufficient_occurrences(occurrences, repeated_strings_map, s, repeated_bytes_map, b, debug)) {
                     repeated_strings_n1[s + b] = repeated_strings_map[s];
                 } else {
                     //cout << s+b << " did not occur sufficient times";
