@@ -208,7 +208,8 @@ get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurren
  *  m is size of s for s in strings
  * THIS IS THE INNER LOOP
  *
- * Basic idea is to keep 2 pointer and move the one behind and record matches
+ * Basic idea is to keep 2 pointer and move the one behind and record matches of 
+ *  *is + m == *ib
  */
 bool 
 occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes, int num) {
@@ -216,39 +217,38 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
     int num_matches = 0;
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
+
+  
     
     cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
+    print_vector( "  strings", strings);
+    print_vector( "    bytes", bytes);
 
     while (ib < bytes.end() && is < strings.end()) {
-              
-        // Largest value in bytes <= s_end
-        ib = upper_bound(ib, bytes.end(), *is + m) - 1; 
-
-        // upper_bound() requires search val to be less than highest val in searched array
-        if (*ib - m >= strings.back()) {
+       
+        // Largest value in bytes <= *is + m
+        ib = get_lteq(ib, bytes.end(), *is + m);
+        if (ib == bytes.end()) {
             break;
-        } 
-                    
+        }
+
         if (*ib == *is + m) {
             num_matches++;
-            cout << " match " << num_matches << " at is = " << *is << " ib = " << *is << endl;
-            if (num_matches >= num) {
-                return true;
-            }
+            cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
+            // optimization
+            //if (num_matches >= num) {
+            //    break;
+            //}
             is++;
             continue;
         } 
         
-        // ib < is. move it ahead.
-        is = upper_bound(is, strings.end(), *ib - m);
-
-        // upper_bound() requires search val to be less than highest val in searched array
-        if (*is + m >= bytes.back()) {
-            break;
-        }
+        // *ib < *is + m. move is ahead.
+        is = get_gt(is+1, strings.end(), *ib - m);
+       
     }
 
-    return false;
+    return num_matches >= num;
 }
 
 /*

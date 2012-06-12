@@ -38,3 +38,37 @@ void print_vector(const std::string &name, const std::vector<T> &lst) {
     }  
     cout << "]" << endl;
 }
+
+/*
+ * Return largest x: *begin <= x < *end &&  x <= val
+ *  or end if val < *begin
+ */
+template <class T>
+typename std::vector<T>::const_iterator
+get_lteq(typename std::vector<T>::const_iterator begin, 
+         typename std::vector<T>::const_iterator end, 
+         const T val) { 
+    if (val < *begin)
+        return end;
+    else if (val > *(end - 1)) 
+        return end - 1;
+    else 
+        return std::upper_bound(begin, end, val) - 1;
+}
+
+/*
+ * Return smallest x: *begin <= x < *end &&  x > val
+ *  or end if val > *end
+ */
+template <class T>
+typename std::vector<T>::const_iterator
+get_gt(typename std::vector<T>::const_iterator begin, 
+         typename std::vector<T>::const_iterator end, 
+         const T val) { 
+    if (val < *begin)
+        return begin;
+    else if (val > *(end - 1)) 
+        return end;
+    else 
+        return std::upper_bound(begin, end, val);
+}
