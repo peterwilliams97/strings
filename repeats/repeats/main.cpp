@@ -20,8 +20,16 @@ struct TestEntry {
 
 
 TestEntry entries[] = {
-    {  2, string("C:\\dev\\suffix\\make_repeats\\repeats=2.txt") },
-    {  3, string("C:\\dev\\suffix\\make_repeats\\repeats=3.txt") }
+ { 11, string("C:\\dev\\suffix\\make_repeats\\repeats=11.txt") },
+ { 12, string("C:\\dev\\suffix\\make_repeats\\repeats=12.txt") },
+ { 13, string("C:\\dev\\suffix\\make_repeats\\repeats=13.txt") },
+ { 14, string("C:\\dev\\suffix\\make_repeats\\repeats=14.txt") },
+ { 15, string("C:\\dev\\suffix\\make_repeats\\repeats=15.txt") },
+ { 16, string("C:\\dev\\suffix\\make_repeats\\repeats=16.txt") },
+ { 17, string("C:\\dev\\suffix\\make_repeats\\repeats=17.txt") },
+ { 18, string("C:\\dev\\suffix\\make_repeats\\repeats=18.txt") },
+ { 19, string("C:\\dev\\suffix\\make_repeats\\repeats=19.txt") },
+ { 20, string("C:\\dev\\suffix\\make_repeats\\repeats=20.txt") }
 };
 const int NUM_TEST_FILES = NUMELEMS(entries);
 

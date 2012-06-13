@@ -217,10 +217,12 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
     int num_matches = 0;
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
-        
+
+#if DEBUG        
     cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
     print_vector( "  strings", strings);
     print_vector( "    bytes", bytes);
+#endif
 
     while (ib < bytes.end() && is < strings.end()) {
        
@@ -232,7 +234,9 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
 
         if (*ib == *is + m) {
             num_matches++;
+#if DEBUG
             cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
+#endif
             // optimization
             //if (num_matches >= num) {
             //    break;
@@ -312,7 +316,7 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
             for (list<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
                 string s = *is;
                 string b = *ib;
-                bool debug = (s == "re" && b == "p");
+                bool debug = (s == "re" && b == "p") && false;
                 if (debug) {
                     cout << " $$$ re case" << endl;
                 }
