@@ -217,9 +217,7 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
     int num_matches = 0;
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
-
-  
-    
+        
     cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
     print_vector( "  strings", strings);
     print_vector( "    bytes", bytes);
@@ -243,6 +241,9 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
             continue;
         } 
         
+        if (is + 1 >= strings.end()) {
+            break;
+        }
         // *ib < *is + m. move is ahead.
         is = get_gt(is+1, strings.end(), *ib - m);
        
