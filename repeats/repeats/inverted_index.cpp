@@ -110,7 +110,7 @@ get_doc_offsets_map(const string filename) {
             offsets[it->first] = vector<offset_t>(it->second.begin(), it->second.end());
         }
     }
-#if 1
+
     cout << "get_doc_offsets_map(" << filename << ") " << offsets.size() << " {";
     for (map<byte, vector<offset_t>>::iterator it = offsets.begin(); it != offsets.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
@@ -124,7 +124,6 @@ get_doc_offsets_map(const string filename) {
         }
     }
     return offsets;
-#endif
 }
 
 InvertedIndex 
@@ -160,6 +159,7 @@ InvertedIndex
 
             }
         }
+        cout << " Added " << filenames[i] << " to terms" << endl;
     }
 
     return new InvertedIndex(terms, vector<string>(docs.begin(), docs.end()));
