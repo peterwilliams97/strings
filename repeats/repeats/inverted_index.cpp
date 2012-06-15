@@ -19,12 +19,23 @@ typedef offset_t *p_offset_t;
  * http://en.wikipedia.org/wiki/Inverted_index
  */
 struct Postings {
-    int total_terms;                        // Total # occurences of term in all documents 
-    int total_docs;                         // # documents that term occurs in
-    vector<int> doc_indexes;                // Indexes of docs that term occurs in  
-    map<int, vector<offset_t>> offsets_map; // offsets[i] = offsets of term in document with index i 
+    int _total_terms;                        // Total # occurences of term in all documents 
+    vector<int> _doc_indexes;                // Indexes of docs that term occurs in  
+    map<int, vector<offset_t>> _offsets_map; // offsets[i] = offsets of term in document with index i 
     // Optional
-    map<int, vector<offset_t>> ends_map;    // ends[i] = offset of end of term in document with index i 
+    map<int, vector<offset_t>> _ends_map;    // ends[i] = offset of end of term in document with index i 
+
+    Postings() : _total_terms(0) {}
+
+    void add_offsets(int doc_index, const vector<offset_t> &offsets) {
+        _doc_indexes.push_back(doc_index);
+        _offsets_map[doc_index] = offsets;
+        _total_terms += offsets.size();
+    }
+
+    unsigned int size() const { return _offsets_map.size(); }
+
+    bool empty() const { return size() == 0; }
 };
 
 struct InvertedIndex {
@@ -73,10 +84,10 @@ static const int NUM_CHARS = 256;
 map<byte, vector<offset_t>> 
 get_doc_offsets_map(const string filename) {
 	
-    map<byte, list<offset_t>> offsets_map;
+    map<byte, list<offset_t>> _offsets_map;
 
     for (int i = 0; i < NUM_CHARS; i++) {
-        offsets_map[i] = list<offset_t>();
+        _offsets_map[i] = list<offset_t>();
     }
 	
     ifstream f;
@@ -95,7 +106,7 @@ get_doc_offsets_map(const string filename) {
 	streamsize n = f.gcount(); 
 	for (streamsize i = 0; i < n; i++) {
 	    byte b = filebuf[i];
-            offsets_map[b].push_back(offset);
+            _offsets_map[b].push_back(offset);
             offset++;
 	}
     }
@@ -105,7 +116,7 @@ get_doc_offsets_map(const string filename) {
 
     // Get rid of all the empty lists
     map<byte, vector<offset_t>> offsets;
-    for (map<byte, list<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
+    for (map<byte, list<offset_t>>::iterator it = _offsets_map.begin(); it != _offsets_map.end(); it++) {
         if (it->second.size() > 0) {
             offsets[it->first] = vector<offset_t>(it->second.begin(), it->second.end());
         }
@@ -133,12 +144,12 @@ InvertedIndex
     list<string> docs;
    
     for (unsigned int i = 0; i < filenames.size(); i++) {
-        map<byte, vector<offset_t>> offsets_map = get_doc_offsets_map(filenames[i]);
+        map<byte, vector<offset_t>> _offsets_map = get_doc_offsets_map(filenames[i]);
 
-        if (offsets_map.size() > 0) {
+        if (_offsets_map.size() > 0) {
             docs.push_back(filenames[i]);
 
-            for (map<byte, vector<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
+            for (map<byte, vector<offset_t>>::iterator it = _offsets_map.begin(); it != _offsets_map.end(); it++) {
                 
                 byte b = it->first;
                 vector<offset_t> &offsets = it->second;
@@ -147,11 +158,10 @@ InvertedIndex
                 assert(offsets.size() > 0);
 
                 string s(1, (char)b);
-                terms[s].total_terms += offsets.size();
-                terms[s].total_docs++;
+                terms[s]._total_terms += offsets.size();
                 int doc_idx = docs.size() - 1;  
-                terms[s].doc_indexes.push_back(doc_idx);
-                vector<offset_t> &current_offsets = terms[s].offsets_map[doc_idx];
+                terms[s]._doc_indexes.push_back(doc_idx);
+                vector<offset_t> &current_offsets = terms[s]._offsets_map[doc_idx];
                 current_offsets.resize(current_offsets.size() + offsets.size());
                 //cout << "s='" << s << "',doc_idx=" << doc_idx << ",offsets=" << offsets.size() << ",current_offsets=" << current_offsets.size() << endl;
                 copy(offsets.begin(), offsets.end(), current_offsets.begin());
@@ -188,8 +198,8 @@ get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurren
              Postings &postings = it->second; 
              bool match = true;
              for (unsigned int i = 0; i < occurrences.size(); i++) {
-                map<int,vector<offset_t>>::iterator ofs = postings.offsets_map.find(occurrences[i].doc_index); 
-                if (!(ofs != postings.offsets_map.end() && postings.offsets_map[occurrences[i].doc_index].size() >= occurrences[i].num)) {
+                map<int,vector<offset_t>>::iterator ofs = postings._offsets_map.find(occurrences[i].doc_index); 
+                if (!(ofs != postings._offsets_map.end() && postings._offsets_map[occurrences[i].doc_index].size() >= occurrences[i].num)) {
                     match = false;
                     break;
                 }
@@ -203,20 +213,22 @@ get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurren
 }
 
 /*
- * Return true if s + b occurs >= num times
- *  where s is a member of strings and b is a member of bytes
- *  m is size of s for s in strings
+ * Return ordered vector of offsets of strings s+b in document where 
+ *      strings is ordered vector of offsets of strings s in document
+ *      bytes is ordered vector of offsets of strings b in document
+ *      m is length of s
+ *
  * THIS IS THE INNER LOOP
  *
  * Basic idea is to keep 2 pointer and move the one behind and record matches of 
  *  *is + m == *ib
  */
-bool 
-occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes, int num) {
+const vector<offset_t>  
+get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
     
-    int num_matches = 0;
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
+    list<offset_t> sb;
 
 #if DEBUG        
     cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
@@ -233,14 +245,10 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
         }
 
         if (*ib == *is + m) {
-            num_matches++;
+            sb.push_back(*is);
 #if DEBUG
             cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
 #endif
-            // optimization
-            //if (num_matches >= num) {
-            //    break;
-            //}
             is++;
             continue;
         } 
@@ -250,51 +258,57 @@ occurs(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &byte
         }
         // *ib < *is + m. move is ahead.
         is = get_gt(is+1, strings.end(), *ib - m);
-       
     }
 
-    return num_matches >= num;
+    return vector<offset_t>(sb.begin(), sb.end());
 }
 
 /*
- * Return true if s + b exists sufficient numbers of times in each document
+ * Return Posting for s + b is s+b exists sufficient numbers of times in each document
+ *  otherwise an empty Postings
  *  s and b are guaranteed to be in all occurrences
  */
-bool 
-has_sufficient_occurrences(const vector<Occurrence> &occurrences,
-                        map<string, Postings> &strings_map, const string s,
-                        map<string, Postings> &bytes_map, const string b,
-                        bool debug) {
+Postings 
+get_postings(const vector<Occurrence> &occurrences,
+              map<string, Postings> &strings_map, const string s,
+              map<string, Postings> &bytes_map, const string b) {
+    
     unsigned int m = s.size();
-
     Postings &s_postings = strings_map[s];
     Postings &b_postings = bytes_map[b];
+    Postings sb_postings;
 
-    //cout << "has_sufficient_occurrences(s='" << s << "',b=" << b << ")" << endl;
-    
     for (unsigned int i = 0; i < occurrences.size(); i++) {
-        vector<offset_t> &strings = s_postings.offsets_map[occurrences[i].doc_index];
-        vector<offset_t> &bytes = b_postings.offsets_map[occurrences[i].doc_index];
+        int doc_index = occurrences[i].doc_index; 
+        vector<offset_t> &strings = s_postings._offsets_map[doc_index];
+        vector<offset_t> &bytes = b_postings._offsets_map[doc_index];
 
-       // cout << " strings='" << strings.size() << ",bytes='" << bytes.size() << endl; 
-        if (debug) {
-            cout << " ----- " << endl;
-            cout << s << "  ";
-            print_vector("strings", strings);
-            cout << b << "  ";
-            print_vector("bytes", bytes);
-            cout << " ----- " << endl;
+        vector<offset_t> sb_offsets = get_doc_offsets(strings, m, bytes);
+        if (sb_offsets.size() < occurrences[i].num) {
+            // Empty map signals no match
+            return Postings();
         }
-        if (!occurs(strings, m, bytes, occurrences[i].num)) {
-            return false;
-        }
+
+        // cout << "   matched " << s + b << " for doc " << doc_index << endl;
+        sb_postings.add_offsets(doc_index, sb_offsets);
     }
-    return true;
+
+    // cout << " matched " << s + b + " for " << sb_postings.size() << " docs" << endl;
+    return sb_postings;
 }
 
 /*
  * Return list of strings that are repeated sufficient numbers of time
- * Start with exact match to test the c++ written so fat
+ * Start with exact match to test the c++ written so far
+ * 
+ * Basic idea
+ *  repeated_strings_map contains repeated strings (worst case 4 x size of all docs) 
+ *  in each inner loop over repeated_bytes 
+ *      repeated_bytes_map[s] is replaced by < 256 repeated_bytes_map[s+b]
+ *      total size cannot grow because all s+b strings are contained in repeated_bytes_map[s]
+ *      (NOTE Could be smarter and use repeated_bytes_map for strings of length 1)
+ *      strings that do not occur often enough in all docs are filtered out
+ *
  */
 list<string>
 get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurrences) {
@@ -304,33 +318,41 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
     cout << "get_all_repeats: repeated_bytes=" << repeated_bytes_map.size() << ",repeated_strings=" << repeated_strings_map.size() << endl;
 
     list<string> repeated_bytes = get_keys(repeated_bytes_map);
+    list<string> repeated_strings = get_keys(repeated_strings_map);
 
     for (offset_t n = 1; ; n++) {
-        list<string> repeated_strings = get_keys(repeated_strings_map);
+       
         cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n ;
         print_list("  strings", repeated_strings);
         
         map<string, Postings>  repeated_strings_n1;
         
         for (list<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
+            string s = *is;
+
+            // Replace repeated_strings_map[s] with repeated_strings_map[s+b] for all b
+            // This cannot increase total number of offsets as each s+b starts with s
             for (list<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
-                string s = *is;
                 string b = *ib;
-                bool debug = (s == "re" && b == "p") && false;
-                if (debug) {
-                    cout << " $$$ re case" << endl;
-                }
-                if (has_sufficient_occurrences(occurrences, repeated_strings_map, s, repeated_bytes_map, b, debug)) {
-                    repeated_strings_n1[s + b] = repeated_strings_map[s];
-                } else {
-                    //cout << s+b << " did not occur sufficient times";
-                }
-            } 
+                
+                Postings postings = get_postings(occurrences, repeated_strings_map, s, repeated_bytes_map, b);
+                if (!postings.empty()) { 
+                    repeated_strings_map[s + b] = postings;
+                } 
+            }
+            repeated_strings_map.erase(s);
+
+           // print_list(" == intermediate strings",  get_keys(repeated_strings_map));
         }
-        if (repeated_strings_n1.size() == 0) {
+
+
+        // If not matches then we are doene
+        if (repeated_strings_map.size() == 0) {
             break;
         }
-        repeated_strings_map = repeated_strings_n1;
+        
+        repeated_strings = get_keys(repeated_strings_map);
     }
-    return get_keys(repeated_strings_map);
+
+    return repeated_strings;
 }

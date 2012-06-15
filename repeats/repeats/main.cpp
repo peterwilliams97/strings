@@ -57,6 +57,8 @@ void test() {
     cout << "Num occcurrences = " << occurrences.size() << endl;
 
     list<string> repeats = get_all_repeats(inverted_index, vector<Occurrence>(occurrences.begin(), occurrences.end()));
+    
+    cout << "===========================================" << endl;
     cout << "Found " << repeats.size() << " repeated strings";
     if (repeats.size() > 0) {
         cout << " of length " << repeats.front().size();
