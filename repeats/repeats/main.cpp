@@ -18,18 +18,22 @@ struct TestEntry {
     string filename;
 };
 
-
+/*
+ * Test data made with
+ *  https://github.com/peterwilliams97/strings/blob/master/make_repeats/make_repeats.py
+ */
 TestEntry entries[] = {
- { 11, string("C:\\dev\\suffix\\make_repeats\\repeats=11.txt") },
- { 12, string("C:\\dev\\suffix\\make_repeats\\repeats=12.txt") },
- { 13, string("C:\\dev\\suffix\\make_repeats\\repeats=13.txt") },
- { 14, string("C:\\dev\\suffix\\make_repeats\\repeats=14.txt") },
- { 15, string("C:\\dev\\suffix\\make_repeats\\repeats=15.txt") },
- { 16, string("C:\\dev\\suffix\\make_repeats\\repeats=16.txt") },
- { 17, string("C:\\dev\\suffix\\make_repeats\\repeats=17.txt") },
- { 18, string("C:\\dev\\suffix\\make_repeats\\repeats=18.txt") },
- { 19, string("C:\\dev\\suffix\\make_repeats\\repeats=19.txt") },
- { 20, string("C:\\dev\\suffix\\make_repeats\\repeats=20.txt") }
+ // { 20, string("C:\\dev\\suffix\\make_repeats\\repeats=20.txt") },
+  { 21, string("C:\\dev\\suffix\\make_repeats\\repeats=21.txt") },
+  { 22, string("C:\\dev\\suffix\\make_repeats\\repeats=22.txt") },
+  { 23, string("C:\\dev\\suffix\\make_repeats\\repeats=23.txt") },
+  { 24, string("C:\\dev\\suffix\\make_repeats\\repeats=24.txt") },
+  { 25, string("C:\\dev\\suffix\\make_repeats\\repeats=25.txt") },
+  { 26, string("C:\\dev\\suffix\\make_repeats\\repeats=26.txt") },
+  { 27, string("C:\\dev\\suffix\\make_repeats\\repeats=27.txt") },
+ // { 28, string("C:\\dev\\suffix\\make_repeats\\repeats=28.txt") },
+ // { 29, string("C:\\dev\\suffix\\make_repeats\\repeats=29.txt") },
+ // { 30, string("C:\\dev\\suffix\\make_repeats\\repeats=30.txt") }
 };
 const int NUM_TEST_FILES = NUMELEMS(entries);
 
