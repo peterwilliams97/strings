@@ -1,74 +1,199 @@
 #include <assert.h>
-#include <map>
-#include <vector>
-#include <list>
-#include <string>
+#include <regex>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
+
 #include "utils.h"
 #include "inverted_index.h"
 
 using namespace std;
 
+// We will always work at byte granularity as it is gives complete generality
 typedef unsigned char byte;
+
+// We encode offsets as 4 byte integers so that we get at most x4 increase in 
+//  size over the raw data
 typedef unsigned int offset_t;
 typedef offset_t *p_offset_t;
 
+// Specify number of times a term must occur in a doc
+struct Occurrence {
+    std::string _doc_name;      // Document name
+    unsigned int _num;          // Number of occurrences
+    size_t _size;               // Size of document in bytes     
+    Occurrence(const std::string doc_name, unsigned int num, size_t size) :
+        _doc_name(doc_name), _num(num), _size(size) {}  
+    Occurrence() : _doc_name(""), _num(0), _size(0) {} 
+    // Size of each repeat
+    double repeat_size() { return (double)_size/(double)_num; }
+};
+
+// How min num repeats are encoded in document names 
+static const string PATTERN_REPEATS = "repeats=(\\d+)";
+
+/* 
+ * Comparison function to sort doucment in order of size of repeat
+ */
+static bool 
+comp_occurrence(Occurrence occ1, Occurrence occ2) { 
+     return occ1.repeat_size() < occ2.repeat_size(); 
+}
+
 /*
+ * Given a vector of filenames PATTERN_REPEATS name encoding, return the
+ *  corresponding vector of Occurrences
+ * Vector is sorted in order of increasing repeat size as smaller repeat
+ *  sizes are more selective
+ */
+static vector<Occurrence> 
+get_occurrences(const vector<string> filenames) {
+
+    cout << "get_occurrences: " << filenames.size() << " files" << endl;
+  
+    list<Occurrence> occurrences;
+    regex re_repeats(PATTERN_REPEATS);
+
+    for (vector<string>::const_iterator it = filenames.begin(); it < filenames.end(); it++) {
+        const string &fn = *it; 
+        cmatch matches;
+        if (regex_search(fn.c_str(), matches, re_repeats)) {
+            occurrences.push_back(Occurrence(fn, string_to_int(matches[1]), get_file_size(fn)));
+        } else {
+            cerr << "file " << fn << " does not match pattern " << PATTERN_REPEATS << endl;
+        }
+    } 
+
+    vector<Occurrence> occ_vec = vector<Occurrence>(occurrences.begin(), occurrences.end());
+    sort(occ_vec.begin(), occ_vec.end(), comp_occurrence);
+
+    for (vector<Occurrence>::iterator it = occ_vec.begin(); it < occ_vec.end(); it++) {
+        cout << it - occ_vec.begin() << ": " << it->_doc_name << ", " << it->_num << ", " << it->_size << endl;
+    }
+    return occ_vec;
+}
+
+/*
+ * A Postings is a list of lists of offsets of a particular term
+ *  in all documents in our corpus.
+ *
+ * NOTE: A term is represented as a string and can represent a string 
+ *  or a byte
+ *
+ *  _offsets_map[i] stores the offsets in document i
+ *  
  * http://en.wikipedia.org/wiki/Inverted_index
  */
 struct Postings {
-    int _total_terms;                        // Total # occurences of term in all documents 
-    vector<int> _doc_indexes;                // Indexes of docs that term occurs in  
-    map<int, vector<offset_t>> _offsets_map; // offsets[i] = offsets of term in document with index i 
-    // Optional
-    map<int, vector<offset_t>> _ends_map;    // ends[i] = offset of end of term in document with index i 
+    // Total # occurences of term in all documents
+    int _total_terms;  
 
+    // Indexes of docs that term occurs in
+    vector<int> _doc_indexes;      
+
+    // _offsets_map[i] = offsets of term in document with index i 
+    //  Each offsets[i] is sorted smallest to largest
+    map<int, vector<offset_t>> _offsets_map;  
+
+    // Optional
+    // ends[i] = offset of end of term in document with index i 
+    //map<int, vector<offset_t>> _ends_map;   
+
+    // All fields are zero'd on construction
     Postings() : _total_terms(0) {}
 
+    // Add offsets for doc with index doc_offset to Postings
     void add_offsets(int doc_index, const vector<offset_t> &offsets) {
         _doc_indexes.push_back(doc_index);
         _offsets_map[doc_index] = offsets;
         _total_terms += offsets.size();
     }
 
+    // Return number of documents whose offsets are stored in Posting
     unsigned int size() const { return _offsets_map.size(); }
 
+    // Return true if no documents are encoding in Posting
     bool empty() const { return size() == 0; }
 };
 
+/*
+ * An InvertedIndex is a map of Postings of a set of terms accross 
+ *  all documents in a corpus.
+ *
+ *  _postings_map[term] stores all the offsets of term in all the 
+ *      docuements in the corpus 
+ *  
+ * Typical usage is to construct an initial InvertedIndex whose terms
+ *  are all bytes that occur in the corpus then to replace these 
+ *  with each string that occurs in the corpus. This is done
+ *  bottom-up, replacing _postings_map[s] with _postings_map[s+b]
+ *  for all bytes b to get from terms of length n to terms of 
+ *  length n+1
+ */
 struct InvertedIndex {
-    // Inverted index for strings across files
-    map<string, Postings> _terms;
+    // _postings_map[term] is the Postings of string term 
+    map<string, Postings> _postings_map;
   
-    // _docs[i] = filename of document with index i
-    vector<string> _docs;
+    // _docs_map[i] = filename + min occurrences with of document index i. 
+    //  The Postings in _postings_map index into this map
+    map<int, Occurrence> _docs_map;
 
-    InvertedIndex(map<string, Postings> terms, vector<string> docs) { 
-        _terms = terms;
-        _docs = docs;
+    set<string> _allowed_terms;
+
+    void create_allowed_terms() {
+        for (int b = 0; b < 256; b++) {
+            _allowed_terms.insert(string(1,(byte)b));
+        }
+    }
+
+    InvertedIndex() {
+        create_allowed_terms();
+    }
+    
+    /* 
+     * Add term offsets from a document to the inverted index
+     *  Trim _postings_map keys that are not in term_offsets
+     */
+    void add_doc(const Occurrence &occurrence, map<string, vector<offset_t>> &term_offsets) {
+        // Remove keys in _postings_map that are not keys of term_offsets
+        set<string> common_keys = get_intersection(_allowed_terms, get_keys_set(term_offsets));
+        trim_keys(_postings_map, common_keys);
+
+        int doc_index = _docs_map.size();
+        _docs_map[doc_index] = occurrence;
+             
+        for (set<string>::iterator it = common_keys.begin(); it != common_keys.end(); it++) {
+            string &term = *it;
+            vector<offset_t> &offsets = term_offsets[term];
+            _postings_map[term].add_offsets(doc_index, offsets);
+        }
     }
 
     void show(const string title) const {
         cout << "InvertedIndex ===== " << title << endl;
-        print_list("_terms", get_keys(_terms));
-        print_vector("_docs", _docs);
-
-    }
+        print_list("_postings_map", get_keys(_postings_map));
+        print_list("_docs_map", get_keys(_docs_map));
+   }
 };
 
-void show_inverted_index(const string title, const InvertedIndex *inverted_index) {
+/*
+ * Write contents of inverted_index to stdout
+ */
+void 
+show_inverted_index(const string title, const InvertedIndex *inverted_index) {
     inverted_index->show(title);
 }
 
 /*
- * Return index of doc if in index, otherwise -1
+ * Return index of document named doc_name if it is in inverted_index, 
+ *  otherwise -1
+ * !@#$ Clean this up with a reverse map
  */
-int get_doc_index(const InvertedIndex *inverted_index, string doc) {
-    const vector<string> &docs = inverted_index->_docs;
-    for (unsigned int i = 0; i < docs.size(); i++) {
-        if (docs[i] == doc) {
+static int 
+get_doc_index(InvertedIndex *inverted_index, const string doc_name) {
+    map<int, Occurrence> &docs_map = inverted_index->_docs_map;
+    for (int i = 0; i < (int)docs_map.size(); i++) {
+        string &doc = docs_map[(const int)i]._doc_name;
+        if (doc == doc_name) {
             return i;
         }
     }
@@ -78,23 +203,26 @@ int get_doc_index(const InvertedIndex *inverted_index, string doc) {
 static const int NUM_CHARS = 256;
 
 /*
- * Read file named filename into a map of bytes:all offsets of byte in a document 
+ * Read file named filename into a map of bytes:(all offsets of byte in a document)
  *  and return the map 
+ * Only read in offsets of bytes in allowed_bytes that  occur >= min_occurrences 
+ *  times
  */
-map<byte, vector<offset_t>> 
-get_doc_offsets_map(const string filename) {
+static map<string, vector<offset_t>> 
+get_doc_offsets_map(const string filename, const set<byte> allowed_bytes, unsigned int min_occurrences) {
 	
-    map<byte, list<offset_t>> _offsets_map;
+    map<byte, list<offset_t>> offsets_map;
 
-    for (int i = 0; i < NUM_CHARS; i++) {
-        _offsets_map[i] = list<offset_t>();
+    for (set<byte>::const_iterator it = allowed_bytes.begin(); it != allowed_bytes.end(); it++) {
+        offsets_map[*it] = list<offset_t>();
     }
 	
     ifstream f;
     f.open(filename, ios::in | ios::binary);
     if (!f.is_open()) {
 	cerr << "could not open " << filename << endl;
-	return map<byte, vector<offset_t>>();
+        // Return empty map on error
+	return map<string, vector<offset_t>>();
     }
 
     const int BUF_SIZE = 64 * 1024;
@@ -103,10 +231,20 @@ get_doc_offsets_map(const string filename) {
     offset_t offset = 0;
     while (!f.eof()) {
 	f.read((char *)filebuf, BUF_SIZE);
+#if 0
+        byte *end = filebuf +  f.gcount();
+        for (byte *p = filebuf; p < end; p++) {
+            if (allowed_bytes.find(*p) != allowed_bytes.end()) {
+                offsets_map[*p].push_back(offset);
+            }
+#else
 	streamsize n = f.gcount(); 
 	for (streamsize i = 0; i < n; i++) {
 	    byte b = filebuf[i];
-            _offsets_map[b].push_back(offset);
+            if (allowed_bytes.find(b) != allowed_bytes.end()) {
+                offsets_map[b].push_back(offset);
+            }
+#endif
             offset++;
 	}
     }
@@ -115,101 +253,69 @@ get_doc_offsets_map(const string filename) {
     delete[] filebuf;
 
     // Get rid of all the empty lists
-    map<byte, vector<offset_t>> offsets;
-    for (map<byte, list<offset_t>>::iterator it = _offsets_map.begin(); it != _offsets_map.end(); it++) {
-        if (it->second.size() > 0) {
-            offsets[it->first] = vector<offset_t>(it->second.begin(), it->second.end());
+    list<byte> deletions;
+    for (map<byte, list<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
+        if (it->second.size() < min_occurrences) {
+            deletions.push_back(it->first);
         }
     }
-
-    cout << "get_doc_offsets_map(" << filename << ") " << offsets.size() << " {";
-    for (map<byte, vector<offset_t>>::iterator it = offsets.begin(); it != offsets.end(); it++) {
+    for (list<byte>::iterator it = deletions.begin(); it != deletions.end(); it++) {
+        offsets_map.erase(*it);
+    }
+    
+    // Report what was read to stdout
+    cout << "get_doc_offsets_map(" << filename << ") " << offsets_map.size() << " {";
+    for (map<byte, list<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
     }
     cout << "}" << endl;
     
-    for (map<byte, vector<offset_t>>::iterator it = offsets.begin(); it != offsets.end(); it++) {
-        vector<offset_t> ofs = it->second; 
-        if (ofs[0] > 1000) {
-            cout << " *** " << it->first << ":" << ofs[0] << endl;
-        }
+    // Convert to map of vectors, taking care to convert one term at a time
+    list<byte> terms = get_keys(offsets_map); 
+    map<string, vector<offset_t>> vec_offsets_map;
+    for (list<byte>::iterator it = terms.begin(); it != terms.end(); it++) {
+        byte b = *it;
+        string s = string(1, b);
+        vec_offsets_map[s] = vector<offset_t>(offsets_map[b].begin(), offsets_map[b].end());
+        offsets_map.erase(*it);
     }
-    return offsets;
-}
-
-InvertedIndex 
-*make_inverted_index(const vector<string> filenames) {
- 
-    map<string, Postings> terms;
-    list<string> docs;
-   
-    for (unsigned int i = 0; i < filenames.size(); i++) {
-        map<byte, vector<offset_t>> _offsets_map = get_doc_offsets_map(filenames[i]);
-
-        if (_offsets_map.size() > 0) {
-            docs.push_back(filenames[i]);
-
-            for (map<byte, vector<offset_t>>::iterator it = _offsets_map.begin(); it != _offsets_map.end(); it++) {
-                
-                byte b = it->first;
-                vector<offset_t> &offsets = it->second;
-               
-                // This should always be tre
-                assert(offsets.size() > 0);
-
-                string s(1, (char)b);
-                terms[s]._total_terms += offsets.size();
-                int doc_idx = docs.size() - 1;  
-                terms[s]._doc_indexes.push_back(doc_idx);
-                vector<offset_t> &current_offsets = terms[s]._offsets_map[doc_idx];
-                current_offsets.resize(current_offsets.size() + offsets.size());
-                //cout << "s='" << s << "',doc_idx=" << doc_idx << ",offsets=" << offsets.size() << ",current_offsets=" << current_offsets.size() << endl;
-                copy(offsets.begin(), offsets.end(), current_offsets.begin());
-                assert(current_offsets[0] < 1000);
-
-            }
-        }
-        cout << " Added " << filenames[i] << " to terms" << endl;
-    }
-
-    return new InvertedIndex(terms, vector<string>(docs.begin(), docs.end()));
+      
+    return vec_offsets_map;
 }
 
 /*
- * Return maps of bytes and their offset in docs that occur >= specified number of times in docs
+ * Create the InvertedIndex corresponding to filenames 
  */
-map<string, Postings>
-get_repeated_bytes(const InvertedIndex *index, const vector<Occurrence> occurrences) {
-    map<string, Postings> terms = index->_terms;
-    
-    cout << "get_repeated_bytes: terms=" << terms.size() << endl;
-    for (map<string, Postings>::iterator it = terms.begin(); it != terms.end(); it++) {
-        cout << it->first << ", ";    
-    }
-    cout << endl;
+InvertedIndex 
+*create_inverted_index(const vector<string> &filenames) {
+ 
+    vector<Occurrence> occurrences = get_occurrences(filenames);
 
-    map<string, Postings> result;
-    for (map<string, Postings>::iterator it = terms.begin(); it != terms.end(); it++) {
-         string s = it->first;
+    map<string, Postings> terms;
+    list<string> docs;
 
-         // We are only interested in single byte strings
-         if (s.size() == 1) {
-             byte b = s[0];
-             Postings &postings = it->second; 
-             bool match = true;
-             for (unsigned int i = 0; i < occurrences.size(); i++) {
-                map<int,vector<offset_t>>::iterator ofs = postings._offsets_map.find(occurrences[i].doc_index); 
-                if (!(ofs != postings._offsets_map.end() && postings._offsets_map[occurrences[i].doc_index].size() >= occurrences[i].num)) {
-                    match = false;
-                    break;
-                }
-             }
-             if (match) {
-                 result[s] = it->second;
-             }  
-         }
+    set<byte> allowed_bytes;
+    for (int b = 0; b < 256; b++) {
+        allowed_bytes.insert(string(1,(byte)b));
     }
-    return result;
+ 
+    InvertedIndex *inverted_index = new InvertedIndex();
+   
+    for (vector<Occurrence>::const_iterator it = occurrences.begin(); it != occurrences.end(); it++) {
+        const Occurrence &occ = *it;
+        map<string, vector<offset_t>> offsets_map = get_doc_offsets_map(occ._doc_name, allowed_bytes, occ._num);
+        if (offsets_map.size() > 0) {
+            inverted_index->add_doc(occ, offsets_map);
+            list<string> keys = get_keys(inverted_index->_postings_map);
+            for (list<string>::iterator k = keys.begin(); k != keys.end(); k++) {
+                allowed_bytes.insert((*k)[0]);
+            } 
+       }
+       
+        cout << " Added " << occ._doc_name << " to inverted index" << endl;
+    }
+
+    return inverted_index;
 }
 
 /*
@@ -264,27 +370,28 @@ get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset
 }
 
 /*
- * Return Posting for s + b is s+b exists sufficient numbers of times in each document
+ * Return Posting for s + b if s+b exists sufficient numbers of times in each document
  *  otherwise an empty Postings
  *  s and b are guaranteed to be in all occurrences
  */
 Postings 
-get_postings(const vector<Occurrence> &occurrences,
-              map<string, Postings> &strings_map, const string s,
-              map<string, Postings> &bytes_map, const string b) {
-    
+get_sb_postings(InvertedIndex *inverted_index,
+             map<string, Postings> &strings_map, const string s,
+             const string b) {
+                 
     unsigned int m = s.size();
     Postings &s_postings = strings_map[s];
-    Postings &b_postings = bytes_map[b];
+    Postings &b_postings = inverted_index->_postings_map[b];
     Postings sb_postings;
 
-    for (unsigned int i = 0; i < occurrences.size(); i++) {
-        int doc_index = occurrences[i].doc_index; 
+    map<int, Occurrence> &docs_map = inverted_index->_docs_map;
+    for (map<int, Occurrence>::iterator it = docs_map.begin(); it != docs_map.end(); it++) {
+        int doc_index = it->first; 
         vector<offset_t> &strings = s_postings._offsets_map[doc_index];
         vector<offset_t> &bytes = b_postings._offsets_map[doc_index];
 
         vector<offset_t> sb_offsets = get_doc_offsets(strings, m, bytes);
-        if (sb_offsets.size() < occurrences[i].num) {
+        if (sb_offsets.size() < it->second._num) {
             // Empty map signals no match
             return Postings();
         }
@@ -296,6 +403,7 @@ get_postings(const vector<Occurrence> &occurrences,
     // cout << " matched " << s + b + " for " << sb_postings.size() << " docs" << endl;
     return sb_postings;
 }
+
 
 /*
  * Return list of strings that are repeated sufficient numbers of time
@@ -310,9 +418,13 @@ get_postings(const vector<Occurrence> &occurrences,
  *      strings that do not occur often enough in all docs are filtered out
  *
  */
-list<string>
-get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurrences) {
-    map<string, Postings> repeated_bytes_map = get_repeated_bytes(inverted_index, occurrences); 
+vector<string>
+get_all_repeats(InvertedIndex *inverted_index) {
+
+    // Postings map of strings of length 1 
+    map<string, Postings> &repeated_bytes_map = inverted_index->_postings_map; 
+
+    // Postings map of strings of length n 
     map<string, Postings> repeated_strings_map = copy_map(repeated_bytes_map);  
         
     cout << "get_all_repeats: repeated_bytes=" << repeated_bytes_map.size() << ",repeated_strings=" << repeated_strings_map.size() << endl;
@@ -322,11 +434,10 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
 
     for (offset_t n = 1; ; n++) {
        
+        // Report progress to stdout
         cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n ;
         print_list("  strings", repeated_strings);
-        
-        map<string, Postings>  repeated_strings_n1;
-        
+             
         for (list<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
             string s = *is;
 
@@ -335,18 +446,15 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
             for (list<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
                 string b = *ib;
                 
-                Postings postings = get_postings(occurrences, repeated_strings_map, s, repeated_bytes_map, b);
+                Postings postings = get_sb_postings(inverted_index, repeated_strings_map, s, b);
                 if (!postings.empty()) { 
                     repeated_strings_map[s + b] = postings;
                 } 
             }
             repeated_strings_map.erase(s);
-
-           // print_list(" == intermediate strings",  get_keys(repeated_strings_map));
         }
-
-
-        // If not matches then we are doene
+        
+        // If not matches then we were done in the last pass
         if (repeated_strings_map.size() == 0) {
             break;
         }
@@ -354,5 +462,5 @@ get_all_repeats(InvertedIndex *inverted_index, const vector<Occurrence> occurren
         repeated_strings = get_keys(repeated_strings_map);
     }
 
-    return repeated_strings;
+    return vector<string>(repeated_strings.begin(), repeated_strings.end());
 }
