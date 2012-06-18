@@ -162,7 +162,7 @@ struct InvertedIndex {
         _docs_map[doc_index] = occurrence;
              
         for (set<string>::iterator it = common_keys.begin(); it != common_keys.end(); it++) {
-            string &term = *it;
+            const string &term = *it;
             vector<offset_t> &offsets = term_offsets[term];
             _postings_map[term].add_offsets(doc_index, offsets);
         }
@@ -283,6 +283,8 @@ get_doc_offsets_map(const string filename, const set<byte> allowed_bytes, unsign
     return vec_offsets_map;
 }
 
+#ifdef NOT_DEFINED
+
 /*
  * Create the InvertedIndex corresponding to filenames 
  */
@@ -317,6 +319,8 @@ InvertedIndex
 
     return inverted_index;
 }
+
+
 
 /*
  * Return ordered vector of offsets of strings s+b in document where 
@@ -464,3 +468,5 @@ get_all_repeats(InvertedIndex *inverted_index) {
 
     return vector<string>(repeated_strings.begin(), repeated_strings.end());
 }
+
+#endif // #ifdef NOT_DEFINED

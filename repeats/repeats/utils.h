@@ -51,7 +51,7 @@ get_keys_vector(const std::map<K,V> mp) {
 template <class K, class V>
 std::set<K> 
 get_keys_set(const std::map<K,V> mp) {
-    std::list<K> keys = get_keys(const std::map<K,V> mp)
+    std::list<K> keys = get_keys(mp);
     return std::set<K>(keys.begin(), keys.end());
 }
 
@@ -139,7 +139,7 @@ template <class T>
 typename std::set<T>
 get_intersection(typename const std::set<T> &v1, 
                  typename const std::set<T> &v2) {
-    const std::set<T> v;
+    std::set<T> v;
     for (std::set<T>::const_iterator it = v1.begin(); it != v1.end(); it++) {
         if (v2.find(*it) != v2.end()) {
             v.insert(*it);
