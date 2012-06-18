@@ -1,20 +1,12 @@
 #include <assert.h>
 #include <regex>
-#include <fstream>
 #include <iostream>
 
+#include "mytypes.h"
 #include "utils.h"
 #include "inverted_index.h"
 
 using namespace std;
-
-// We will always work at byte granularity as it is gives complete generality
-typedef unsigned char byte;
-
-// We encode offsets as 4 byte integers so that we get at most x4 increase in 
-//  size over the raw data
-typedef unsigned int offset_t;
-typedef offset_t *p_offset_t;
 
 // Specify number of times a term must occur in a doc
 struct Occurrence {
@@ -169,9 +161,10 @@ struct InvertedIndex {
     }
 
     void show(const string title) const {
-        cout << "InvertedIndex ===== " << title << endl;
-        print_list("_postings_map", get_keys(_postings_map));
-        print_list("_docs_map", get_keys(_docs_map));
+        cout << " InvertedIndex ===== " << title << endl;
+        print_list(" _postings_map", get_keys(_postings_map));
+        print_list(" _docs_map", get_keys(_docs_map));
+        print_set(" _allowed_terms", _allowed_terms);
    }
 };
 
@@ -209,81 +202,67 @@ static const int NUM_CHARS = 256;
  *  times
  */
 static map<string, vector<offset_t>> 
-get_doc_offsets_map(const string filename, const set<byte> allowed_bytes, unsigned int min_occurrences) {
+get_doc_offsets_map(const string filename, set<string> &allowed_terms, unsigned int min_occurrences) {
 	
-    map<byte, list<offset_t>> offsets_map;
-
-    for (set<byte>::const_iterator it = allowed_bytes.begin(); it != allowed_bytes.end(); it++) {
-        offsets_map[*it] = list<offset_t>();
-    }
+    offset_t counts[256];
+    memset(&counts, 0, sizeof(counts));
 	
-    ifstream f;
-    f.open(filename, ios::in | ios::binary);
-    if (!f.is_open()) {
-	cerr << "could not open " << filename << endl;
-        // Return empty map on error
-	return map<string, vector<offset_t>>();
+    size_t length = get_file_size(filename);
+    byte *data = read_file(filename);
+    byte *end = data + length;
+    
+    // Pass through the document once to get counts of all bytes
+    for (byte *p = data; p < end; p++) {
+        counts[*p]++;
     }
 
-    const int BUF_SIZE = 64 * 1024;
-    byte *filebuf = new byte[BUF_SIZE];
+    // valid_bytes are those with sufficient counts
+    set<string> valid_bytes;
+    for (int b = 0; b < 256; b++) {
+        if (counts[b] >= min_occurrences) {
+            valid_bytes.insert(string(1,b));
+        }
+    } 
 
-    offset_t offset = 0;
-    while (!f.eof()) {
-	f.read((char *)filebuf, BUF_SIZE);
-#if 0
-        byte *end = filebuf +  f.gcount();
-        for (byte *p = filebuf; p < end; p++) {
-            if (allowed_bytes.find(*p) != allowed_bytes.end()) {
-                offsets_map[*p].push_back(offset);
-            }
-#else
-	streamsize n = f.gcount(); 
-	for (streamsize i = 0; i < n; i++) {
-	    byte b = filebuf[i];
-            if (allowed_bytes.find(b) != allowed_bytes.end()) {
-                offsets_map[b].push_back(offset);
-            }
-#endif
-            offset++;
-	}
-    }
+    // We use only the bytes that are valid for all documents so far/
+    allowed_terms = get_intersection(allowed_terms, valid_bytes);
 
-    f.close();
-    delete[] filebuf;
-
-    // Get rid of all the empty lists
-    list<byte> deletions;
-    for (map<byte, list<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
-        if (it->second.size() < min_occurrences) {
-            deletions.push_back(it->first);
+    // We have counts so we can pre-allocate data structures
+    map<string, vector<offset_t>> offsets_map;
+    bool allowed_bytes[256];
+    vector<offset_t>::iterator offsets_ptr[256];
+    for (int b = 0; b < 256; b++) {
+        string s(1,b);
+        bool allowed = allowed_terms.find(s) != allowed_terms.end();
+        allowed_bytes[b] = allowed;
+        if (allowed) {
+            offsets_map[s] = vector<offset_t>(counts[b]);
+            offsets_ptr[b] = offsets_map[s].begin();
         }
     }
-    for (list<byte>::iterator it = deletions.begin(); it != deletions.end(); it++) {
-        offsets_map.erase(*it);
-    }
     
+    // Pass through the document a second time and read in the bytes
+    offset_t ofs = 0;
+    for (byte *p = data; p < end; p++) {
+        if (allowed_bytes[*p]) {
+            vector<offset_t>::iterator ptr = offsets_ptr[*p];
+            *ptr = ofs;
+            ofs++;
+            ptr++;
+        }
+    }
+
+    delete[] data;
+
     // Report what was read to stdout
     cout << "get_doc_offsets_map(" << filename << ") " << offsets_map.size() << " {";
-    for (map<byte, list<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
+    for (map<string, vector<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
     }
     cout << "}" << endl;
-    
-    // Convert to map of vectors, taking care to convert one term at a time
-    list<byte> terms = get_keys(offsets_map); 
-    map<string, vector<offset_t>> vec_offsets_map;
-    for (list<byte>::iterator it = terms.begin(); it != terms.end(); it++) {
-        byte b = *it;
-        string s = string(1, b);
-        vec_offsets_map[s] = vector<offset_t>(offsets_map[b].begin(), offsets_map[b].end());
-        offsets_map.erase(*it);
-    }
-      
-    return vec_offsets_map;
+              
+    return offsets_map;
 }
-
-#ifdef NOT_DEFINED
 
 /*
  * Create the InvertedIndex corresponding to filenames 
@@ -296,31 +275,21 @@ InvertedIndex
     map<string, Postings> terms;
     list<string> docs;
 
-    set<byte> allowed_bytes;
-    for (int b = 0; b < 256; b++) {
-        allowed_bytes.insert(string(1,(byte)b));
-    }
- 
     InvertedIndex *inverted_index = new InvertedIndex();
    
     for (vector<Occurrence>::const_iterator it = occurrences.begin(); it != occurrences.end(); it++) {
         const Occurrence &occ = *it;
-        map<string, vector<offset_t>> offsets_map = get_doc_offsets_map(occ._doc_name, allowed_bytes, occ._num);
+        map<string, vector<offset_t>> offsets_map = get_doc_offsets_map(occ._doc_name, inverted_index->_allowed_terms, occ._num);
         if (offsets_map.size() > 0) {
             inverted_index->add_doc(occ, offsets_map);
-            list<string> keys = get_keys(inverted_index->_postings_map);
-            for (list<string>::iterator k = keys.begin(); k != keys.end(); k++) {
-                allowed_bytes.insert((*k)[0]);
-            } 
-       }
-       
+        }     
+               
         cout << " Added " << occ._doc_name << " to inverted index" << endl;
+        inverted_index->show(occ._doc_name);
     }
 
     return inverted_index;
 }
-
-
 
 /*
  * Return ordered vector of offsets of strings s+b in document where 
@@ -456,6 +425,7 @@ get_all_repeats(InvertedIndex *inverted_index) {
                 } 
             }
             repeated_strings_map.erase(s);
+            print_list(" repeated_strings_map", get_keys(repeated_strings_map));
         }
         
         // If not matches then we were done in the last pass
@@ -469,4 +439,5 @@ get_all_repeats(InvertedIndex *inverted_index) {
     return vector<string>(repeated_strings.begin(), repeated_strings.end());
 }
 
+#ifdef NOT_DEFINED
 #endif // #ifdef NOT_DEFINED

@@ -9,12 +9,31 @@ REPEATED_STRING = 'repeated'
 def make_repeats(size, num_repeats):
     repeat_size = size//num_repeats
     data = []
+    
+    # Random lower case letters
     for i in range(size):
         data.append(random.randint(ord('a'),ord('z')))
         
+    n = num_repeats % 36
+    if n < 10:
+        c = ord('0') + n
+    else:
+        c = ord('A') + n - 10
+
+    # One number or uppercase letter specific to file    
+    N = size - 1     
+    for i in range(max(num_repeats * 2, size // 100)):        
+        data[random.randint(0, N)] = c
+    
+    # Some values that occur onece
+    for i in range(10):
+        data[len(REPEATED_STRING) + i] = ord('!') + i 
+    
+    # The repeated string     
     for i in range(num_repeats):
         for j in range(len(REPEATED_STRING)):
-            data[i*repeat_size+j] = ord(REPEATED_STRING[j])    
+            data[i*repeat_size+j] = ord(REPEATED_STRING[j]) 
+
         
     return ''.join([chr(x) for x in data]) 
 

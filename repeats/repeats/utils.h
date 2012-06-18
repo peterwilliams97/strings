@@ -8,6 +8,8 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include "mytypes.h"
+
 
 #define NUMELEMS(a) (sizeof(a)/sizeof(a[0]))
 
@@ -88,9 +90,22 @@ print_list(const std::string &name, const std::list<T> &lst) {
  */
 template <class T>
 void 
- print_vector(const std::string &name, const std::vector<T> &lst) {
+print_vector(const std::string &name, const std::vector<T> &lst) {
     cout << name << ": " << lst.size() << " [";
     for (std::vector<T>::const_iterator it = lst.begin(); it != lst.end(); ++it) {
+	cout << *it << ", ";
+    }  
+    cout << "]" << endl;
+}
+
+/*
+ * Print vector set to stdout
+ */
+template <class T>
+void 
+print_set(const std::string &name, const std::set<T> &lst) {
+    cout << name << ": " << lst.size() << " [";
+    for (std::set<T>::const_iterator it = lst.begin(); it != lst.end(); ++it) {
 	cout << *it << ", ";
     }  
     cout << "]" << endl;
@@ -164,6 +179,7 @@ trim_keys(std::map<K,V> &mp, const std::set<K> &keys) {
 
 // Functions in utils.cpp
 int string_to_int(const std::string s); 
-size_t get_file_size(const std::string fn);
+size_t get_file_size(const std::string filename);
+byte *read_file(const std::string filename);
 
 #endif // #define UTILS_H
