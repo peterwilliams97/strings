@@ -25,7 +25,7 @@ def make_repeats(size, num_repeats):
     for i in range(max(num_repeats * 2, size // 100)):        
         data[random.randint(0, N)] = c
     
-    # Some values that occur onece
+    # Some values that occur once
     for i in range(10):
         data[len(REPEATED_STRING) + i] = ord('!') + i 
     
