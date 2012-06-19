@@ -4,7 +4,7 @@ Make test files for https://github.com/peterwilliams97/strings/tree/master/repea
 """
 import random, os
 
-REPEATED_STRING = 'repeated'
+REPEATED_STRING = '"the repeated string"'
 
 def make_repeats(size, num_repeats):
     repeat_size = size//num_repeats
@@ -64,7 +64,7 @@ def main():
     
     entries = []
     for num_repeats in range(11,21):
-        path = make_repeats_file(KBYTE, num_repeats)
+        path = make_repeats_file(10 * MBYTE, num_repeats)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
     
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     

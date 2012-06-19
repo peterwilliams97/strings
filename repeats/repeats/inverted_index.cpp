@@ -193,6 +193,17 @@ get_doc_index(InvertedIndex *inverted_index, const string doc_name) {
     return -1;
 }
 
+static bool 
+check_sorted(const vector<offset_t> &offsets) {
+    for (unsigned int i = 1; i < offsets.size(); i++) {
+        assert(offsets[i] > offsets[i-1]);
+        if (offsets[i] <= offsets[i-1]) {
+            return false;
+        }
+    }    
+    return true;
+}
+
 static const int NUM_CHARS = 256;
 
 /*
@@ -245,22 +256,22 @@ get_doc_offsets_map(const string filename, set<string> &allowed_terms, unsigned 
     offset_t ofs = 0;
     for (byte *p = data; p < end; p++) {
         if (allowed_bytes[*p]) {
-            vector<offset_t>::iterator ptr = offsets_ptr[*p];
-            *ptr = ofs;
+            *(offsets_ptr[*p]) = ofs;
             ofs++;
-            ptr++;
+            offsets_ptr[*p]++;
         }
     }
 
     delete[] data;
-
+    
     // Report what was read to stdout
     cout << "get_doc_offsets_map(" << filename << ") " << offsets_map.size() << " {";
     for (map<string, vector<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
+        //check_sorted(it->second);
     }
     cout << "}" << endl;
-              
+    
     return offsets_map;
 }
 
@@ -309,7 +320,7 @@ get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset
     vector<offset_t>::const_iterator is = strings.begin();
     list<offset_t> sb;
 
-#if DEBUG        
+#if DEBUG || 0        
     cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
     print_vector( "  strings", strings);
     print_vector( "    bytes", bytes);
@@ -425,10 +436,11 @@ get_all_repeats(InvertedIndex *inverted_index) {
                 } 
             }
             repeated_strings_map.erase(s);
-            print_list(" repeated_strings_map", get_keys(repeated_strings_map));
+            // print_list(" repeated_strings_map", get_keys(repeated_strings_map));
+            //cout << " " << repeated_strings_map.size() << " strings of length " << n +1 << endl; 
         }
         
-        // If not matches then we were done in the last pass
+        // If there are no matches then we were done in the last pass
         if (repeated_strings_map.size() == 0) {
             break;
         }
