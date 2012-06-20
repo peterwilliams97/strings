@@ -131,14 +131,11 @@ struct InvertedIndex {
 
     set<string> _allowed_terms;
 
-    void create_allowed_terms() {
+    InvertedIndex() {
+        // Make all bytes allowed
         for (int b = 0; b < 256; b++) {
             _allowed_terms.insert(string(1,(byte)b));
         }
-    }
-
-    InvertedIndex() {
-        create_allowed_terms();
     }
     
     /* 
@@ -162,9 +159,11 @@ struct InvertedIndex {
 
     void show(const string title) const {
         cout << " InvertedIndex ===== " << title << endl;
+#ifdef VERBOSE
         print_list(" _postings_map", get_keys(_postings_map));
         print_list(" _docs_map", get_keys(_docs_map));
         print_set(" _allowed_terms", _allowed_terms);
+#endif
    }
 };
 
@@ -296,10 +295,17 @@ InvertedIndex
         }     
                
         cout << " Added " << occ._doc_name << " to inverted index" << endl;
+#ifdef VERBOSE
         inverted_index->show(occ._doc_name);
+#endif
     }
 
     return inverted_index;
+}
+
+void
+delete_inverted_index(InvertedIndex *inverted_index) {
+    delete inverted_index;
 }
 
 /*
@@ -419,9 +425,10 @@ get_all_repeats(InvertedIndex *inverted_index) {
     for (offset_t n = 1; ; n++) {
        
         // Report progress to stdout
-        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n ;
+        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n << endl;
+#ifdef VERBOSE
         print_list("  strings", repeated_strings);
-             
+#endif             
         for (list<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
             string s = *is;
 

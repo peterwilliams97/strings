@@ -37,10 +37,10 @@ get_filenames() {
     return vector<string>(filenames.begin(), filenames.end());
 }
 
+static
 void 
-test() {
-    vector<string> filenames = get_filenames();
-
+test_inverted_index(const vector<string> filenames) {
+   
     InvertedIndex *inverted_index = create_inverted_index(filenames);
     cout << "========================================================" << endl;
     
@@ -56,10 +56,28 @@ test() {
     }
     cout << endl;
     print_vector("Repeated strings", repeats);
+
+    delete_inverted_index(inverted_index);
+}
+
+void 
+test() {
+    vector<string> filenames = get_filenames();
+    test_inverted_index(filenames);
+}
+
+void 
+multi_test(int n) {
+    vector<string> filenames = get_filenames();
+    for (int i = 0; i < n; i++) {
+        cout << "========================== test " << i << " of " << n << " ==============================" << endl;
+        test_inverted_index(filenames);
+    }
 }
 
 int main() {
     test();
+    multi_test(100);
     return 0;
 }
 
