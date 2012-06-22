@@ -1,3 +1,5 @@
+//#define VERBOSE TRUE
+
 #include <assert.h>
 #include <regex>
 #include <iostream>
@@ -264,13 +266,14 @@ get_doc_offsets_map(const string filename, set<string> &allowed_terms, unsigned 
     delete[] data;
     
     // Report what was read to stdout
+#ifdef VERBOSE
     cout << "get_doc_offsets_map(" << filename << ") " << offsets_map.size() << " {";
     for (map<string, vector<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
         //check_sorted(it->second);
     }
     cout << "}" << endl;
-    
+#endif    
     return offsets_map;
 }
 
@@ -319,6 +322,9 @@ delete_inverted_index(InvertedIndex *inverted_index) {
  * Basic idea is to keep 2 pointer and move the one behind and record matches of 
  *  *is + m == *ib
  */
+#define INNER_LOOP 1
+
+#if INNER_LOOP == 0
 const vector<offset_t>  
 get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
     
@@ -358,6 +364,52 @@ get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset
 
     return vector<offset_t>(sb.begin(), sb.end());
 }
+#endif
+
+#if INNER_LOOP == 1
+const vector<offset_t>  
+get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
+    
+    vector<offset_t>::const_iterator ib = bytes.begin();
+    vector<offset_t>::const_iterator is = strings.begin();
+    vector<offset_t>::const_iterator b_end = bytes.end(); 
+    vector<offset_t>::const_iterator s_end = strings.end(); 
+    list<offset_t> sb;
+
+   
+    while (ib < b_end && is < s_end) {
+        
+        offset_t is_m = *is + m;
+       
+        while (ib < b_end && *ib < is_m) {
+            ib++;
+        }
+        if (ib == b_end) {
+            break;
+        }
+
+        if (*ib == *is + m) {
+            sb.push_back(*is);
+#ifdef VERBOSE
+       //     cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
+#endif
+            is++;
+            continue;
+        } 
+               
+        // *ib > *is + m. move is ahead.
+        offset_t ib_m =  *ib - m;
+        
+        while (is < s_end && *is < ib_m) {
+            is++;
+        }
+        
+       
+    }
+
+    return vector<offset_t>(sb.begin(), sb.end());
+}
+#endif
 
 /*
  * Return Posting for s + b if s+b exists sufficient numbers of times in each document
@@ -383,6 +435,7 @@ get_sb_postings(InvertedIndex *inverted_index,
         vector<offset_t> sb_offsets = get_doc_offsets(strings, m, bytes);
         if (sb_offsets.size() < it->second._num) {
             // Empty map signals no match
+            // cout << " no match for '" << s + b + "' for " << sb_postings.size() << " < " << it->second._num << endl;
             return Postings();
         }
 
@@ -390,7 +443,9 @@ get_sb_postings(InvertedIndex *inverted_index,
         sb_postings.add_offsets(doc_index, sb_offsets);
     }
 
-    // cout << " matched " << s + b + " for " << sb_postings.size() << " docs" << endl;
+#ifdef VERBOSE
+    cout << " matched '" << s + b + "' for " << sb_postings.size() << " docs" << endl;
+#endif
     return sb_postings;
 }
 

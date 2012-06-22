@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include "utils.h"
+#include "timer.h"
 #include "inverted_index.h"
 
 using namespace std;
@@ -38,9 +40,11 @@ get_filenames() {
 }
 
 static
-void 
+double 
 test_inverted_index(const vector<string> filenames) {
    
+    double time0 = get_elapsed_time();
+
     InvertedIndex *inverted_index = create_inverted_index(filenames);
     cout << "========================================================" << endl;
     
@@ -58,6 +62,12 @@ test_inverted_index(const vector<string> filenames) {
     print_vector("Repeated strings", repeats);
 
     delete_inverted_index(inverted_index);
+
+    double time1 = get_elapsed_time();
+    double duration = time1 - time0;
+    cout << "duration = " << duration << endl;
+    return duration;
+
 }
 
 void 
@@ -67,16 +77,35 @@ test() {
 }
 
 void 
+show_stats(list<double> durations) {
+    vector<double> d = vector<double>(durations.begin(), durations.end()); 
+    double min_d = numeric_limits<double>::max();
+    double max_d = numeric_limits<double>::min();
+    double total = 0.0;
+    for (vector<double>::iterator it = d.begin(); it != d.end(); it++) {
+        min_d = min(min_d, *it);
+        max_d = max(max_d, *it);
+        total += *it;
+    }
+    unsigned int n = d.size();
+    double ave = total/(double)n;
+    double med = d[n/2]; 
+    cout << "min="<< min_d << ", max="<< max_d << ", ave=" << ave << ", med=" << med << endl; 
+}
+void 
 multi_test(int n) {
     vector<string> filenames = get_filenames();
+    list<double> durations;
     for (int i = 0; i < n; i++) {
         cout << "========================== test " << i << " of " << n << " ==============================" << endl;
-        test_inverted_index(filenames);
+        durations.push_back(test_inverted_index(filenames));
+        show_stats(durations);
     }
+   
 }
 
 int main() {
-    test();
+    //test();
     multi_test(100);
     return 0;
 }

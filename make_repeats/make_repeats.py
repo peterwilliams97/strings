@@ -4,15 +4,26 @@ Make test files for https://github.com/peterwilliams97/strings/tree/master/repea
 """
 import random, os
 
-REPEATED_STRING = '"the repeated string"'
+REPEATED_STRING = '\n"the long long long repeated string"\n'
+
+OTHER_STRINGS = [
+    'Findland', 'Sweden', 'Pakistan', 'India', 'Doctor'
+    'poodle', 'spaniel', 'modern', 'mythical', 'orginal',
+    'ancient', '1000 cities', '100 nights', '10 fathers',
+    'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 
+    'Saturn', 'Uranus', 'Neptune', 'Pluto'
+]
 
 def make_repeats(size, num_repeats):
     repeat_size = size//num_repeats
     data = []
     
     # Random lower case letters
-    for i in range(size):
+    for i in range(size//4):
         data.append(random.randint(ord('a'),ord('z')))
+        data.append(random.randint(ord('A'),ord('Z')))
+        data.append(random.randint(ord('0'),ord('9')))
+        data.append(random.randint(10, 255))
         
     n = num_repeats % 36
     if n < 10:
@@ -29,11 +40,18 @@ def make_repeats(size, num_repeats):
     for i in range(10):
         data[len(REPEATED_STRING) + i] = ord('!') + i 
     
+    # The other strings     
+    for i in range(num_repeats*3):
+        for s0 in OTHER_STRINGS:
+            s = ' ' + s0 + ' '  
+            p = random.randint(0, N - len(s))
+            for j in range(len(s)):
+                data[p+j] = ord(s[j])
+            
     # The repeated string     
     for i in range(num_repeats):
         for j in range(len(REPEATED_STRING)):
             data[i*repeat_size+j] = ord(REPEATED_STRING[j]) 
-
         
     return ''.join([chr(x) for x in data]) 
 
@@ -64,7 +82,7 @@ def main():
     
     entries = []
     for num_repeats in range(11,21):
-        path = make_repeats_file(10 * MBYTE, num_repeats)
+        path = make_repeats_file(2*MBYTE, num_repeats)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
     
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     
