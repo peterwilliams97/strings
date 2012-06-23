@@ -51,7 +51,7 @@ get_occurrences(const vector<string> filenames) {
 
     cout << "get_occurrences: " << filenames.size() << " files" << endl;
   
-    list<Occurrence> occurrences;
+    vector<Occurrence> occurrences;
     regex re_repeats(PATTERN_REPEATS);
 
     for (vector<string>::const_iterator it = filenames.begin(); it < filenames.end(); it++) {
@@ -63,14 +63,13 @@ get_occurrences(const vector<string> filenames) {
             cerr << "file " << fn << " does not match pattern " << PATTERN_REPEATS << endl;
         }
     } 
+       
+    sort(occurrences.begin(), occurrences.end(), comp_occurrence);
 
-    vector<Occurrence> occ_vec = vector<Occurrence>(occurrences.begin(), occurrences.end());
-    sort(occ_vec.begin(), occ_vec.end(), comp_occurrence);
-
-    for (vector<Occurrence>::iterator it = occ_vec.begin(); it < occ_vec.end(); it++) {
-        cout << it - occ_vec.begin() << ": " << it->_doc_name << ", " << it->_num << ", " << it->_size << endl;
+    for (vector<Occurrence>::iterator it = occurrences.begin(); it < occurrences.end(); it++) {
+        cout << it - occurrences.begin() << ": " << it->_doc_name << ", " << it->_num << ", " << it->_size << endl;
     }
-    return occ_vec;
+    return occurrences;
 }
 
 /*
@@ -412,7 +411,7 @@ get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_
             break;
         }
         // *ib < *is + m. move is ahead.
-        is = get_gt(is+1, strings.end(), *ib - m);
+        is = get_gt2(is+1, strings.end(), *ib - m, step_size);
     }
 
     return vector<offset_t>(sb.begin(), sb.end());
@@ -556,8 +555,8 @@ get_all_repeats(InvertedIndex *inverted_index) {
         
     cout << "get_all_repeats: repeated_bytes=" << repeated_bytes_map.size() << ",repeated_strings=" << repeated_strings_map.size() << endl;
 
-    list<string> repeated_bytes = get_keys(repeated_bytes_map);
-    list<string> repeated_strings = get_keys(repeated_strings_map);
+    vector<string> repeated_bytes = get_keys_vector(repeated_bytes_map);
+    vector<string> repeated_strings = get_keys_vector(repeated_strings_map);
 
     for (offset_t n = 1; ; n++) {
        
@@ -566,12 +565,12 @@ get_all_repeats(InvertedIndex *inverted_index) {
 #ifdef VERBOSE
         print_list("  strings", repeated_strings);
 #endif             
-        for (list<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
+        for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
             string s = *is;
 
             // Replace repeated_strings_map[s] with repeated_strings_map[s+b] for all b
             // This cannot increase total number of offsets as each s+b starts with s
-            for (list<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
+            for (vector<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
                 string b = *ib;
                 
                 Postings postings = get_sb_postings(inverted_index, repeated_strings_map, s, b);
@@ -589,10 +588,10 @@ get_all_repeats(InvertedIndex *inverted_index) {
             break;
         }
         
-        repeated_strings = get_keys(repeated_strings_map);
+        repeated_strings = get_keys_vector(repeated_strings_map);
     }
 
-    return vector<string>(repeated_strings.begin(), repeated_strings.end());
+    return repeated_strings;
 }
 
 #ifdef NOT_DEFINED

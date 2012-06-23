@@ -94,7 +94,7 @@ def main():
     
     entries = []
     for num_repeats in range(11,21):
-        path = make_repeats_file(20*MBYTE, num_repeats)
+        path = make_repeats_file(2*MBYTE, num_repeats)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
     
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     
