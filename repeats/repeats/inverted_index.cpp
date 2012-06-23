@@ -1,9 +1,13 @@
-//#define VERBOSE TRUE
-
 /*
  * INNER_LOOPs
  *  0 is approx twice fast as 1
  *  2 seems a little faster than 1
+ *
+ *  10 is  35 sec on 10 x 2 MB
+ *   1    150 
+ *   0     36
+ *   0 is 320 sec on 5 x 20 MB
+
  */
 #define INNER_LOOP 10
 
@@ -49,8 +53,9 @@ comp_occurrence(Occurrence occ1, Occurrence occ2) {
 static vector<Occurrence> 
 get_occurrences(const vector<string> filenames) {
 
+#if VERBOSITY >= 1
     cout << "get_occurrences: " << filenames.size() << " files" << endl;
-  
+#endif  
     vector<Occurrence> occurrences;
     regex re_repeats(PATTERN_REPEATS);
 
@@ -65,10 +70,11 @@ get_occurrences(const vector<string> filenames) {
     } 
        
     sort(occurrences.begin(), occurrences.end(), comp_occurrence);
-
+#if VERBOSITY >= 1
     for (vector<Occurrence>::iterator it = occurrences.begin(); it < occurrences.end(); it++) {
         cout << it - occurrences.begin() << ": " << it->_doc_name << ", " << it->_num << ", " << it->_size << endl;
     }
+#endif
     return occurrences;
 }
 
@@ -166,8 +172,8 @@ struct InvertedIndex {
     }
 
     void show(const string title) const {
+#if VERBOSITY >= 2
         cout << " InvertedIndex ===== " << title << endl;
-#ifdef VERBOSE
         print_list(" _postings_map", get_keys(_postings_map));
         print_list(" _docs_map", get_keys(_docs_map));
         print_set(" _allowed_terms", _allowed_terms);
@@ -272,7 +278,7 @@ get_doc_offsets_map(const string filename, set<string> &allowed_terms, unsigned 
     delete[] data;
     
     // Report what was read to stdout
-#ifdef VERBOSE
+#if VERBOSITY >= 2
     cout << "get_doc_offsets_map(" << filename << ") " << offsets_map.size() << " {";
     for (map<string, vector<offset_t>>::iterator it = offsets_map.begin(); it != offsets_map.end(); it++) {
         cout << it->first << ":" << it->second.size() << ", ";
@@ -303,8 +309,10 @@ InvertedIndex
             inverted_index->add_doc(occ, offsets_map);
         }     
                
+#if VERBOSITY >= 1
         cout << " Added " << occ._doc_name << " to inverted index" << endl;
-#ifdef VERBOSE
+#endif
+#if VERBOSITY >= 2
         inverted_index->show(occ._doc_name);
 #endif
     }
@@ -382,27 +390,23 @@ get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_
 
     // Performance about same for 256, 512 when num chars is low
     // !@#$ Need to optimize this
-    size_t step_size = 512;
+    // The next power 2 calculation slows 2 MB test 35 sec => 42 sec!
+    //size_t step_size_b = next_power2((double)(bytes.back() - bytes.front())/(double)bytes.size());
+    //size_t step_size_s = next_power2((double)(strings.back() - strings.front())/(double)strings.size());
 
-#if DEBUG || 0        
-    cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
-    print_vector( "  strings", strings);
-    print_vector( "    bytes", bytes);
-#endif
+    size_t step_size_b = 512;
+    size_t step_size_s = 512; 
 
     while (ib < bytes.end() && is < strings.end()) {
        
-        // Largest value in bytes <= *is + m
-        ib = get_lteq2(ib, bytes.end(), *is + m, step_size);
+        // *ib = largest value in bytes <= *is + m
+        ib = get_lteq2(ib, bytes.end(), *is + m, step_size_b);
         if (ib == bytes.end()) {
             break;
         }
 
         if (*ib == *is + m) {
             sb.push_back(*is);
-#if DEBUG
-            cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
-#endif
             is++;
             continue;
         } 
@@ -411,7 +415,7 @@ get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_
             break;
         }
         // *ib < *is + m. move is ahead.
-        is = get_gt2(is+1, strings.end(), *ib - m, step_size);
+        is = get_gt2(is+1, strings.end(), *ib - m, step_size_s);
     }
 
     return vector<offset_t>(sb.begin(), sb.end());
@@ -524,7 +528,7 @@ get_sb_postings(InvertedIndex *inverted_index,
         sb_postings.add_offsets(doc_index, sb_offsets);
     }
 
-#ifdef VERBOSE
+#if VERBOSITY >= 2
     cout << " matched '" << s + b + "' for " << sb_postings.size() << " docs" << endl;
 #endif
     return sb_postings;
@@ -552,17 +556,20 @@ get_all_repeats(InvertedIndex *inverted_index) {
 
     // Postings map of strings of length n 
     map<string, Postings> repeated_strings_map = copy_map(repeated_bytes_map);  
-        
-    cout << "get_all_repeats: repeated_bytes=" << repeated_bytes_map.size() << ",repeated_strings=" << repeated_strings_map.size() << endl;
 
+#if VERBOSITY >= 1
+    cout << "get_all_repeats: repeated_bytes=" << repeated_bytes_map.size() << ",repeated_strings=" << repeated_strings_map.size() << endl;
+#endif
     vector<string> repeated_bytes = get_keys_vector(repeated_bytes_map);
     vector<string> repeated_strings = get_keys_vector(repeated_strings_map);
 
     for (offset_t n = 1; ; n++) {
        
+#if VERBOSITY >= 1
         // Report progress to stdout
         cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n << endl;
-#ifdef VERBOSE
+#endif
+#if VERBOSITY >= 2
         print_list("  strings", repeated_strings);
 #endif             
         for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {

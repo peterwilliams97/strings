@@ -9,4 +9,6 @@ typedef unsigned char byte;
 typedef unsigned int offset_t;
 typedef offset_t *p_offset_t;
 
+#define VERBOSITY 0
+
 #endif // #ifndef MYTYPES_H

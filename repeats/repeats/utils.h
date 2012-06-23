@@ -8,6 +8,7 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 #include "mytypes.h"
 
 #define NUMELEMS(a) (sizeof(a)/sizeof(a[0]))
@@ -269,6 +270,16 @@ trim_keys(std::map<K,V> &mp, const std::set<K> &keys) {
             mp.erase(*it);
         } 
     } 
+}
+
+#define LOG2 0.69314718055994529
+
+/*
+ * Return smallest power of 2 >= x
+ */
+inline size_t
+next_power2(double x) {
+    return (size_t)pow(2.0, ceil(log(x)/LOG2));
 }
 
 // Functions in utils.cpp

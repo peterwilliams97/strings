@@ -22,11 +22,13 @@ TestEntry entries[] = {
   { 13, string("C:\\dev\\suffix\\make_repeats\\repeats=13.txt") },
   { 14, string("C:\\dev\\suffix\\make_repeats\\repeats=14.txt") },
   { 15, string("C:\\dev\\suffix\\make_repeats\\repeats=15.txt") },
+#if 0
   { 16, string("C:\\dev\\suffix\\make_repeats\\repeats=16.txt") },
   { 17, string("C:\\dev\\suffix\\make_repeats\\repeats=17.txt") },
   { 18, string("C:\\dev\\suffix\\make_repeats\\repeats=18.txt") },
   { 19, string("C:\\dev\\suffix\\make_repeats\\repeats=19.txt") },
   { 20, string("C:\\dev\\suffix\\make_repeats\\repeats=20.txt") }
+#endif
 };
 const int NUM_TEST_FILES = NUMELEMS(entries);
 
@@ -103,6 +105,18 @@ multi_test(int n) {
 }
 
 int main() {
+#if 0
+    size_t a = 96591;
+    size_t b = 8091;
+    double log2 = log(2.0);
+    double x = (double)a/(double)b;
+    double lx = log(x);
+    double l2 = lx/log2;
+    double n2 = pow(ceil(l2), 2.0);
+    size_t n = (size_t)n2;
+    cout << "log2 = " << log2 << endl;
+    cout << "x = " << x << ", n = " <<  n << endl;
+#endif
     //test();
     multi_test(100);
     return 0;
