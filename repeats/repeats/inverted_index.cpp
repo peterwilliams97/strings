@@ -7,9 +7,10 @@
  *   1    150 
  *   0     36
  *   0 is 320 sec on 5 x 20 MB
-
+ *   1    1295
+ *  10    296
  */
-#define INNER_LOOP 10
+#define INNER_LOOP 1
 
 #include <assert.h>
 #include <regex>

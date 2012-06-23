@@ -33,25 +33,6 @@ def findall(text, pattern):
             return offsets
         offsets.append(ofs)
         start = ofs + 1
-        
-RANGE = 999000        
-def compress(text, numpages):
-    """Markers are likely to be near start of end of pages
-        We simplistically assume pages of roughly equal size 
-        and use only the   data within RANGE of multiples of 
-        size of file/numbers
-    """
-    # Offsets of for equally sized pages
-    breaks = [int(len(text) * n/numpages) for n in range(numpages)] + [len(text)]
-    
-    # Boundaries of RANGE bytes before and after each break
-    boundaries = [[max(0,i-RANGE),min(len(text),i+RANGE)] for i in breaks]
-    for i in range(1, len(boundaries)):
-        boundaries[i][0] = max(boundaries[i][0], boundaries[i-1][1])
-    boundaries = [(s,f) for (s,f) in boundaries if f > s]  
-    
-    # Just the data within the boundaries    
-    return ''.join([text[s:f] for (s,f) in boundaries])
 
 def get_data(filename):
    """Return filename, numpages, text for filename
@@ -59,21 +40,16 @@ def get_data(filename):
    """
    numpages = get_numpages(filename)
    text = file(filename, 'rb').read()
-   #text = compress(text, numpages)
-   exclusion1 = 'modelName=Xerox Phaser 3100MFP\x00xpiName=C:\\WINDOWS\\SYSTEM32\\SPOOL\\DRIVERS\\X64\\3\\LF2XP310.XPI\x00format=OCM_COLOR_NONE\x00hts=TRUE\x00errDiff=FALSE\x00cmm=TRUE\x00ignoreWCS='
-   exclusion2 = 'OUTBIN=UPPER\x00duplexBackRotate=0\x00duplexManual=0\x00DUPLEX_INSTRUCTION_PAGE=O'
-   text = text.replace(exclusion1, '')
-   text = text.replace(exclusion2, '')
    return filename, numpages, text
-   
+
 MAX_FILE_LEN = 999*1024*1024
-   
+
 def analyze(file_pattern):
 
     files = get_files(file_pattern)
     if not files:
         return
-    
+
     corpus = [get_data(filename) for filename in files]
     corpus.sort(key = lambda x: len(x[2])/x[1])
     corpus = [x for x in corpus if len(x[2]) <= MAX_FILE_LEN]
@@ -84,7 +60,7 @@ def analyze(file_pattern):
     def sufficient(s):
         """Return True if s is repeated numpages or more times in each test file"""
         return all([text.count(s) >= numpages for (_,numpages,text) in corpus])
-        
+
     def exact_match(s, intercept):
         """Return True if s is repeated numpages times in each test file"""
         return all([text.count(s) == numpages + intercept for (_,numpages,text) in corpus])    
@@ -103,7 +79,7 @@ def analyze(file_pattern):
             Also prints out some progress information
         """
         return [s for s in base_strings if sufficient(s)]
-        
+
     base_unistrings = [chr(i) for i in range(256)]
     unistrings = get_valid(base_unistrings)
     nstrings = unistrings
@@ -139,7 +115,6 @@ def analyze(file_pattern):
             print '%2d: %40s, expected=%3d, detected=%3d %s' % (i, filename, 
                     numpages, detected, warning)
 
-            
     print '=' * 80
     if exact_nstrings:
         print 'EXACT MATCHES. Length=%d. Intercept=%d' % (len(exact_nstrings[0]), i) 
@@ -152,17 +127,13 @@ def analyze(file_pattern):
                         numpages, detected, warning)    
 
 if __name__ == '__main__':    
-    import sys
+    import sys, time
 
     if len(sys.argv) <= 1:
         print 'Usage: python %s <filename>' % sys.argv[0]
         exit()
-        
+
+    start = time.clock()
     analyze(sys.argv[1])
-
-
-
-    
-
-
-
+    duration = time.clock() - start
+    print 'duration = %.1f' % duration
