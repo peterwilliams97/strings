@@ -10,7 +10,6 @@
 #include <algorithm>
 #include "mytypes.h"
 
-
 #define NUMELEMS(a) (sizeof(a)/sizeof(a[0]))
 
 /*
@@ -127,6 +126,35 @@ get_lteq(typename std::vector<T>::const_iterator begin,
     else 
         return std::upper_bound(begin, end, val) - 1;
 }
+
+/*
+ * Return largest x: *begin <= x < *end &&  x <= val
+ *  or end if val < *begin
+ */
+template <class T>
+typename std::vector<T>::const_iterator
+get_lteq2(typename std::vector<T>::const_iterator begin2, 
+          typename std::vector<T>::const_iterator end2, 
+          const T val, size_t step_size) { 
+    
+    if (val < *begin2) {
+        // No x >= begin2
+        return end2;
+    }
+
+    // Step through range
+    for (std::vector<T>::const_iterator begin = begin2; begin < end2; begin += step_size) {
+        std::vector<T>::const_iterator end = min(end2, begin + step_size);   
+        if (val <= *(end - 1)) { 
+            // We are in range [begin, end)  
+            return std::upper_bound(begin, end, val) - 1;
+        }
+    }
+
+    // No match. So return largest element
+    return end2 - 1;
+}
+
 
 /*
  * Return smallest x: *begin <= x < *end &&  x > val

@@ -1,5 +1,12 @@
 //#define VERBOSE TRUE
 
+/*
+ * INNER_LOOPs
+ *  0 is approx twice fast as 1
+ *  2 seems a little faster than 1
+ */
+#define INNER_LOOP 10
+
 #include <assert.h>
 #include <regex>
 #include <iostream>
@@ -322,11 +329,11 @@ delete_inverted_index(InvertedIndex *inverted_index) {
  * Basic idea is to keep 2 pointer and move the one behind and record matches of 
  *  *is + m == *ib
  */
-#define INNER_LOOP 1
+
 
 #if INNER_LOOP == 0
 const vector<offset_t>  
-get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
+get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
     
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
@@ -366,21 +373,65 @@ get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset
 }
 #endif
 
+#if INNER_LOOP == 10
+const vector<offset_t>  
+get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
+    
+    vector<offset_t>::const_iterator ib = bytes.begin();
+    vector<offset_t>::const_iterator is = strings.begin();
+    vector<offset_t> sb;
+
+    // Performance about same for 256, 512 when num chars is low
+    // !@#$ Need to optimize this
+    size_t step_size = 512;
+
+#if DEBUG || 0        
+    cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
+    print_vector( "  strings", strings);
+    print_vector( "    bytes", bytes);
+#endif
+
+    while (ib < bytes.end() && is < strings.end()) {
+       
+        // Largest value in bytes <= *is + m
+        ib = get_lteq2(ib, bytes.end(), *is + m, step_size);
+        if (ib == bytes.end()) {
+            break;
+        }
+
+        if (*ib == *is + m) {
+            sb.push_back(*is);
+#if DEBUG
+            cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
+#endif
+            is++;
+            continue;
+        } 
+        
+        if (is + 1 >= strings.end()) {
+            break;
+        }
+        // *ib < *is + m. move is ahead.
+        is = get_gt(is+1, strings.end(), *ib - m);
+    }
+
+    return vector<offset_t>(sb.begin(), sb.end());
+}
+#endif
+
 #if INNER_LOOP == 1
 const vector<offset_t>  
-get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
+get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
     
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
     vector<offset_t>::const_iterator b_end = bytes.end(); 
     vector<offset_t>::const_iterator s_end = strings.end(); 
     list<offset_t> sb;
-
-   
+       
     while (ib < b_end && is < s_end) {
         
         offset_t is_m = *is + m;
-       
         while (ib < b_end && *ib < is_m) {
             ib++;
         }
@@ -390,24 +441,55 @@ get_doc_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset
 
         if (*ib == *is + m) {
             sb.push_back(*is);
-#ifdef VERBOSE
-       //     cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
-#endif
             is++;
             continue;
         } 
                
         // *ib > *is + m. move is ahead.
         offset_t ib_m =  *ib - m;
-        
         while (is < s_end && *is < ib_m) {
             is++;
         }
-        
-       
     }
 
     return vector<offset_t>(sb.begin(), sb.end());
+}
+#endif
+
+#if INNER_LOOP == 2
+const vector<offset_t>  
+get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
+    
+    vector<offset_t>::const_iterator ib = bytes.begin();
+    vector<offset_t>::const_iterator is = strings.begin();
+    vector<offset_t>::const_iterator b_end = bytes.end(); 
+    vector<offset_t>::const_iterator s_end = strings.end(); 
+    vector<offset_t> sb;
+       
+    while (ib < b_end && is < s_end) {
+        
+        offset_t is_m = *is + m;
+        while (ib < b_end && *ib < is_m) {
+            ib++;
+        }
+        if (ib == b_end) {
+            break;
+        }
+
+        if (*ib == *is + m) {
+            sb.push_back(*is);
+            is++;
+            continue;
+        } 
+               
+        // *ib > *is + m. move is ahead.
+        offset_t ib_m =  *ib - m;
+        while (is < s_end && *is < ib_m) {
+            is++;
+        }
+    }
+
+    return sb;
 }
 #endif
 
@@ -432,7 +514,7 @@ get_sb_postings(InvertedIndex *inverted_index,
         vector<offset_t> &strings = s_postings._offsets_map[doc_index];
         vector<offset_t> &bytes = b_postings._offsets_map[doc_index];
 
-        vector<offset_t> sb_offsets = get_doc_offsets(strings, m, bytes);
+        vector<offset_t> sb_offsets = get_sb_offsets(strings, m, bytes);
         if (sb_offsets.size() < it->second._num) {
             // Empty map signals no match
             // cout << " no match for '" << s + b + "' for " << sb_postings.size() << " < " << it->second._num << endl;

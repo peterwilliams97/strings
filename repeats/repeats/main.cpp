@@ -63,11 +63,9 @@ test_inverted_index(const vector<string> filenames) {
 
     delete_inverted_index(inverted_index);
 
-    double time1 = get_elapsed_time();
-    double duration = time1 - time0;
+    double duration = get_elapsed_time() - time0;
     cout << "duration = " << duration << endl;
     return duration;
-
 }
 
 void 
@@ -77,8 +75,8 @@ test() {
 }
 
 void 
-show_stats(list<double> durations) {
-    vector<double> d = vector<double>(durations.begin(), durations.end()); 
+show_stats(vector<double> d) {
+    
     double min_d = numeric_limits<double>::max();
     double max_d = numeric_limits<double>::min();
     double total = 0.0;
@@ -92,16 +90,16 @@ show_stats(list<double> durations) {
     double med = d[n/2]; 
     cout << "min="<< min_d << ", max="<< max_d << ", ave=" << ave << ", med=" << med << endl; 
 }
+
 void 
 multi_test(int n) {
     vector<string> filenames = get_filenames();
-    list<double> durations;
+    vector<double> durations;
     for (int i = 0; i < n; i++) {
         cout << "========================== test " << i << " of " << n << " ==============================" << endl;
         durations.push_back(test_inverted_index(filenames));
         show_stats(durations);
     }
-   
 }
 
 int main() {

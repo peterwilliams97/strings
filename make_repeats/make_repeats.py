@@ -18,13 +18,25 @@ def make_repeats(size, num_repeats):
     repeat_size = size//num_repeats
     data = []
     
-    # Random lower case letters
-    for i in range(size//4):
-        data.append(random.randint(ord('a'),ord('z')))
-        data.append(random.randint(ord('A'),ord('Z')))
-        data.append(random.randint(ord('0'),ord('9')))
-        data.append(random.randint(10, 255))
-        
+    method = 1
+    if method == 0:
+        # Random lower case letters
+        for i in range(size):
+            data.append(random.randint(ord('a'),ord('z')))
+    
+    elif method == 1:    
+        for i in range(size):
+            data.append(random.randint(0, 255))
+            
+    elif method == 2:    
+        # Random lower case letters
+        for i in range(size//4):
+            data.append(random.randint(ord('a'),ord('z')))
+            data.append(random.randint(ord('A'),ord('Z')))
+            data.append(random.randint(ord('0'),ord('9')))
+            data.append(random.randint(10, 255))
+    
+    
     n = num_repeats % 36
     if n < 10:
         c = ord('0') + n
@@ -82,7 +94,7 @@ def main():
     
     entries = []
     for num_repeats in range(11,21):
-        path = make_repeats_file(2*MBYTE, num_repeats)
+        path = make_repeats_file(20*MBYTE, num_repeats)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
     
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     
