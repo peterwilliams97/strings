@@ -105,12 +105,13 @@ print_list(const std::string &name, const std::list<T> &lst) {
  */
 template <class T>
 void 
-print_vector(const std::string &name, const std::vector<T> &lst) {
+print_vector(const std::string &name, const std::vector<T> &lst, size_t n = std::numeric_limits<size_t>::max();) {
     cout << name << ": " << lst.size() << " [";
-    for (std::vector<T>::const_iterator it = lst.begin(); it != lst.end(); ++it) {
+    std::vector<T>::const_iterator end = lst.begin() + min(n, lst.size());
+    for (std::vector<T>::const_iterator it = lst.begin(); it != end; ++it) {
 	cout << *it << ", ";
     }  
-    cout << "]" << endl;
+    cout << "] "  << lst.size() << endl;
 }
 
 /*
@@ -126,6 +127,15 @@ print_set(const std::string &name, const std::set<T> &lst) {
     cout << "]" << endl;
 }
 
+template <class K, class V>
+size_t
+get_map_vector_size(const std::map<K,std::vector<V>> mp) {
+    size_t size = 0;
+    for (std::map<K,std::vector<V>>::const_iterator it = mp.begin(); it != mp.end(); it++) {
+        size += it->second.size(); 
+    }
+    return size;
+}
 /*
  * Return largest x: *begin <= x < *end &&  x <= val
  *  or end if val < *begin
@@ -201,22 +211,26 @@ get_lteq2(typename std::vector<T>::const_iterator begin2,
 
 
 /*
- * Return smallest x: *begin <= x < *end &&  x > val
- *  or end if val > *end
+ * Return smallest x: *begin2 <= x < *end2 &&  x > val
+ *  or end2 if val > *end2
  */
 template <class T>
 typename std::vector<T>::const_iterator
-get_gt2(typename std::vector<T>::const_iterator begin2, 
+get_gteq2(typename std::vector<T>::const_iterator begin2, 
          typename std::vector<T>::const_iterator end2, 
          const T val, size_t step_size) { 
 
-    // val < smallest element in array so return smallest element
-    if (val < *begin2) {
+    // val <= smallest element in array so return smallest element
+    if (val <= *begin2) {
         return begin2;
     }
    
+    begin2++;
+    if (begin2 == end2)  {
+        return end2;
+    }
 
-     // As far as we can go in full steps of step_size
+    // As far as we can go in full steps of step_size
     std::vector<T>::const_iterator end1 = begin2 + ((end2-begin2)/step_size)*step_size; 
 
     // Step through range in steps of step_size
@@ -224,7 +238,8 @@ get_gt2(typename std::vector<T>::const_iterator begin2,
         std::vector<T>::const_iterator end = begin + step_size;   
         if (val <= *(end - 1)) { 
             // We are in range [begin, end)  
-            return std::upper_bound(begin, end, val);
+            std::vector<T>::const_iterator ge = std::upper_bound(begin, end, val) - 1;
+            return (val == *ge) ? ge : ge + 1;
         }
     }
 
@@ -232,7 +247,8 @@ get_gt2(typename std::vector<T>::const_iterator begin2,
     if (end1 < end2) {    
         if (val <= *(end2 - 1)) { 
             // We are in range [begin, end)  
-            return std::upper_bound(end1, end2, val);
+            std::vector<T>::const_iterator ge = std::upper_bound(end1, end2, val) - 1;
+            return (val == *ge) ? ge : ge + 1;
         }
     }
 

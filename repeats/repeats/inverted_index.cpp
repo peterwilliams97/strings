@@ -9,8 +9,9 @@
  *   0 is 320 sec on 5 x 20 MB
  *   1    1295
  *  10    296
+ *  10pf   231     (pre-filter == check for match of last n chars)
  */
-#define INNER_LOOP 1
+#define INNER_LOOP 10
 
 #include <assert.h>
 #include <regex>
@@ -399,24 +400,15 @@ get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_
     size_t step_size_s = 512; 
 
     while (ib < bytes.end() && is < strings.end()) {
-       
-        // *ib = largest value in bytes <= *is + m
-        ib = get_lteq2(ib, bytes.end(), *is + m, step_size_b);
-        if (ib == bytes.end()) {
-            break;
-        }
-
+        
         if (*ib == *is + m) {
             sb.push_back(*is);
             is++;
-            continue;
-        } 
-        
-        if (is + 1 >= strings.end()) {
-            break;
+        } else if (*ib < *is + m) {
+            ib = get_gteq2(ib, bytes.end(), *is + m, step_size_b);
+        } else {
+            is = get_gteq2(is, strings.end(), *ib - m, step_size_s);
         }
-        // *ib < *is + m. move is ahead.
-        is = get_gt2(is+1, strings.end(), *ib - m, step_size_s);
     }
 
     return vector<offset_t>(sb.begin(), sb.end());
@@ -535,7 +527,6 @@ get_sb_postings(InvertedIndex *inverted_index,
     return sb_postings;
 }
 
-
 /*
  * Return list of strings that are repeated sufficient numbers of time
  * Start with exact match to test the c++ written so far
@@ -555,7 +546,7 @@ get_all_repeats(InvertedIndex *inverted_index) {
     // Postings map of strings of length 1 
     map<string, Postings> &repeated_bytes_map = inverted_index->_postings_map; 
 
-    // Postings map of strings of length n 
+    // Postings map of strings of length n+1 from strings of length n 
     map<string, Postings> repeated_strings_map = copy_map(repeated_bytes_map);  
 
 #if VERBOSITY >= 1
@@ -564,31 +555,71 @@ get_all_repeats(InvertedIndex *inverted_index) {
     vector<string> repeated_bytes = get_keys_vector(repeated_bytes_map);
     vector<string> repeated_strings = get_keys_vector(repeated_strings_map);
 
+    // Each pass through this for loop builds strings of length n+2 from 
     for (offset_t n = 1; ; n++) {
        
-#if VERBOSITY >= 1
+#if VERBOSITY >= 1 || 1
         // Report progress to stdout
+        cout << "--------------------------------------------------------------------------" << endl;
         cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n << endl;
 #endif
-#if VERBOSITY >= 2
-        print_list("  strings", repeated_strings);
-#endif             
+#if VERBOSITY >= 2 || 1
+        print_vector("repeated_strings", repeated_strings, 40);
+#endif   
+        // Filter out n+1 string that don't end with a n string
+        map<string,vector<string>> valid_strings;
         for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
-            string s = *is;
+            string &s = *is;
+            valid_strings[s] = vector<string>();
+            for (vector<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
+                string &b = *ib;
+                if (binary_search(repeated_strings.begin(), repeated_strings.end(), (s+b).substr(1))) {
+                    valid_strings[s].push_back(b);
+                 }             
+            }
+        }
+       
+        vector<string> valid_keys = get_keys_vector(valid_strings);
+        for (vector<string>::iterator it = valid_keys.begin(); it != valid_keys.end(); it++) {
+            if (valid_strings[*it].size() == 0) {
+                valid_strings.erase(*it);
+           }
+        }
+        print_vector("   valid_strings", get_keys_vector(valid_strings));
+        cout << repeated_strings.size() << " strings * "
+             << repeated_bytes.size() << " bytes = "
+             << repeated_strings.size() * repeated_bytes.size() << " vs " 
+             << get_map_vector_size(valid_strings) << " valid_strings" << endl;
+        
 
+        for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
+            if (valid_strings.find(*is) == valid_strings.end()) {
+                repeated_strings_map.erase(*is);
+            }
+        }
+
+        for (map<string,vector<string>>::iterator iv = valid_strings.begin(); iv != valid_strings.end(); iv++) {
+            string s = iv->first;
+            vector<string> bytes = iv->second;
+                     
             // Replace repeated_strings_map[s] with repeated_strings_map[s+b] for all b
             // This cannot increase total number of offsets as each s+b starts with s
-            for (vector<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
+            for (vector<string>::iterator ib = bytes.begin(); ib != bytes.end(); ib++) {
                 string b = *ib;
+
+                if (s == " " && b == "r") {
+                    cout << s << " + " << b << endl;
+                }
                 
                 Postings postings = get_sb_postings(inverted_index, repeated_strings_map, s, b);
                 if (!postings.empty()) { 
+                     if (s == " " && b == "r") {
+                        cout << s + b << endl;
+                    }
                     repeated_strings_map[s + b] = postings;
                 } 
             }
             repeated_strings_map.erase(s);
-            // print_list(" repeated_strings_map", get_keys(repeated_strings_map));
-            //cout << " " << repeated_strings_map.size() << " strings of length " << n +1 << endl; 
         }
         
         // If there are no matches then we were done in the last pass

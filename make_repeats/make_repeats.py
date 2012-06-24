@@ -4,7 +4,8 @@ Make test files for https://github.com/peterwilliams97/strings/tree/master/repea
 """
 import random, os
 
-REPEATED_STRING = '\n"the long long long repeated string"\n'
+REPEATED_STRING = 'the long long long repeated string'
+#REPEATED_STRING = '0123456789'
 
 OTHER_STRINGS = [
     'Findland', 'Sweden', 'Pakistan', 'India', 'Doctor'
@@ -14,11 +15,10 @@ OTHER_STRINGS = [
     'Saturn', 'Uranus', 'Neptune', 'Pluto'
 ]
 
-def make_repeats(size, num_repeats):
+def make_repeats(size, num_repeats, method):
     repeat_size = size//num_repeats
     data = []
     
-    method = 1
     if method == 0:
         # Random lower case letters
         for i in range(size):
@@ -29,14 +29,22 @@ def make_repeats(size, num_repeats):
             data.append(random.randint(0, 255))
             
     elif method == 2:    
-        # Random lower case letters
         for i in range(size//4):
             data.append(random.randint(ord('a'),ord('z')))
             data.append(random.randint(ord('A'),ord('Z')))
             data.append(random.randint(ord('0'),ord('9')))
             data.append(random.randint(10, 255))
-    
-    
+     
+    elif method == 3:    
+        for i in range(size//3):
+            data.append(random.randint(ord('a'),ord('z')))
+            data.append(random.randint(ord('A'),ord('Z')))
+            data.append(random.randint(ord('0'),ord('9')))
+            
+    elif method == 4:    
+        for i in range(size):
+            data.append(random.randint(ord('A'),ord('Z')))
+     
     n = num_repeats % 36
     if n < 10:
         c = ord('0') + n
@@ -52,36 +60,28 @@ def make_repeats(size, num_repeats):
     for i in range(10):
         data[len(REPEATED_STRING) + i] = ord('!') + i 
     
-    # The other strings     
-    for i in range(num_repeats*3):
-        for s0 in OTHER_STRINGS:
-            s = ' ' + s0 + ' '  
-            p = random.randint(0, N - len(s))
-            for j in range(len(s)):
-                data[p+j] = ord(s[j])
+    # The other strings    
+    if False:
+        for i in range(num_repeats*3):
+            for s0 in OTHER_STRINGS:
+                s = ' ' + s0 + ' '  
+                p = random.randint(0, N - len(s))
+                for j in range(len(s)):
+                    data[p+j] = ord(s[j])
             
     # The repeated string     
     for i in range(num_repeats):
         for j in range(len(REPEATED_STRING)):
             data[i*repeat_size+j] = ord(REPEATED_STRING[j]) 
         
-    return ''.join([chr(x) for x in data]) 
+    result = ''.join([chr(x) for x in data]) 
+    assert result.count(REPEATED_STRING) == num_repeats
+    return result
 
-def make_repeats_safe(size, num_repeats):
-    for i in range(10):
-        text = make_repeats(size, num_repeats)
-        actual_repeats = text.count(REPEATED_STRING)
-        if actual_repeats == num_repeats:
-            return text
-        print 'Repeats mismatch! actual_repeats=%d,num_repeats=%d' % (
-            actual_repeats, num_repeats)
-    assert false, 'Cannot be here'
-
-    
-def make_repeats_file(size, num_repeats):
+def make_repeats_file(size, num_repeats, method):
     name = 'repeats=%d.txt' % num_repeats
     print 'make_repeats_file(%d, %d) name="%s"' % (size, num_repeats, name)
-    file(name, 'wb').write(make_repeats_safe(size, num_repeats))
+    file(name, 'wb').write(make_repeats(size, num_repeats, method))
     return os.path.abspath(name).replace('\\', '\\\\')
 
 KBYTE = 1024
@@ -93,11 +93,11 @@ def main():
     random.seed(111)
     
     entries = []
-    for num_repeats in range(11,31):
-        path = make_repeats_file(20*MBYTE, num_repeats)
+    for num_repeats in range(11,16):
+        path = make_repeats_file(10*MBYTE, num_repeats, 1)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
-    
+
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     
-        
+
 main()
 
