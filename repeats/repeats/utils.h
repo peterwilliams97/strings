@@ -136,82 +136,33 @@ get_map_vector_size(const std::map<K,std::vector<V>> mp) {
     }
     return size;
 }
-/*
- * Return largest x: *begin <= x < *end &&  x <= val
- *  or end if val < *begin
- */
-template <class T>
-typename std::vector<T>::const_iterator
-get_lteq(typename std::vector<T>::const_iterator begin, 
-         typename std::vector<T>::const_iterator end, 
-         const T val) { 
-    if (val < *begin)
-        return end;
-    else if (val > *(end - 1)) 
-        return end - 1;
-    else 
-        return std::upper_bound(begin, end, val) - 1;
-}
 
 /*
- * Return smallest x: *begin <= x < *end &&  x > val
+ * Return smallest x: *begin <= x < *end &&  x >= val
  *  or end if val > *end
  */
 template <class T>
 typename std::vector<T>::const_iterator
-get_gt(typename std::vector<T>::const_iterator begin, 
+get_gteq(typename std::vector<T>::const_iterator begin, 
          typename std::vector<T>::const_iterator end, 
          const T val) { 
-    if (val < *begin)
+   
+    // val <= smallest element in array so return smallest element
+    if (val <= *begin) {
         return begin;
-    else if (val > *(end - 1)) 
+    }
+   
+    begin++;
+    if (begin == end)  {
         return end;
-    else 
-        return std::upper_bound(begin, end, val);
+    }
+       
+    std::vector<T>::const_iterator ge = std::upper_bound(begin, end, val) - 1;
+    return (val == *ge) ? ge : ge + 1;
 }
 
 /*
- * Return largest x: *begin <= x < *end &&  x <= val
- *  or end if val < *begin
- */
-template <class T>
-typename std::vector<T>::const_iterator
-get_lteq2(typename std::vector<T>::const_iterator begin2, 
-          typename std::vector<T>::const_iterator end2, 
-          const T val, size_t step_size) { 
-    
-    if (val < *begin2) {
-        // No x >= begin2
-        return end2;
-    }
-
-    // As far as we can go in full steps of step_size
-    std::vector<T>::const_iterator end1 = begin2 + ((end2-begin2)/step_size)*step_size; 
-
-    // Step through range in steps of step_size
-    for (std::vector<T>::const_iterator begin = begin2; begin < end1; begin += step_size) {
-        std::vector<T>::const_iterator end = begin + step_size;   
-        if (val <= *(end - 1)) { 
-            // We are in range [begin, end)  
-            return std::upper_bound(begin, end, val) - 1;
-        }
-    }
-
-    // Handle left-over
-    if (end1 < end2) {    
-        if (val <= *(end2 - 1)) { 
-            // We are in range [begin, end)  
-            return std::upper_bound(end1, end2, val) - 1;
-        }
-    }
-
-    // No match. So return largest element
-    return end2 - 1;
-}
-
-
-/*
- * Return smallest x: *begin2 <= x < *end2 &&  x > val
+ * Return smallest x: *begin2 <= x < *end2 &&  x >= val
  *  or end2 if val > *end2
  */
 template <class T>
@@ -245,11 +196,8 @@ get_gteq2(typename std::vector<T>::const_iterator begin2,
 
     // Handle left-over
     if (end1 < end2) {    
-        if (val <= *(end2 - 1)) { 
-            // We are in range [begin, end)  
-            std::vector<T>::const_iterator ge = std::upper_bound(end1, end2, val) - 1;
-            return (val == *ge) ? ge : ge + 1;
-        }
+        std::vector<T>::const_iterator ge = std::upper_bound(end1, end2, val) - 1;
+        return (val == *ge) ? ge : ge + 1;
     }
 
     // No match. 

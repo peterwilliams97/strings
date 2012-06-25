@@ -117,8 +117,8 @@ int main() {
     cout << "log2 = " << log2 << endl;
     cout << "x = " << x << ", n = " <<  n << endl;
 #endif
-    test();
-    //multi_test(100);
+    //test();
+    multi_test(100);
     return 0;
 }
 

@@ -1,17 +1,34 @@
 /*
  * INNER_LOOPs
- *  0 is approx twice fast as 1
- *  2 seems a little faster than 1
+ *  1 is approx twice fast as 1
+ *  3 seems a little faster than 2
  *
- *  10 is  35 sec on 10 x 2 MB
- *   1    150 
- *   0     36
- *   0 is 320 sec on 5 x 20 MB
- *   1    1295
- *  10    296
- *  10pf   231     (pre-filter == check for match of last n chars)
+ *  5 x 2 MB
+ *  --------
+ *   1pf   135 sec
+ *   2pf   160
+ *   3pf   160
+ *
+ *  5 x 4 MB
+ *  --------
+ *   1pf  257   sec
+ *   2pf   
+ *   3pf  335
+ *  
+ *  10 x 2 MB
+ *  --------
+ *   1    150 sec 
+ *   2     36
+ *   3     35   
+ *
+ *  5 x 20 MB
+ *  --------
+ *   1    1295   
+ *   2    320  860 sec 
+ *   3    296
+ *   3pf  231  800   (pre-filter == check for match of last n chars)
  */
-#define INNER_LOOP 10
+#define INNER_LOOP 2
 
 #include <assert.h>
 #include <regex>
@@ -338,58 +355,48 @@ delete_inverted_index(InvertedIndex *inverted_index) {
  * Basic idea is to keep 2 pointer and move the one behind and record matches of 
  *  *is + m == *ib
  */
-
-
-#if INNER_LOOP == 0
-const vector<offset_t>  
+inline  const vector<offset_t>  
 get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
-    
+    vector<offset_t> sb;
     vector<offset_t>::const_iterator ib = bytes.begin();
     vector<offset_t>::const_iterator is = strings.begin();
-    list<offset_t> sb;
-
-#if DEBUG || 0        
-    cout << " bytes.back()=" << bytes.back() << " strings.back()=" << strings.back() << endl;
-    print_vector( "  strings", strings);
-    print_vector( "    bytes", bytes);
-#endif
-
-    while (ib < bytes.end() && is < strings.end()) {
-       
-        // Largest value in bytes <= *is + m
-        ib = get_lteq(ib, bytes.end(), *is + m);
-        if (ib == bytes.end()) {
-            break;
-        }
-
-        if (*ib == *is + m) {
+ 
+#if INNER_LOOP == 1    
+    vector<offset_t>::const_iterator b_end = bytes.end(); 
+    vector<offset_t>::const_iterator s_end = strings.end(); 
+           
+    while (ib < b_end && is < s_end) {
+        offset_t is_m = *is + m;
+        if (*ib == is_m) {
             sb.push_back(*is);
-#if DEBUG
-            cout << " match " << num_matches << " at is = " << *is << " ib = " << *ib << endl;
-#endif
             is++;
-            continue;
-        } 
-        
-        if (is + 1 >= strings.end()) {
-            break;
+        } else if (*ib < is_m) {
+            while (ib < b_end && *ib < is_m) {
+                ib++;
+            }
+        } else {
+            offset_t ib_m =  *ib - m;
+            while (is < s_end && *is < ib_m) {
+                is++;
+            }
         }
-        // *ib < *is + m. move is ahead.
-        is = get_gt(is+1, strings.end(), *ib - m);
     }
 
-    return vector<offset_t>(sb.begin(), sb.end());
-}
-#endif
+#elif INNER_LOOP == 2
+ 
+    while (ib < bytes.end() && is < strings.end()) {
+        if (*ib == *is + m) {
+            sb.push_back(*is);
+            is++;
+        } else if (*ib < *is + m) {
+            ib = get_gteq(ib, bytes.end(), *is + m);
+        } else {
+            is = get_gteq(is, strings.end(), *ib - m);
+        }
+    }
 
-#if INNER_LOOP == 10
-const vector<offset_t>  
-get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
+#elif INNER_LOOP == 3
     
-    vector<offset_t>::const_iterator ib = bytes.begin();
-    vector<offset_t>::const_iterator is = strings.begin();
-    vector<offset_t> sb;
-
     // Performance about same for 256, 512 when num chars is low
     // !@#$ Need to optimize this
     // The next power 2 calculation slows 2 MB test 35 sec => 42 sec!
@@ -410,85 +417,9 @@ get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_
             is = get_gteq2(is, strings.end(), *ib - m, step_size_s);
         }
     }
-
-    return vector<offset_t>(sb.begin(), sb.end());
-}
 #endif
-
-#if INNER_LOOP == 1
-const vector<offset_t>  
-get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
-    
-    vector<offset_t>::const_iterator ib = bytes.begin();
-    vector<offset_t>::const_iterator is = strings.begin();
-    vector<offset_t>::const_iterator b_end = bytes.end(); 
-    vector<offset_t>::const_iterator s_end = strings.end(); 
-    list<offset_t> sb;
-       
-    while (ib < b_end && is < s_end) {
-        
-        offset_t is_m = *is + m;
-        while (ib < b_end && *ib < is_m) {
-            ib++;
-        }
-        if (ib == b_end) {
-            break;
-        }
-
-        if (*ib == *is + m) {
-            sb.push_back(*is);
-            is++;
-            continue;
-        } 
-               
-        // *ib > *is + m. move is ahead.
-        offset_t ib_m =  *ib - m;
-        while (is < s_end && *is < ib_m) {
-            is++;
-        }
-    }
-
-    return vector<offset_t>(sb.begin(), sb.end());
-}
-#endif
-
-#if INNER_LOOP == 2
-const vector<offset_t>  
-get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_t> &bytes) {
-    
-    vector<offset_t>::const_iterator ib = bytes.begin();
-    vector<offset_t>::const_iterator is = strings.begin();
-    vector<offset_t>::const_iterator b_end = bytes.end(); 
-    vector<offset_t>::const_iterator s_end = strings.end(); 
-    vector<offset_t> sb;
-       
-    while (ib < b_end && is < s_end) {
-        
-        offset_t is_m = *is + m;
-        while (ib < b_end && *ib < is_m) {
-            ib++;
-        }
-        if (ib == b_end) {
-            break;
-        }
-
-        if (*ib == *is + m) {
-            sb.push_back(*is);
-            is++;
-            continue;
-        } 
-               
-        // *ib > *is + m. move is ahead.
-        offset_t ib_m =  *ib - m;
-        while (is < s_end && *is < ib_m) {
-            is++;
-        }
-    }
-
     return sb;
 }
-#endif
-
 /*
  * Return Posting for s + b if s+b exists sufficient numbers of times in each document
  *  otherwise an empty Postings
@@ -558,64 +489,58 @@ get_all_repeats(InvertedIndex *inverted_index) {
     // Each pass through this for loop builds strings of length n+2 from 
     for (offset_t n = 1; ; n++) {
        
-#if VERBOSITY >= 1 || 1
+#if VERBOSITY >= 1 
         // Report progress to stdout
         cout << "--------------------------------------------------------------------------" << endl;
         cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n << endl;
 #endif
-#if VERBOSITY >= 2 || 1
+#if VERBOSITY >= 2
         print_vector("repeated_strings", repeated_strings, 40);
 #endif   
-        // Filter out n+1 string that don't end with a n string
+        // Construct all possible length n+1 strings from existing length n strings in valid_strings
+        // and filter out length n+1 strings that don't end with an existing length n string
+        // valid_strings[s][b] is later converted to s+b: s is length n, b is length 1
         map<string,vector<string>> valid_strings;
         for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
             string &s = *is;
-            valid_strings[s] = vector<string>();
+            vector<string> offsets;
             for (vector<string>::iterator ib = repeated_bytes.begin(); ib != repeated_bytes.end(); ib++) {
                 string &b = *ib;
                 if (binary_search(repeated_strings.begin(), repeated_strings.end(), (s+b).substr(1))) {
-                    valid_strings[s].push_back(b);
+                    offsets.push_back(b);
                  }             
             }
+            if (offsets.size() > 0) {
+                valid_strings[s] = offsets;
+            }
         }
-       
-        vector<string> valid_keys = get_keys_vector(valid_strings);
-        for (vector<string>::iterator it = valid_keys.begin(); it != valid_keys.end(); it++) {
-            if (valid_strings[*it].size() == 0) {
-                valid_strings.erase(*it);
-           }
-        }
-        print_vector("   valid_strings", get_keys_vector(valid_strings));
+               
+#if VERBOSITY >= 1 
+        //print_vector("   valid_strings", get_keys_vector(valid_strings));
         cout << repeated_strings.size() << " strings * "
              << repeated_bytes.size() << " bytes = "
              << repeated_strings.size() * repeated_bytes.size() << " vs " 
              << get_map_vector_size(valid_strings) << " valid_strings" << endl;
         
-
+#endif
+        // Remove from repeated_strings_map the offsets all the length n strings that have won't be 
+        // used to construct length n+1 strings below
         for (vector<string>::iterator is = repeated_strings.begin(); is != repeated_strings.end(); is++) {
             if (valid_strings.find(*is) == valid_strings.end()) {
                 repeated_strings_map.erase(*is);
             }
         }
 
+        // Replace repeated_strings_map[s] with repeated_strings_map[s+b] for all b in bytes that
+        // have survived the valid_strings filtering above
+        // This cannot increase total number of offsets as each s+b starts with s
         for (map<string,vector<string>>::iterator iv = valid_strings.begin(); iv != valid_strings.end(); iv++) {
             string s = iv->first;
             vector<string> bytes = iv->second;
-                     
-            // Replace repeated_strings_map[s] with repeated_strings_map[s+b] for all b
-            // This cannot increase total number of offsets as each s+b starts with s
             for (vector<string>::iterator ib = bytes.begin(); ib != bytes.end(); ib++) {
-                string b = *ib;
-
-                if (s == " " && b == "r") {
-                    cout << s << " + " << b << endl;
-                }
-                
+                string &b = *ib;
                 Postings postings = get_sb_postings(inverted_index, repeated_strings_map, s, b);
                 if (!postings.empty()) { 
-                     if (s == " " && b == "r") {
-                        cout << s + b << endl;
-                    }
                     repeated_strings_map[s + b] = postings;
                 } 
             }
