@@ -8,7 +8,7 @@ REPEATED_STRING = 'the long long long repeated string'
 #REPEATED_STRING = '0123456789'
 
 OTHER_STRINGS = [
-    'Findland', 'Sweden', 'Pakistan', 'India', 'Doctor'
+    'Finland', 'Sweden', 'Pakistan', 'India', 'Doctor'
     'poodle', 'spaniel', 'modern', 'mythical', 'orginal',
     'ancient', '1000 cities', '100 nights', '10 fathers',
     'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 
@@ -78,11 +78,11 @@ def make_repeats(size, num_repeats, method):
     assert result.count(REPEATED_STRING) == num_repeats
     return result
 
-def make_repeats_file(size, num_repeats, method):
-    name = 'repeats=%d.txt' % num_repeats
-    print 'make_repeats_file(%d, %d) name="%s"' % (size, num_repeats, name)
-    file(name, 'wb').write(make_repeats(size, num_repeats, method))
-    return os.path.abspath(name).replace('\\', '\\\\')
+def make_repeats_file(directory, size, num_repeats, method):
+    path = os.path.join(directory, 'repeats=%d.txt' % num_repeats)
+    print 'make_repeats_file(%d, %d) name="%s"' % (size, num_repeats, path)
+    file(path, 'wb').write(make_repeats(size, num_repeats, method))
+    return os.path.abspath(path).replace('\\', '\\\\')
 
 KBYTE = 1024
 MBYTE = KBYTE ** 2
@@ -92,35 +92,38 @@ def main():
     # The Nelson! 
     random.seed(111)
     
-    import optparse
+    import optparse, sys
 
     parser = optparse.OptionParser('python ' + sys.argv[0] + ' [options]')
-    parser.add_option('-m', '--min', dest='min', default='11',  help='min num of repeats')
+    parser.add_option('-r', '--min-repeats', dest='min', default='11',  help='min num of repeats')
     parser.add_option('-n', '--number', dest='num', default='5', help='number of documents')
     parser.add_option('-s', '--size', dest='size', default='1.0', help='size of each document in MBytes')
     parser.add_option('-m', '--method', dest='method', default='1', help='Method used to documents')
-    
+    parser.add_option('-d', '--directory', dest='directory', default='.', help='Directory to create file in')
+
     (options, args) = parser.parse_args()
 
-    if len(args) < 1:
-        print parser.usage
-        print '--help for more information'
-        exit()
-    
-    size = int(options.size*MBYTE)
+    size = int(float(options.size)*MBYTE)
     min_repeats = int(options.min)
     num_documents = int(options.num)
     method = int(options.method)
+    directory = options.directory
+
+    print 'size = %.3f Mbyte' % (size/MBYTE)
+    print 'method = %d' % method 
+    print 'min_repeats = %d' % min_repeats 
+    print 'num_documents = %d' % num_documents  
+    print 'directory = "%s"' % directory  
+    print '-' * 80
     
     entries = []
     for num_repeats in range(min_repeats, min_repeats + num_documents):
         
-        path = make_repeats_file(bytes, num_repeats, method)
+        path = make_repeats_file(directory, size, num_repeats, method)
         entries.append('    { %2d, string("%s") }' % (num_repeats, path)) 
 
+    print '-' * 80    
     print 'entries[%d] = {\n' % len(entries) + ',\n'.join(entries) + '\n};'     
-    print 'size = %.3f Mbyte' % size/MBYTE
-    print 'method = %d' % method
-    
+
 main()
 

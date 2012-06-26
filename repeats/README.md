@@ -24,75 +24,57 @@ This would be to search for all substrings of 1..size[i]/num[i] for i = 1..N, an
 that occurs >= num[i] times in doc[i] for all i
 
 This would take approximately size[i] * (size[i]/num[i])^2 * N which is N * size ^ 3.
-For 10 x 10 MB documents this would be 10 ^ 22 * some constant factor. Way too slow
+For 10 x 10 MB documents this would be 10 ^ 22 * some constant factor. That is way too slow.
 
 We can do much better than this by observing that for each string s of length n
 that occurs >= num[i] times, all substrings of s must also occur at least n times. 
 
-Therefore we can build a list of strings recursively   
+Therefore we can build a list of strings recursively as follows
+  
+>   Compute allowed_bytes = all strings of length 1 that occur required number of time in documents by scanning all documents once
+>       
+>   Compute allowed_strings[n] = strings of length i that occur required number of times, as follows
 >
->   find all characters that occur 
->
->
->
->
- 
-These programs find the longest substring that is repeated a specified minimum number of times a 
-list of strings. The number of repeats may different for each string.
+>   allowed_strings[1] = allowed_bytes 
+>   for n = 1 .. 
+>       construct allowed_strings[n+1] as s + b for all strings s in allowed_strings[n] and all strings b in allowed_bytes
+>       remove from allowed_strings[n+1] all strings that do not end in a string from allowed_strings[n] 
+>       remove from allowed_strings[n+1] all strings that do not occur required number of time 
+>       if len(allowed_strings[n+1]) == 0 
+>           return allowed_strings[n]          
 
-In the sample code, the strings are files with the minimum number of occcurrences of the substring 
-encoded in their names.
-
-Sketch of Algorithm
--------------------   
->   for k = 4 to K
-
->       allowed_substrings = None
->       for s = shortest to longest string
->            r = number of repeats required for s
->            all_substrings = all substrings of length k in s that occur >= r times
->            if allowed_substrings
->                allowed_substrings = intersection(all_substrings, allowed_substrings)
->            else    
->                allowed_substrings = all_substrings
->            offsets[s] = offsets of allowed_substrings in s
+Implementation
+--------------
+This is implemented in the python files in this directory. fr.py is a terse implementation of the above pseudo-code while
+find_repeated.py is more verbose but otherwise works exactly the same 
 
 Usage: 
-    python find_repeated.py <file mask>
     python fr.py <file mask>
-    repeats 
+    python find_repeated.py <file mask>
 
 Performance
 -----------
-There are several aspects of the code that give good typical runtimes:
+The above code typical runtimes with the documents I work on because I choose documents with the following properties
 
-* Using [rolling hashes](https://github.com/lemire/rollinghashjava) instead of python dicts/sets allow 
-    the substrings to be matched in O(sum(length of strings)) See [Cython](http://cython.org/) 
-    implementation in rolling_hash.pyx
-* len(allowed_substrings) tends not to increase much. If the first string searched is short enough 
-    then len(allowed_substrings) can start at around 100-200
+* small repeat size (size of document / number of repeats)
+* great variety, which tend to make it hard for a substring to occur the allowed number of times by accident
+
+Typical behavior is
+
+* len(allowed_bytes) tends to be 50 - 100 (compared to a possible maxium of 256)
+* len(allowed_substrings) tends not to increase much. It tends to stay < 1000 for n = 2..5 then decrease
+* once len(allowed_substrings) starts to decrease with increasing n, convergence follows fast
 * for k > 4 the length k+1 substrings are generated from the length k stings by searching 1
     character forward and back. This is 
     running_time <= 2*len(allowed_substrings)*number of strings*(K-4)*string_match(K)
 
-For typical values of: 
+This gives running times of :
 
-* starting len(allowed_substrings) 100
-* number of strings 60
-* K 40
+* typical worst case <= 5 * 1000 * number of bytes in all documents 
+* typical  <= 3 * 200 * number of bytes in all documents 
 
-this gives:
-* running_time <= 2 * 100 * 60 * 40 * 40 = 19,200,000 
+Running times like this turn out to be from under a minute to up a minute for well-chosen documents of a few MBytes each 
 
-### Accuracy
-The -t command line option finds the longest substring from several subsets of input texts. 
-       
-Plans for Improvement
----------------------
-* Increase speed of _get_pattern_offsets()
-* Pass longer substrings in rolling hash as speed independent of substring length  
-* Possibly convert the whole thing to Suffix Arrays
-* Do approximate matching
 
 TODO
 ----
