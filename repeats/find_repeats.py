@@ -9,17 +9,17 @@ def H2(a): return '[%s]' % ','.join(['0x%02x' % x for x in a])
 def S(a):  return ''.join([chr(x) for x in a])    
 
 import re
-RE_PAGES = re.compile(r'repeats=(\d+)')
-def get_numpages(filename):
-    """Return number of pages indicated by our file naming convention"""
-    return int(RE_PAGES.search(filename).group(1))  
+RE_REPEATS = re.compile(r'repeats=(\d+)')
+def get_numrepeats(filename):
+    """Return number of repeats indicated by our file naming convention"""
+    return int(RE_REPEATS.search(filename).group(1))  
 
 def get_files(file_pattern):
     """Simple glob"""
     import glob, os    
-    files = [fn for fn in glob.glob(file_pattern) if RE_PAGES.search(fn)]   
+    files = [fn for fn in glob.glob(file_pattern) if RE_REPEATS.search(fn)]   
     if not files:
-        print 'No files in "%s" match pattern "%s"' % (file_pattern, RE_PAGES.pattern)
+        print 'No files in "%s" match pattern "%s"' % (file_pattern, RE_REPEATS.pattern)
         return None
     return files
 
@@ -35,12 +35,12 @@ def findall(text, pattern):
         start = ofs + 1
 
 def get_data(filename):
-   """Return filename, numpages, text for filename
+   """Return filename, numrepeats, text for filename
         text is the compressed contents of the file
    """
-   numpages = get_numpages(filename)
+   numrepeats = get_numrepeats(filename)
    text = file(filename, 'rb').read()
-   return filename, numpages, text
+   return filename, numrepeats, text
 
 MAX_FILE_LEN = 999*1024*1024
 
@@ -53,17 +53,17 @@ def analyze(file_pattern):
     corpus = [get_data(filename) for filename in files]
     corpus.sort(key = lambda x: len(x[2])/x[1])
     corpus = [x for x in corpus if len(x[2]) <= MAX_FILE_LEN]
-    
-    for i,(filename, numpages, text) in enumerate(corpus):
-        print '%40s, text = %5.1f mb, numpages = %6d, %3.3f mb/page' % (filename, MB(len(text)), numpages, MB(len(text)/numpages))
+
+    for i,(filename, numrepeats, text) in enumerate(corpus):
+        print '%40s, text = %5.1f mb, numrepeats = %6d, %3.3f mb/repeat' % (filename, MB(len(text)), numrepeats, MB(len(text)/numrepeats))
 
     def sufficient(s):
-        """Return True if s is repeated numpages or more times in each test file"""
-        return all([text.count(s) >= numpages for (_,numpages,text) in corpus])
+        """Return True if s is repeated numrepeats or more times in each test file"""
+        return all([text.count(s) >= numrepeats for (_,numrepeats,text) in corpus])
 
     def exact_match(s, intercept):
-        """Return True if s is repeated numpages times in each test file"""
-        return all([text.count(s) == numpages + intercept for (_,numpages,text) in corpus])    
+        """Return True if s is repeated numrepeats times in each test file"""
+        return all([text.count(s) == numrepeats + intercept for (_,numrepeats,text) in corpus])    
         
     def update_exact_nstrings(nstrings, exact_nstrings):
         for i in range(20):
@@ -90,6 +90,7 @@ def analyze(file_pattern):
         #  construct n1strings from nstrings
         base_n1strings = set([s + c for s in nstrings for c in unistrings]
                            + [c + s for s in nstrings for c in unistrings])
+        base_n1strings = [w for w in words1 if w[1:] in nstrings and w[:-1] in nstrings]                   
         # Filter down to the valid nstrings
         n1strings = get_valid(base_n1strings)
 
@@ -109,22 +110,22 @@ def analyze(file_pattern):
     # Write out full counts
     for j,s in enumerate(nstrings):
         print '%2d %s %s' % (j, H(s), '-' * (60 - len(s)))
-        for i,(filename, numpages, text) in enumerate(corpus):
+        for i,(filename, numrepeats, text) in enumerate(corpus):
             detected = text.count(s)
-            warning = ' ***' if detected != numpages else ''    
+            warning = ' ***' if detected != numrepeats else ''    
             print '%2d: %40s, expected=%3d, detected=%3d %s' % (i, filename, 
-                    numpages, detected, warning)
+                    numrepeats, detected, warning)
 
     print '=' * 80
     if exact_nstrings:
         print 'EXACT MATCHES. Length=%d. Intercept=%d' % (len(exact_nstrings[0]), i) 
         for j,s in enumerate(exact_nstrings):
             print '%2d %s %s' % (j, H(s), '-' * (60 - len(s)))
-            for i,(filename, numpages, text) in enumerate(corpus):
+            for i,(filename, numrepeats, text) in enumerate(corpus):
                 detected = text.count(s)
-                warning = ' ***' if detected != numpages else ''    
+                warning = ' ***' if detected != numrepeats else ''    
                 print '%2d: %40s, expected=%3d, detected=%3d %s' % (i, filename, 
-                        numpages, detected, warning)    
+                        numrepeats, detected, warning)    
 
 if __name__ == '__main__':    
     import sys, time

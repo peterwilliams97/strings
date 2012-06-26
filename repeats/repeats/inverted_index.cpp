@@ -19,7 +19,7 @@
  *  --------
  *   1pf  505 sec
  *   2pf  675 
- *   3pf  
+ *   3pf  660
  *  
  *  10 x 2 MB
  *  --------
@@ -62,7 +62,7 @@ struct Occurrence {
 static const string PATTERN_REPEATS = "repeats=(\\d+)";
 
 /* 
- * Comparison function to sort doucment in order of size of repeat
+ * Comparison function to sort documents in order of size of repeat
  */
 static bool 
 comp_occurrence(Occurrence occ1, Occurrence occ2) { 
