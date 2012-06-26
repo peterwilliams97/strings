@@ -19,8 +19,9 @@ def valid(words):
 # words = strings that are repeated >= M times in file name pages=<M>
 words = chars = valid([chr(i) for i in range(256)])
 while True:
-    words1 = valid(set([w + c for w in words for c in chars]
-                     + [c + w for w in words for c in chars]))
+    words1 = set([w + c for w in words for c in chars]
+               + [c + w for w in words for c in chars])
+    words1 = valid([w for w in words1 if w[1:] in words and w[:-1] in words])
     if not words1:
         break
     words = words1

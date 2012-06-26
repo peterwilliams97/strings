@@ -20,7 +20,13 @@
  *   1pf  505 sec
  *   2pf  675 
  *   3pf  660
- *  
+*
+ *  5 x 20 MB
+ *  --------
+ *   1pf  sec
+ *   2pf   
+ *   3pf 1618  
+ * 
  *  10 x 2 MB
  *  --------
  *   1    150 sec 
@@ -34,7 +40,7 @@
  *   3    296
  *   3pf  231  800   (pre-filter == check for match of last n chars)
  */
-#define INNER_LOOP 3
+#define INNER_LOOP 1
 
 #include <assert.h>
 #include <regex>

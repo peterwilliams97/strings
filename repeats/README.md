@@ -114,8 +114,8 @@ Thus the inverted_index of strings of length 1, or bytes, stores the entire cont
 offset is 4 bytes long so the inverted index takes 4 bytes to store every byte in the corpus.    
 
 This 4-fold increase in storage size gives us a big advantage. As we run our algorithm of constructing
-allowed_substrings[n+1] from allowed_substrings[n], the worst case amount of searching does not increase exponentially
-with n as before. In fact it does not increase much at all.
+allowed_substrings[n+1] from allowed_substrings[n], the worst case amount of searching does not increase 
+exponentially with n as before. In fact it does not increase much at all.
 
 To go from allowed_substrings[n] to allowed_substrings[n+1], we 
     construct
@@ -131,7 +131,17 @@ elements inverted_index._postings_map[s] increase, but the length of each vector
 inverted_index._postings_map[s]_offsets_map[i] descreases as well so the total number of offsets stored does not 
 increase.
 
-The way we constuct the length n+1 inverted index    
+The growth in processing time with the length of substrings being searched for depends 
+on long it takes to contstuct the length n+1 inverted index from the length n inverted index. This is 
+determined by how we construct the inverted index.
+
+We do this by "[merging](http://www.sorting-algorithms.com/merge-sort)" the sorted 
+inverted_index._postings_map[s]_offsets_map[i] with the sorted 
+inverted_index._postings_map[1]_offsets_map[i]. These vectors are sorted because 
+inverted_index._postings_map[1]_offsets_map[i] is constructed sorted as it is built by scanning 
+document i and merging, as we will see, preserves order.     
+
+
 TODO
 ----
 Try http://dlib.net/
