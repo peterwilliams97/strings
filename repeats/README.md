@@ -43,8 +43,9 @@ Therefore we can build a list of strings recursively as follows
 
 Implementation
 --------------
-This is implemented in the python files in this directory. fr.py is a terse implementation of the above pseudo-code while
-find_repeated.py is more verbose but otherwise works exactly the same 
+This is implemented in the python files in this directory. [fr.py](https://github.com/peterwilliams97/strings/blob/master/repeats/fr.py) 
+is a terse implementation of the above pseudo-code while
+[find_repeated.py](https://github.com/peterwilliams97/strings/blob/master/repeats/find_repeats.py) is more verbose but otherwise works exactly the same. 
 
 Usage: 
     python fr.py <file mask>
@@ -73,6 +74,9 @@ This gives running times of :
 
 Running times like this turn out to be from under a minute to up a minute for well-chosen documents of a few MBytes each 
 
+Problems with the Basic Solution
+--------------------------------
+While [fr.py](https://github.com/peterwilliams97/strings/blob/master/repeats/fr.py)  
 
 TODO
 ----
