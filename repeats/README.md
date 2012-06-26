@@ -28,11 +28,14 @@ that occurs >= num[i] times, all substrings of s must also occur at least n time
 
 Therefore we can build a list of strings recursively as follows
   
-    Compute allowed_bytes = all strings of length 1 that occur required number of time in documents by scanning all documents once
-    Compute allowed_strings[n] = strings of length i that occur required number of times, as follows
+    Compute allowed_bytes = all strings of length 1 that occur required number of time in 
+        documents by scanning all documents once
+    Compute allowed_strings[n] = strings of length i that occur required number of times, 
+        as follows
     allowed_strings[1] = allowed_bytes 
     for n = 1 .. 
-       construct allowed_strings[n+1] as s + b for all strings s in allowed_strings[n] and all strings b in allowed_bytes
+       construct allowed_strings[n+1] as s + b for all strings s in allowed_strings[n] 
+        and all strings b in allowed_bytes
        remove from allowed_strings[n+1] all strings that do not end in a string from allowed_strings[n] 
        remove from allowed_strings[n+1] all strings that do not occur required number of time 
        if len(allowed_strings[n+1]) == 0 
