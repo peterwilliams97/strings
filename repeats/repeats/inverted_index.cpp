@@ -23,8 +23,8 @@
 *
  *  5 x 20 MB
  *  --------
- *   1pf  sec
- *   2pf   
+ *   1pf 1195 sec
+ *   2pf 1784   
  *   3pf 1618  
  * 
  *  10 x 2 MB
@@ -40,7 +40,7 @@
  *   3    296
  *   3pf  231  800   (pre-filter == check for match of last n chars)
  */
-#define INNER_LOOP 1
+#define INNER_LOOP 4
 
 #include <assert.h>
 #include <regex>
@@ -48,6 +48,7 @@
 
 #include "mytypes.h"
 #include "utils.h"
+#include "timer.h"
 #include "inverted_index.h"
 
 using namespace std;
@@ -429,6 +430,47 @@ get_sb_offsets(const vector<offset_t> &strings, offset_t m, const vector<offset_
             is = get_gteq2(is, strings.end(), *ib - m, step_size_s);
         }
     }
+
+#elif INNER_LOOP == 4    
+    vector<offset_t>::const_iterator b_end = bytes.end(); 
+    vector<offset_t>::const_iterator s_end = strings.end(); 
+     
+    if (m == 1) {
+        while (ib < b_end && is < s_end) {
+            offset_t is_m = *is + m;
+            if (*ib == is_m) {
+                sb.push_back(*is);
+                is++;
+            } else if (*ib < is_m) {
+                while (ib < b_end && *ib < is_m) {
+                    ib++;
+                }
+            } else {
+                offset_t ib_m =  *ib - m;
+                while (is < s_end && *is < ib_m) {
+                    is++;
+                }
+            }
+        }
+    } else {
+        size_t step_size_b = 512; 
+        while (ib < b_end && is < s_end) {
+            offset_t is_m = *is + m;
+            if (*ib == is_m) {
+                sb.push_back(*is);
+                is++;
+            } else if (*ib < is_m) {
+                 ib = get_gteq2(ib, b_end, *is + m, step_size_b);
+            } else {
+                offset_t ib_m =  *ib - m;
+                while (is < s_end && *is < ib_m) {
+                    is++;
+                }
+            }
+        }
+    }
+
+
 #endif
     return sb;
 }
@@ -456,11 +498,9 @@ get_sb_postings(InvertedIndex *inverted_index,
         vector<offset_t> sb_offsets = get_sb_offsets(strings, m, bytes);
         if (sb_offsets.size() < it->second._num) {
             // Empty map signals no match
-            // cout << " no match for '" << s + b + "' for " << sb_postings.size() << " < " << it->second._num << endl;
             return Postings();
         }
 
-        // cout << "   matched " << s + b << " for doc " << doc_index << endl;
         sb_postings.add_offsets(doc_index, sb_offsets);
     }
 
@@ -504,7 +544,9 @@ get_all_repeats(InvertedIndex *inverted_index) {
 #if VERBOSITY >= 1 
         // Report progress to stdout
         cout << "--------------------------------------------------------------------------" << endl;
-        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() << ", len= " << n << endl;
+        cout << "get_all_repeats: num repeated strings=" << repeated_strings.size() 
+             << ", len= " << n 
+             << ", time= " << get_elapsed_time() << endl;
 #endif
 #if VERBOSITY >= 2
         print_vector("repeated_strings", repeated_strings, 40);
@@ -569,6 +611,12 @@ get_all_repeats(InvertedIndex *inverted_index) {
 
     return repeated_strings;
 }
+
+static struct VersionInfo {
+    VersionInfo() {
+        cout << "INNER_LOOP=" << INNER_LOOP << endl;
+    };
+} _version_info;
 
 #ifdef NOT_DEFINED
 #endif // #ifdef NOT_DEFINED

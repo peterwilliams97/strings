@@ -45,8 +45,8 @@ static
 double 
 test_inverted_index(const vector<string> filenames) {
    
-    double time0 = get_elapsed_time();
-
+    reset_elapsed_time(); 
+    
     InvertedIndex *inverted_index = create_inverted_index(filenames);
     cout << "========================================================" << endl;
     
@@ -65,7 +65,7 @@ test_inverted_index(const vector<string> filenames) {
 
     delete_inverted_index(inverted_index);
 
-    double duration = get_elapsed_time() - time0;
+    double duration = get_elapsed_time();
     cout << "duration = " << duration << endl;
     return duration;
 }
@@ -117,8 +117,8 @@ int main() {
     cout << "log2 = " << log2 << endl;
     cout << "x = " << x << ", n = " <<  n << endl;
 #endif
-    //test();
-    multi_test(100);
+    test();
+    //multi_test(100);
     return 0;
 }
 

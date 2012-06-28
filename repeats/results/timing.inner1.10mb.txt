@@ -1,0 +1,121 @@
+INNER_LOOP=1
+get_occurrences: 5 files
+0: C:\dev\suffix\make_repeats\repeats=15.txt, 15, 10485760
+1: C:\dev\suffix\make_repeats\repeats=14.txt, 14, 10485760
+2: C:\dev\suffix\make_repeats\repeats=13.txt, 13, 10485760
+3: C:\dev\suffix\make_repeats\repeats=12.txt, 12, 10485760
+4: C:\dev\suffix\make_repeats\repeats=11.txt, 11, 10485760
+ Added C:\dev\suffix\make_repeats\repeats=15.txt to inverted index
+ Added C:\dev\suffix\make_repeats\repeats=14.txt to inverted index
+ Added C:\dev\suffix\make_repeats\repeats=13.txt to inverted index
+ Added C:\dev\suffix\make_repeats\repeats=12.txt to inverted index
+ Added C:\dev\suffix\make_repeats\repeats=11.txt to inverted index
+========================================================
+========================================================
+get_all_repeats: repeated_bytes=256,repeated_strings=256
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=256, len= 1, time= 1.14842
+256 strings * 256 bytes = 65536 vs 65536 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=65536, len= 2, time= 132.61
+65536 strings * 256 bytes = 16777216 vs 16777216 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 3, time= 659.747
+23 strings * 256 bytes = 5888 vs 24 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 4, time= 659.751
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 5, time= 659.756
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 6, time= 659.76
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 7, time= 659.763
+23 strings * 256 bytes = 5888 vs 24 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 8, time= 659.767
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 9, time= 659.771
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 10, time= 659.775
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 11, time= 659.779
+23 strings * 256 bytes = 5888 vs 23 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=23, len= 12, time= 659.783
+23 strings * 256 bytes = 5888 vs 24 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=22, len= 13, time= 659.787
+22 strings * 256 bytes = 5632 vs 21 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=21, len= 14, time= 659.79
+21 strings * 256 bytes = 5376 vs 20 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=20, len= 15, time= 659.794
+20 strings * 256 bytes = 5120 vs 19 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=19, len= 16, time= 659.797
+19 strings * 256 bytes = 4864 vs 18 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=18, len= 17, time= 659.801
+18 strings * 256 bytes = 4608 vs 17 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=17, len= 18, time= 659.804
+17 strings * 256 bytes = 4352 vs 16 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=16, len= 19, time= 659.807
+16 strings * 256 bytes = 4096 vs 15 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=15, len= 20, time= 659.81
+15 strings * 256 bytes = 3840 vs 14 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=14, len= 21, time= 659.813
+14 strings * 256 bytes = 3584 vs 13 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=13, len= 22, time= 659.816
+13 strings * 256 bytes = 3328 vs 12 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=12, len= 23, time= 659.819
+12 strings * 256 bytes = 3072 vs 11 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=11, len= 24, time= 659.821
+11 strings * 256 bytes = 2816 vs 10 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=10, len= 25, time= 659.823
+10 strings * 256 bytes = 2560 vs 9 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=9, len= 26, time= 659.825
+9 strings * 256 bytes = 2304 vs 8 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=8, len= 27, time= 659.826
+8 strings * 256 bytes = 2048 vs 7 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=7, len= 28, time= 659.828
+7 strings * 256 bytes = 1792 vs 6 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=6, len= 29, time= 659.829
+6 strings * 256 bytes = 1536 vs 5 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=5, len= 30, time= 659.83
+5 strings * 256 bytes = 1280 vs 4 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=4, len= 31, time= 659.831
+4 strings * 256 bytes = 1024 vs 3 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=3, len= 32, time= 659.832
+3 strings * 256 bytes = 768 vs 2 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=2, len= 33, time= 659.832
+2 strings * 256 bytes = 512 vs 1 valid_strings
+--------------------------------------------------------------------------
+get_all_repeats: num repeated strings=1, len= 34, time= 659.833
+1 strings * 256 bytes = 256 vs 0 valid_strings
+========================================================
+Found 1 repeated strings of length 34
+Repeated strings: 1 [the long long long repeated string, ] 1
+duration = 659.859

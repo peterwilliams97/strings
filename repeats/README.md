@@ -107,8 +107,9 @@ There is a c++ implementation of an inverted index specialized for matching repe
 [inverted_index.cpp](https://github.com/peterwilliams97/strings/blob/master/repeats/repeats/inverted_index.cpp)
 
 In inverted_index.cpp, 
-    inverted_index._postings_map[s]_offsets_map[i]
-    is a vector of offsets of string s in document number i
+
+*    inverted_index._postings_map[s]_offsets_map[i]
+*    is a vector of offsets of string s in document number i
 
 Thus the inverted_index of strings of length 1, or bytes, stores the entire contents of the corpus of documents. Each 
 offset is 4 bytes long so the inverted index takes 4 bytes to store every byte in the corpus.    
@@ -118,6 +119,7 @@ allowed_substrings[n+1] from allowed_substrings[n], the worst case amount of sea
 exponentially with n as before. In fact it does not increase much at all.
 
 To go from allowed_substrings[n] to allowed_substrings[n+1], we 
+
     construct
     inverted_index._postings_map[s]_offsets_map[i] for all s in allowed_substrings[n+1]
     from
@@ -135,13 +137,64 @@ The growth in processing time with the length of substrings being searched for d
 on long it takes to contstuct the length n+1 inverted index from the length n inverted index. This is 
 determined by how we construct the inverted index.
 
-We do this by "[merging](http://www.sorting-algorithms.com/merge-sort)" the sorted 
+We do this by "[merging](http://www.sorting-algorithms.com/merge-sort)" 
+([German version](http://bit.ly/MZaHJ0)) the sorted 
 inverted_index._postings_map[s]_offsets_map[i] with the sorted 
 inverted_index._postings_map[1]_offsets_map[i]. These vectors are sorted because 
 inverted_index._postings_map[1]_offsets_map[i] is constructed sorted as it is built by scanning 
-document i and merging, as we will see, preserves order.     
+document i and merging, as we will see, preserves order.  
 
+Worst-Case Performance of the Merge Solution
+--------------------------------------------
+    Assume a document has length m with r repeats
+    It will take O(m) time to read the document and construct the inverted index.
+    The nth merges m/256 bytes with m/(256^n) strings x 256^n times 
+        ==> O(m*(1/256+1/(256^n))*256^n)  
+        ==> O(m*(256^(n-1)))  
+
+This is still exponential in n, the length of the substrings being tested for repeats! 
+
+Does this matter?
+    
+Clearly it matters for if n is large. Therefore we must estimate the biggest m we will see in
+real problems. 
+
+This is straightforward to calculate for our worst case which is the maximum number of unique
+substrings n: 256^n == size of repeat == m/r or n = log256(m/r) 
+
+** 10 MByte document with 10 repeats ==> n=3
+** 100 MByte document with 100 repeats ==> n=3.2
+
+The documents that I test are usually less than 10 MByte so m*(256^(n-1)) is m*(256^2) which 
+is not too bad. Therefore simple merging should work reasonably well. This is marked as 
+INNER_LOOP==1 in [inverted_index.cpp](https://github.com/peterwilliams97/strings/blob/master/repeats/repeats/inverted_index.cpp)  
+
+However we can do better.
+
+Recall that we are merging m/256 bytes with m/(256^n) strings x 256^n times. The stepping through
+the m/(256^n) strings x 256^n times takes constant time with respect to n. The problem is the
+stepping through the constant number of bytes x 256^n. 
+
+The byte offsets are sorted so we don't need to step linearly. We can step in a 
+the bytes offsets in INNER_LOOP==1. We can divide the bytes offsets into a number equal regions of
+of the length of the number of strings, then linearly step through the string offsets and after each 
+one, binary searc the bytes offset region. The length of each byte offset region is 
+(1/256) / (1/(256^n)) = 256^(n-1), so the binary search time is O(log(256^(n-1))) = O(n)
+
+The total search time is  
+    ==> O(m*(S+Bn)) where S and B are some constants. S for stepping through the substring 
+            offsets and B for stepping through the byte offset
+    ==> O(mn)
+
+This growth stops when the maximum number of valid unique substrings is reached at 
+ 
+    
 
 TODO
 ----
+Binary search on strings, linear search on bytes
+Raw binary search
+Multi-thread
 Try http://dlib.net/
+Test for substrings that are repeated more times that required
+Construct worst case of the maximum number of unique _valid_ substrings
