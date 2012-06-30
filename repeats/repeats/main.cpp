@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+
 #include "utils.h"
 #include "timer.h"
 #include "inverted_index.h"
@@ -17,12 +18,14 @@ struct TestEntry {
  *  https://github.com/peterwilliams97/strings/blob/master/make_repeats/make_repeats.py
  */
 TestEntry entries[] = {
+ //{ 2, string("C:\\dev\\suffix\\make_repeats\\repeats=2.txt") },
+ { 2, string("C:\\dev\\suffix\\make_repeats\\repeats=5.txt") },
+#if 0  
   { 11, string("C:\\dev\\suffix\\make_repeats\\repeats=11.txt") },
   { 12, string("C:\\dev\\suffix\\make_repeats\\repeats=12.txt") },
   { 13, string("C:\\dev\\suffix\\make_repeats\\repeats=13.txt") },
   { 14, string("C:\\dev\\suffix\\make_repeats\\repeats=14.txt") },
   { 15, string("C:\\dev\\suffix\\make_repeats\\repeats=15.txt") },
-#if 0
   { 16, string("C:\\dev\\suffix\\make_repeats\\repeats=16.txt") },
   { 17, string("C:\\dev\\suffix\\make_repeats\\repeats=17.txt") },
   { 18, string("C:\\dev\\suffix\\make_repeats\\repeats=18.txt") },
