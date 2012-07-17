@@ -1,4 +1,6 @@
 Debug/
+Release/
+ipch/
 *.obj
 *.exe
 *.pyc
@@ -6,3 +8,7 @@ Debug/
 *.class
 *.jar
 *.stackdump
+*.tlog
+*.rc
+*.ilk
+*.pdb
