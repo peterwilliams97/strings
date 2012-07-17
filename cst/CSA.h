@@ -13,12 +13,11 @@
 
 class CSA {
 private:
-    class TCodeEntry {
-    public:
+    struct TCodeEntry {
         unsigned count;
         unsigned bits;
         unsigned code;
-        TCodeEntry() {count=0;bits=0;code=0u;};
+        TCodeEntry() { count=0; bits=0; code=0u; };
     };   
 
     class THuffAlphabetRank {
@@ -42,7 +41,7 @@ private:
             unsigned code = codetable[c].code;
             while (!temp->leaf) {
                 if ((code & (1u<<level)) == 0) {
-                    i = i-temp->bitrank->rank(i); 
+                    i = i - temp->bitrank->rank(i); 
                     temp = temp->left; 
                 }  else { 
                     i = temp->bitrank->rank(i)-1; 

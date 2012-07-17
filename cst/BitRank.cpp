@@ -60,28 +60,42 @@ const unsigned char select_tab[] =
 6,1,2,1,3,1,2,1,4,1,2,1,3,1,2,1,5,1,2,1,3,1,2,1,4,1,2,1,3,1,2,1,
 };
 
-
 // bits needed to represent a number between 0 and n
 inline ulong bits (ulong n){
-	ulong b = 0;
-	while (n) { b++; n >>= 1; }
-	return b;
+    ulong b = 0;
+    while (n) { 
+        b++; 
+        n >>= 1; 
+    }
+    return b;
 }
 
+// popcount(x) returns sum of bytes in x
 #if W == 32
     // 32 bit version
-    inline unsigned popcount (register ulong x){
-        return __popcount_tab[(x >>  0) & 0xff]  + __popcount_tab[(x >>  8) & 0xff]  + __popcount_tab[(x >> 16) & 0xff] + __popcount_tab[(x >> 24) & 0xff];
+    inline unsigned popcount (register ulong x) {
+        return __popcount_tab[(x >>  0) & 0xff]  
+             + __popcount_tab[(x >>  8) & 0xff]  
+             + __popcount_tab[(x >> 16) & 0xff] 
+             + __popcount_tab[(x >> 24) & 0xff];
     }
 #else
     // 64 bit version
     inline unsigned popcount (register ulong x){
-        return __popcount_tab[(x >>  0) & 0xff]  + __popcount_tab[(x >>  8) & 0xff]  + __popcount_tab[(x >> 16) & 0xff] + __popcount_tab[(x >> 24) & 0xff] + __popcount_tab[(x >> 32) & 0xff] + __popcount_tab[(x >> 40) & 0xff] + __popcount_tab[(x >> 48) & 0xff] + __popcount_tab[(x >> 56) & 0xff];
+        return __popcount_tab[(x >>  0) & 0xff]  
+             + __popcount_tab[(x >>  8) & 0xff]  
+             + __popcount_tab[(x >> 16) & 0xff] 
+             + __popcount_tab[(x >> 24) & 0xff] 
+             + __popcount_tab[(x >> 32) & 0xff] 
+             + __popcount_tab[(x >> 40) & 0xff] 
+             + __popcount_tab[(x >> 48) & 0xff] 
+             + __popcount_tab[(x >> 56) & 0xff];
     }
 #endif
 
 inline unsigned popcount16 (register int x){
-  return __popcount_tab[x & 0xff]  + __popcount_tab[(x >>  8) & 0xff];
+  return __popcount_tab[x & 0xff]  
+       + __popcount_tab[(x >>  8) & 0xff];
 }
 
 inline unsigned popcount8 (register int x){
@@ -89,22 +103,23 @@ inline unsigned popcount8 (register int x){
 }
 
 BitRank::BitRank(ulong *bitarray, ulong n, bool owner, ReplacePattern *rp) {
-    if (rp == 0) data=bitarray;
-    else data = rp->returnRP(bitarray, n, 0, n);
+    if (rp == 0) 
+        data = bitarray;
+    else 
+        data = rp->returnRP(bitarray, n, 0, n);
     this->rp = rp;
     this->owner = owner;
-    this->n=n;  // length of bitarray in bits
+    this->n = n;  // length of bitarray in bits
     b = W; // b is a word
-    s=b*superFactor;
-    ulong aux=(n+1)%W;
+    s = b*superFactor;
+    ulong aux = (n+1)%W;
     if (aux != 0)
         integers = (n+1)/W+1;
     else 
         integers = (n+1)/W;
     BuildRank();
     
-    if (rp != 0)
-    {
+    if (rp != 0) {
         delete [] data;
         data = bitarray;
     }
@@ -126,7 +141,7 @@ void BitRank::BuildRank() {
     ulong j;
     Rs[0] = 0lu;
 	
-    for (j=1; j<=num_sblock; j++) {
+    for (j = 1; j <= num_sblock; j++) {
 	Rs[j] = BuildRankSub((j-1)*superFactor,superFactor) + Rs[j-1];
     }
     
@@ -138,14 +153,14 @@ void BitRank::BuildRank() {
 }
 
 ulong BitRank::BuildRankSub(ulong ini, ulong bloques){
-    ulong rank=0,aux;
-    for (ulong i=ini; i < ini+bloques; i++) {
+    ulong rank = 0, aux;
+    for (ulong i = ini; i < ini+bloques; i++) {
 	if (i < integers) {
-	    aux=data[i];
-	    rank+=popcount(aux);
+	    aux = data[i];
+	    rank += popcount(aux);
 	}
     }
-     return rank; //return the numbers of 1's in the interval
+    return rank; //return the numbers of 1's in the interval
 }
 
 //this rank ask from 0 to n-1
@@ -184,8 +199,8 @@ ulong BitRank::select(ulong x) {
     }    
     //sequential search using popcount over a int
     ulong left;
-    left=mid*superFactor;
-    x-=rankmid;
+    left = mid*superFactor;
+    x -= rankmid;
     ulong j;
     if (rp == 0)
         j = data[left];
@@ -194,7 +209,8 @@ ulong BitRank::select(ulong x) {
     
     unsigned ones = popcount(j);
     while (ones < x) {
-        x-=ones;left++;
+        x -=ones;
+        left++;
         if (left > integers) 
             return n;
             
@@ -206,12 +222,12 @@ ulong BitRank::select(ulong x) {
         ones = popcount(j);
     }
     //sequential search using popcount over a char
-    left=left*b; 
+    left = left*b; 
     rankmid = popcount8(j);
     if (rankmid < x) {
-        j=j>>8;
-        x-=rankmid;
-        left+=8;
+        j = j>>8;
+        x -= rankmid;
+        left += 8;
         rankmid = popcount8(j);
         if (rankmid < x) {
             j=j>>8;

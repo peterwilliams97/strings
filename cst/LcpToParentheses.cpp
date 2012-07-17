@@ -28,8 +28,7 @@ static inline double log2(double x) {
 
 ////////////////////////////////////////////////////////////////////////////
 // Class LcpToParentheses::DeltaArray
-LcpToParentheses::DeltaArray::DeltaArray(ulong size)
-{    
+LcpToParentheses::DeltaArray::DeltaArray(ulong size) {    
     // pathological cases size should be 7*size 
     // this is taken into account when startPos gets too small:
     // the memory size is doubled
@@ -39,13 +38,11 @@ LcpToParentheses::DeltaArray::DeltaArray(ulong size)
     startPos = this->size - 1;
 }
 
-LcpToParentheses::DeltaArray::~DeltaArray()
-{
+LcpToParentheses::DeltaArray::~DeltaArray() {
     delete [] A;
 }
 
-void LcpToParentheses::DeltaArray::Add(ulong value)
-{
+void LcpToParentheses::DeltaArray::Add(ulong value) {
     ulong l = Tools::bits(value);
     ulong m = Tools::bits(l);
     if (startPos < 2*m+1+l) {
@@ -69,10 +66,8 @@ void LcpToParentheses::DeltaArray::Add(ulong value)
     Tools::SetVariableField(A, m + 1, startPos, (1 << m) - 1);
 }
     
-void LcpToParentheses::DeltaArray::Remove(ulong n)
-{
-    for (ulong i = 0; i < n; i++)
-    {
+void LcpToParentheses::DeltaArray::Remove(ulong n) {
+    for (ulong i = 0; i < n; i++)   {
         ulong k = 0;
         while (Tools::GetVariableField(A, 1, startPos + k))
             k++;
@@ -83,13 +78,11 @@ void LcpToParentheses::DeltaArray::Remove(ulong n)
 }
 
 // Returns sum of n values, and the index after the last value (see GetNext())
-ulong LcpToParentheses::DeltaArray::Sum(ulong n, ulong &index)
-{
+ulong LcpToParentheses::DeltaArray::Sum(ulong n, ulong &index) {
     ulong sum = 0;
     index = startPos; // Reset index parameter
     
-    for (ulong i = 0; i < n; i++)
-    {
+    for (ulong i = 0; i < n; i++)  {
         ulong k = 0;
         while (Tools::GetVariableField(A,1,index+k)) 
             k++;
@@ -104,8 +97,7 @@ ulong LcpToParentheses::DeltaArray::Sum(ulong n, ulong &index)
 
 // Iterate through the array with the index parameter: 
 // Returns the value of the given index (and the index of the next value)
-ulong LcpToParentheses::DeltaArray::GetNext(ulong &index)
-{
+ulong LcpToParentheses::DeltaArray::GetNext(ulong &index) {
     ulong k = 0;
     while (Tools::GetVariableField(A,1,index+k)) 
         k++;
@@ -117,7 +109,6 @@ ulong LcpToParentheses::DeltaArray::GetNext(ulong &index)
 
     return sum;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////
 // Class LcpToParentheses

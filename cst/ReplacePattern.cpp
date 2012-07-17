@@ -95,7 +95,7 @@ ulong *ReplacePattern::returnRP(ulong *data, ulong len, ulong index, ulong n) {
         value = Tools::GetField(_answer, _sampleRate, value);
         Tools::SetVariableField(A, _sampleRate - 1, i - index, value);
         
-        k --;
+        k--;
         i += _sampleRate - 1;
     }
 

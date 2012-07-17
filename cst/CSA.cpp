@@ -392,14 +392,15 @@ uchar *CSA::BWT(uchar *text) {
 }
 
 CSA::TCodeEntry *CSA::node::makecodetable(uchar *text, ulong n) {
+    // !@#$ Seems to assume a 256 entry alphabet
     TCodeEntry *result = new TCodeEntry[ 256 ];
     
     count_chars(text, n, result);
-    std::priority_queue< node, std::vector< node >, std::greater<node> > q;
+    priority_queue<node, vector<node>, greater<node>> q;
 //
 // First I push all the leaf nodes into the queue
 //
-    for ( unsigned int i = 0 ; i < 256 ; i++ )
+    for (unsigned int i = 0; i < 256; i++)
         if ( result[ i ].count )
             q.push(node( i, result[ i ].count ) );
 //
@@ -443,12 +444,12 @@ void CSA::node::maketable(unsigned code, unsigned bits, TCodeEntry *_codetable) 
     }
 }
 
-void CSA::node::count_chars(uchar *text, ulong n, TCodeEntry *counts )
-{
+// counts of each char => counts
+void CSA::node::count_chars(uchar *text, ulong n, TCodeEntry *counts) {
     ulong i;
-    for (i = 0 ; i < 256 ; i++ )
-        counts[ i ].count = 0;
-    for (i=0; i<n; i++)
+    for (i = 0; i < 256; i++)
+        counts[i].count = 0;
+    for (i = 0; i < n; i++)
         counts[(int)text[i]].count++; 
 }
 
