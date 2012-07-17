@@ -20,6 +20,12 @@
 
 #include "LcpToParentheses.h"
 
+#define LOG2 0.69314718055994529
+static inline double log2(double x) {
+    return log(x)/LOG2;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 // Class LcpToParentheses::DeltaArray
 LcpToParentheses::DeltaArray::DeltaArray(ulong size)

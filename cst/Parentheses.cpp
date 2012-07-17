@@ -69,39 +69,40 @@
    static char Excess[256];
    static bool tablesComputed = false;
 
-Parentheses::Parentheses (ulong *string, ulong n, bool bwd, BitRank *br)
+Parentheses::Parentheses(ulong *string, ulong n, bool bwd, BitRank *br)
 { 
-     ulong i,s,nb,ns,nbits;
-     this->bp = string;
-     this->n = n;
-     this->br = br;
-     nbits = Tools::bits(n-1);
-     s = nbits*W;
-     this->sbits = Tools::bits(s-1);
-     s = 1lu << sbits; // to take the most advantage of what we can represent
-     ns = (n+s-1)/s; nb = (s+W-1)/W; // adjustments
-     near = far = pnear = pfar = 0lu;
-     calcsizes();
+    ulong i,s,nb,ns,nbits;
+    this->bp = string;
+    this->n = n;
+    this->br = br;
+    nbits = Tools::bits(n-1);
+    s = nbits*W;
+    this->sbits = Tools::bits(s-1);
+    s = 1lu << sbits; // to take the most advantage of what we can represent
+    ns = (n+s-1)/s; nb = (s+W-1)/W; // adjustments
+    near = far = pnear = pfar = 0lu;
+    calcsizes();
 #ifdef INDEXREPORT
      printf ("   Parentheses: total %i, near %i, far %i, pnear %i, pfar %i\n",n,near,far,pnear,pfar);
 #endif
-     this->sftable = new Hash (far,nbits,1.8);
-     this->bftable = new Hash (near,sbits,1.8);
-     if (bwd)
-    { this->sbtable = new Hash (pfar,nbits,1.8);
-          this->bbtable = new Hash (pnear,sbits,1.8);
+    this->sftable = new Hash (far,nbits,1.8);
+    this->bftable = new Hash (near,sbits,1.8);
+    if (bwd) { 
+        this->sbtable = new Hash (pfar,nbits,1.8);
+        this->bbtable = new Hash (pnear,sbits,1.8);
+    } else {
+        sbtable = bbtable = 0;
     }
-     else sbtable = bbtable = 0;
-     filltables (bwd);
-     if (!tablesComputed)
-    { tablesComputed = true;
-      for (i=0;i<256;i++) 
-          { fcompchar (i,FwdPos[i],Excess+i); //printf("i = %d\t, FwdPos[i] = %c\t, Excess+i = %c\n", i,FwdPos[i],Excess+i);
-            bcompchar (i,BwdPos[i]);//printf("i = %d\t, BwdPos[i] = %c\t, Excess+i = %c\n", i,BwdPos[i],Excess+i);
-          }
+    filltables (bwd);
+    if (!tablesComputed) { 
+        tablesComputed = true;
+        for (i=0; i<256; i++) { 
+            fcompchar(i, FwdPos[i], Excess+i); //printf("i = %d\t, FwdPos[i] = %c\t, Excess+i = %c\n", i,FwdPos[i],Excess+i);
+            bcompchar(i, BwdPos[i]);//printf("i = %d\t, BwdPos[i] = %c\t, Excess+i = %c\n", i,BwdPos[i],Excess+i);
+        }
     }
      
-   }
+}
 
     // frees parentheses structure, including the bitstream
 
@@ -378,17 +379,15 @@ ulong Parentheses::excess (ulong i)
         // open position of closest parentheses pair that contains the pair
         // that opens at i, ~0 if no parent
 
-ulong Parentheses::enclose (ulong i)
-
-   { if (i == 0) return 0; // no parent!
-     if (excess(i) == 1)
+ulong Parentheses::enclose (ulong i) { 
+    if (i == 0) return 0; // no parent!
+    if (excess(i) == 1)
         return 0;
      return findparent (i);
-   }
+}
 
-ulong Parentheses::isOpen (ulong i)
-
-   { return br->IsBitSet(i);
-   }
+ulong Parentheses::isOpen (ulong i) { 
+    return br->IsBitSet(i);
+}
 
 

@@ -18,20 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
 #include "bittree.h"
-
 
 using namespace std;
 
 //std::ostream& operator<<(std::ostream& os, node& n) { ... }
 
+BVTree::~BVTree(){
+    delete tempbit;
+}
 
-  BVTree::~BVTree(){
-	delete tempbit;
-  }
-
-	
 
 /**
 BVTree::BVTree(char *readfile){

@@ -61,16 +61,16 @@ SSTree::SSTree(uchar *text, ulong n, bool deletetext, unsigned samplerate, io_ac
     if (samplerate != 0)
         floorLog2n = samplerate; // Samplerate override, affects only CSA
     
-    #ifdef SSTREE_TIMER
-    #ifdef SSTREE_HEAPPROFILE
+#ifdef SSTREE_TIMER
+ #ifdef SSTREE_HEAPPROFILE
         std::cout << "--> HeapProfiler: " << HeapProfiler::GetHeapConsumption() << ", " << HeapProfiler::GetMaxHeapConsumption() << std::endl;
         heapCon = HeapProfiler::GetHeapConsumption();
-    #endif
+ #endif
 
         printf("Creating CSA with samplerate %u\n", floorLog2n);
         fflush(stdout);
         Tools::StartTimer();    
-    #endif
+#endif
     if (IOaction == load_from && filename != 0)
         sa = new CSA(text, n, floorLog2n, (string(filename)+".csa").c_str()); 
     else if (IOaction == save_to && filename != 0)

@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2006 by Wolfgang Gerlach   *
- *      *
+ *   Copyright (C) 2006 by Wolfgang Gerlach                                *
+ *                                                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,7 +24,6 @@
 // papers: V. Maekinen, G. Navarro. Dynamic Entropy-Compressed Sequences and Full-Text
 //           Indexes. CPM 2006, Chapter 3.6 
 
-
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
@@ -41,10 +40,7 @@
 #define ulong unsigned long
 #endif
 
-
-
 using namespace std;
-
 
 class WaveletNode{
 	public:

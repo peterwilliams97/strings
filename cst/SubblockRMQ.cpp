@@ -47,9 +47,9 @@ SubblockRMQ::SubblockRMQ(unsigned sampleRate)
             {
                 BitRank *brf = new BitRank(&block, sampleRate, false);
                 int minValue = 2 * brf->rank(i) - i;
-                unsigned minIndex = i;
+                uint minIndex = i;
                 
-                for (unsigned k = i + 1; k < j + 1; k++)
+                for (uint k = i + 1; k < j + 1; k++)
                     if (minValue > (int)(2 * brf->rank(k) - k))
                     {
                         minValue = (int)(2 * brf->rank(k) - k);

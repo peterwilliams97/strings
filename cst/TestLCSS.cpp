@@ -18,15 +18,13 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
  ***************************************************************************/
 
-
 #include <iostream>
 #include "SSTree.h"
 #include "Tools.h"
 using namespace std;
 
 // Longest Common SubString (A,B)
-void lcss()
-{
+void lcss() {
     // A=aaabbbccc, B=ccbbbaa ==> lcss(A,B)=bbb
     char *A = "aaabbbccc", *B = "ccbbbaa";
     uchar *text = (uchar*)"aaabbbccc$ccbbbaa";
@@ -51,9 +49,9 @@ void lcss()
     // no longer needed by calling it with an additional parameter:
     // SSTree *sst = new SSTree(text, n, true); 
 
-    /****************************************************************
+   /****************************************************************
     * Suffix tree is now represented using several compressed       *
-    * data structures. Most important to understant the usage       *
+    * data structures. Most important to understand the usage       *
     * is the Balanced Parantheses (BP) representation of the tree   *
     * hierarchy: the tree is traversed prefix order printing "("    *
     * when a node is visited first time and printing ")" when       *
@@ -98,18 +96,24 @@ void lcss()
     * correctly.                                                       *
     *******************************************************************/
     
-    for (i=0; i<=lastleaf; i++) {
-       left[i] = false; right[i]=false;
+    for (i = 0; i <= lastleaf; i++) {
+       left[i] = false; 
+       right[i] = false;
     }
         
-    for (i=lastleaf;i>0;i--) {
+    for (i = lastleaf; i > 0; i--) {
         if (sst->isleaf(i)) {
-           if (sst->textpos(i) < splitpos) {left[i]=true;right[i]=false;} 
-           else {left[i]=false; right[i]=true;} 
+            if (sst->textpos(i) < splitpos) {
+                left[i] = true;
+                right[i] = false;
+            } else {
+                left[i] = false; 
+                right[i]=true;
+            } 
         }
 	if (sst->isOpen(i)) {
-           left[sst->parent(i)] |= left[i];
-           right[sst->parent(i)] |= right[i];             
+            left[sst->parent(i)] |= left[i];
+            right[sst->parent(i)] |= right[i];             
 	}
     }
 

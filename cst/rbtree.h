@@ -27,94 +27,87 @@ using namespace std;
 #ifndef RBTree
 #define RBTree RBTree
 
- 
-
-
-enum RBNodecolor{BLACK,RED};
-
+enum RBNodecolor {BLACK, RED};
 
 // generic Red-Black Tree Node:
-class RBNode
-{
-	public:
-	RBNode* parent;
-	RBNode* left;
-	RBNode* right;
+class RBNode {
+public:
+    RBNode *parent;
+    RBNode *left;
+    RBNode *right;
 	
-	enum RBNodecolor color;
+    RBNodecolor color;
 
-	RBNode(){};
+    RBNode() {};
 
-	RBNode(RBNode *n)
-		: parent(n), left(n), right(n){
-		color=RED;
-	}
+    RBNode(RBNode *n)
+	: parent(n), left(n), right(n), color(RED) {
+    }
 
+    virtual ~RBNode(){}
 
-	virtual ~RBNode(){}
-
-	void countBlack(int i){
-		if (this->color == BLACK) i++;
-		if (this->left != this) this->left->countBlack(i);
-			else cout << i << ",";
-		if (this->right != this) this->right->countBlack(i);
-			else cout << i << ",";
-	}
+    void countBlack(int i) {
+        if (this->color == BLACK) i++;
+	if (this->left != this) 
+            this->left->countBlack(i);
+        else 
+            cout << i << ",";
+	if (this->right != this) 
+            this->right->countBlack(i);
+	else cout << i << ",";
+    }
 };
 
-class RBTree{
-	public:
+class RBTree {
+public:
+    RBNode *root;
+    RBNode *nil;
 
-	RBNode *root;
-	RBNode *nil;
+    RBTree(){
+	nil = new RBNode();
+	nil->parent=nil;
+	nil->left=nil;
+	nil->right=nil;
+	nil->color = BLACK;
+	root=nil;
+    }
+
+    virtual ~RBTree(){
+        deleteNode(root);
+	delete this->nil;
+    }
+
+    void checkTree();
+
+    void rbInsertFixup(RBNode* z, void (*updateNode)(RBNode* n, RBTree *T));
+    void rbDeleteFixup(RBNode *x, void (*updateNode)(RBNode* n, RBTree *T));
+    void rbDelete(RBNode *z, void (*updateNode)(RBNode* n, RBTree *T));
+    RBNode* findRightSiblingLeaf(RBNode *n);
+    RBNode* findLeftSiblingLeaf(RBNode *n);
+    RBNode* treeSuccessor(RBNode *x);
+    RBNode* treePredeccessor(RBNode *x);
+    RBNode* treeMinimum(RBNode *x);
+    RBNode* treeMaximum(RBNode *x);
 	
-
-	RBTree(){
-		nil = new RBNode();
-		nil->parent=nil;
-		nil->left=nil;
-		nil->right=nil;
-		nil->color = BLACK;
-		root=nil;
-	}
-
-	virtual ~RBTree(){
-		deleteNode(root);
-		delete this->nil;
-	}
-
-	void checkTree();
-
-	void rbInsertFixup(RBNode* z, void (*updateNode)(RBNode* n, RBTree *T));
-	void rbDeleteFixup(RBNode *x, void (*updateNode)(RBNode* n, RBTree *T));
-	void rbDelete(RBNode *z, void (*updateNode)(RBNode* n, RBTree *T));
-	RBNode* findRightSiblingLeaf(RBNode *n);
-	RBNode* findLeftSiblingLeaf(RBNode *n);
-	RBNode* treeSuccessor(RBNode *x);
-	RBNode* treePredeccessor(RBNode *x);
-	RBNode* treeMinimum(RBNode *x);
-	RBNode* treeMaximum(RBNode *x);
+    bool isLeftChild(RBNode *n);
+    bool isRightChild(RBNode *n);
 	
-	bool isLeftChild(RBNode *n);
-	bool isRightChild(RBNode *n);
+    int getNodeMaxDepth(RBNode *n);
+    int getNodeMinDepth(RBNode *n);
 	
-	int getNodeMaxDepth(RBNode *n);
-	int getNodeMinDepth(RBNode *n);
-	
-	void printSubTree(RBNode *n);
-	void checkSubTree(RBNode *n);
-	void checkNode(RBNode *x);
+    void printSubTree(RBNode *n);
+    void checkSubTree(RBNode *n);
+    void checkNode(RBNode *x);
 
-	void deleteNode(RBNode* x){
-		if (x->left!=nil) deleteNode(x->left);
-		if (x->right!=nil) deleteNode(x->right);
-		delete x;
-	}
+    void deleteNode(RBNode* x){
+        if (x->left != nil) deleteNode(x->left);
+	if (x->right != nil) deleteNode(x->right);
+	delete x;
+    }
 
-
-	private:
-	void leftRotate(RBNode* x, void (*updateNode)(RBNode* n, RBTree *T));
-	void rightRotate(RBNode* x, void (*updateNode)(RBNode* n, RBTree *T));
+private:
+    void leftRotate(RBNode* x, void (*updateNode)(RBNode* n, RBTree *T));
+    void rightRotate(RBNode* x, void (*updateNode)(RBNode* n, RBTree *T));
 
 };
 

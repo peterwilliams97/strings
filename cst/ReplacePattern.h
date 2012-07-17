@@ -1,14 +1,13 @@
 #ifndef _REPLACE_PATTERN_H_
 #define _REPLACE_PATTERN_H_
+
 #include <iostream>
 #include "Tools.h"
 
-
-class ReplacePattern
-{
+class ReplacePattern {
 private:
-    ulong* answer;
-    unsigned sampleRate;
+    ulong *_answer;
+    unsigned _sampleRate;
     void createtable(unsigned);
 
 public:

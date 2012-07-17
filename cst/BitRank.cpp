@@ -117,41 +117,36 @@ BitRank::~BitRank() {
 }
 
 //Build the rank (blocks and superblocks)
-void BitRank::BuildRank()
-{
+void BitRank::BuildRank() {
     ulong num_sblock = n/s;
     ulong num_block = n/b;
-    Rs = new ulong[num_sblock+1];//+1 we add the 0 pos
-    Rb = new uchar[num_block+1];//+1 we add the 0 pos
+    Rs = new ulong[num_sblock+1]; //+1 we add the 0 pos
+    Rb = new uchar[num_block+1];  //+1 we add the 0 pos
 	
-	ulong j;
+    ulong j;
     Rs[0] = 0lu;
 	
-    for (j=1;j<=num_sblock;j++) 
-        {
-			Rs[j]=BuildRankSub((j-1)*superFactor,superFactor)+Rs[j-1];
-		}
+    for (j=1; j<=num_sblock; j++) {
+	Rs[j] = BuildRankSub((j-1)*superFactor,superFactor) + Rs[j-1];
+    }
     
     Rb[0]=0;
     for (ulong k=1;k<=num_block;k++) {
         j = k / superFactor;
-        Rb[k]=BuildRankSub(j*superFactor, k%superFactor);
-	  }
+        Rb[k] = (uchar)BuildRankSub(j*superFactor, k%superFactor);
+    }
 }
 
 ulong BitRank::BuildRankSub(ulong ini, ulong bloques){
     ulong rank=0,aux;
-    
-	
-	for(ulong i=ini;i<ini+bloques;i++) {
-		if (i < integers) {
-			aux=data[i];
-			rank+=popcount(aux);
-		}
+    for (ulong i=ini; i < ini+bloques; i++) {
+	if (i < integers) {
+	    aux=data[i];
+	    rank+=popcount(aux);
 	}
+    }
      return rank; //return the numbers of 1's in the interval
 }
-
 
 //this rank ask from 0 to n-1
 ulong BitRank::rank(ulong i) {
@@ -317,9 +312,8 @@ ulong BitRank::select0(ulong x) {
     return left - 1;
 }
 
-
 bool BitRank::IsBitSet(ulong i) {
-    return (1lu << (i % W)) & data[i/W];
+    return ((1lu << (i % W)) & data[i/W]) ? true : false;
 }
 
 ulong BitRank::NumberOfBits() {

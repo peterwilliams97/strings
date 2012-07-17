@@ -53,13 +53,11 @@ void Tools::PrintBitSequence(ulong *A, ulong len)
     std::cout << "\n";
 }
 
-unsigned Tools::FloorLog2(ulong i)
-{
-    uint b = 0;
+uint Tools::FloorLog2(ulong i) {
     if (i == 0)
         return 0;
-    while (i)
-    { 
+    uint b = 0; 
+    while (i)  { 
         b++; 
         i >>= 1; 
     }
@@ -119,20 +117,19 @@ uchar *Tools::GetFileContents(char *filename, ulong maxSize)
 {
     std::ifstream::pos_type posSize;
     std::ifstream file ((char *)filename, std::ios::in|std::ios::binary|std::ios::ate);
-    if (file.is_open()) {
-        posSize = file.tellg();
-        ulong size = posSize;
-        if (maxSize != 0 && size > maxSize)
-            size = maxSize;
-        char *memblock = new char [size + 1];
-        file.seekg(0, std::ios::beg);
-        file.read(memblock, size);
-        memblock[size] = '\0';
-        file.close();
-	return (uchar *)memblock;
-    }
-    else
+    if (!file.is_open()) {
         return 0;
+    }
+    posSize = file.tellg();
+    ulong size = (ulong)posSize;
+    if (maxSize != 0 && size > maxSize)
+        size = maxSize;
+    char *memblock = new char [size + 1];
+    file.seekg(0, std::ios::beg);
+    file.read(memblock, size);
+    memblock[size] = '\0';
+    file.close();
+    return (uchar *)memblock;
 }
 
 /*

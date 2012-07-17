@@ -20,10 +20,9 @@ private:
         unsigned code;
         TCodeEntry() {count=0;bits=0;code=0u;};
     };   
-     
 
     class THuffAlphabetRank {
-    // using fixed 0...255 alphabet
+    // !@#$ using fixed 0...255 alphabet
     private:
         BitRank *bitrank;
         THuffAlphabetRank *left;
@@ -37,23 +36,23 @@ private:
         bool Test(uchar *, ulong);
         
         inline ulong rank(int c, ulong i) { // returns the number of characters c before and including position i
-            THuffAlphabetRank *temp=this;
+            THuffAlphabetRank *temp = this;
             if (codetable[c].count == 0) return 0;
             unsigned level = 0;
             unsigned code = codetable[c].code;
             while (!temp->leaf) {
                 if ((code & (1u<<level)) == 0) {
-                i = i-temp->bitrank->rank(i); 
+                    i = i-temp->bitrank->rank(i); 
                     temp = temp->left; 
-                }
-                else { 
+                }  else { 
                     i = temp->bitrank->rank(i)-1; 
                     temp = temp->right;
-                }
-               ++level;
+              }
+              ++level;
             } 
             return i+1;
-        };   
+        }   
+
         inline bool IsCharAtPos(int c, ulong i) {
             THuffAlphabetRank *temp=this;
             if (codetable[c].count == 0) return false;
@@ -74,6 +73,7 @@ private:
             } 
             return true;
         }
+
         inline int charAtPos(ulong i) {
             THuffAlphabetRank *temp=this;
             while (!temp->leaf) {
@@ -115,7 +115,6 @@ private:
             child1 = c1;
         }
 
-      
         bool operator>( const node &a ) const {
             return weight > a.weight;
         }
@@ -125,15 +124,15 @@ private:
     
     static const unsigned char print = 1;
     static const unsigned char report = 1;
-    ulong n;
-    unsigned samplerate;
-    ulong C[256];
-    ulong bwtEndPos;
-    THuffAlphabetRank *alphabetrank;
-    BitRank *sampled; 
-    ulong *suffixes;
-    ulong *positions;
-    TCodeEntry *codetable;
+    ulong _n;
+    unsigned _samplerate;
+    ulong _C[256];
+    ulong _bwtEndPos;
+    THuffAlphabetRank *_alphabetrank;
+    BitRank *_sampled; 
+    ulong *_suffixes;
+    ulong *_positions;
+    TCodeEntry *_codetable;
     
     // Private methods
     uchar * BWT(uchar *);

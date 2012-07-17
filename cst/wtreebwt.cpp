@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-
-
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
@@ -30,16 +28,11 @@
 
 #include "wtreebwt.h"
 
-
-
-
-
-
 // -------- DynFMI --------
 
 DynFMI::~DynFMI(){
-	deleteDynFMINodes(root);
-	delete[] leaves; //free(leaves) // ???;
+    deleteDynFMINodes(root);
+    delete[] leaves; 
 }
 
 void DynFMI::deleteDynFMINodes(WaveletNode *n){
@@ -66,7 +59,6 @@ void DynFMI::recursiveIterateResetWaveletNode(WaveletNode *w){
 	if (w->left) recursiveIterateResetWaveletNode(w->left);
 	if (w->right) recursiveIterateResetWaveletNode(w->right);
 }
-
 
 bool DynFMI::iterateNext(){
 	iterate++;
@@ -100,157 +92,152 @@ uchar DynFMI::iterateGetSymbol(){
 	
 }
 
-
-uchar* DynFMI::getBWT(){
-	ulong n = root->bittree->getPositions();
+uchar *DynFMI::getBWT(){
+    ulong n = root->bittree->getPositions();
 	
-	uchar *text = new uchar[n];
+    uchar *text = new uchar[n];
 	
-	bool data=true;
+    bool data = true;
 	// old slow version:
 	//for (ulong i=1; i <= root->bittree->getPositions(); i++)
 	//	text[i-1]=(*this)[i];
 	
-	ulong i = 0;
-	
-	iterateReset();
-	
-	while (data) {
-		text[i] = iterateGetSymbol();	
-		data = iterateNext();
-		i++;
-	}
-	
-	
-	
-	return text;
+    ulong i = 0;
+    iterateReset();
+    while (data) {
+	text[i] = iterateGetSymbol();	
+	data = iterateNext();
+	i++;
+    }
+
+    return text;
 }
 
-void DynFMI::deleteLeaves(WaveletNode *node){
-	bool leaf = true;
+void DynFMI::deleteLeaves(WaveletNode *node) {
+    bool leaf = true;
 
-	if (node->left) {
-		// internal node
-		leaf = false;
-		deleteLeaves(node->left);
-		
-	}
-	if (node->right){
-		leaf = false;
-		deleteLeaves(node->right);
-	} 
+    if (node->left) {
+	// internal node
+	leaf = false;
+	deleteLeaves(node->left);
+    }
+    if (node->right){
+	leaf = false;
+	deleteLeaves(node->right);
+    } 
 	
-	if (leaf) {
-		// is a leaf, delete it!
-		if (node->parent) {
-			if (node==node->parent->left) node->parent->left=0;
-				else node->parent->right=0;
-		}
-		delete node;
+    if (leaf) {
+	// is a leaf, delete it!
+	if (node->parent) {
+	    if (node==node->parent->left) 
+                node->parent->left = 0;
+	    else 
+                node->parent->right = 0;
 	}
+	delete node;
+    }
 }
 
-void DynFMI::makeCodes(ulong code, int bits, WaveletNode *node){
-	#ifndef NDEBUG
-	if (node == node->left) {
-		cout << "makeCodes: autsch" << endl;
-		exit(0);
-		}
-	#endif
+void DynFMI::makeCodes(ulong code, int bits, WaveletNode *node) {
+#ifndef NDEBUG
+    if (node == node->left) {
+        cout << "makeCodes: autsch" << endl;
+        exit(0);
+    }
+#endif
 
-	if (node->left) {
-		makeCodes(code | (0 << bits), bits+1, node->left);
-		makeCodes(code | (1 << bits), bits+1, node->right);
-	} else {
-		codes[node->c0] = code;
-		codelengths[node->c0] = bits+1;
-	}
+    if (node->left) {
+	makeCodes(code | (0 << bits), bits+1, node->left);
+	makeCodes(code | (1 << bits), bits+1, node->right);
+    } else {
+	codes[node->c0] = code;
+	codelengths[node->c0] = bits+1;
+    }
 }
 
 void DynFMI::appendBVTrees(WaveletNode *node){
-	node->bittree = new BVTree();
+    node->bittree = new BVTree();
 
-	if (node->left) appendBVTrees(node->left);
-	if (node->right) appendBVTrees(node->right);
+    if (node->left) appendBVTrees(node->left);
+    if (node->right) appendBVTrees(node->right);
 }
 
 void DynFMI::initEmptyDynFMI(uchar *text){
-	// pointers to the leaves for select
-	leaves = (WaveletNode**) new WaveletNode*[256];
-	for(int j=0; j<256; j++) leaves[j]=0;
+    // pointers to the leaves for select
+    leaves = (WaveletNode**) new WaveletNode*[256];
+    for(int j=0; j<256; j++) leaves[j]=0;
 
 
-	ulong i=0;
-	while (text[i]!='\0') {
+    ulong i=0;
+    while (text[i]!='\0') {
 		
-		if (leaves[text[i]]==0) {
-			leaves[text[i]] = new WaveletNode(text[i]); 
-		}
-		leaves[text[i]]->weight++; 
-		i++;
-	}
+	    if (leaves[text[i]]==0) {
+		    leaves[text[i]] = new WaveletNode(text[i]); 
+	    }
+	    leaves[text[i]]->weight++; 
+	    i++;
+    }
 	
-	// separation symbol:
-	leaves[0] = new WaveletNode((uchar)0); 
-	leaves[0]->weight=1;
+    // separation symbol:
+    leaves[0] = new WaveletNode((uchar)0); 
+    leaves[0]->weight=1;
 	
-	// Veli's approach:
-	priority_queue< WaveletNode*, vector<WaveletNode*>, greater<WaveletNode*> > q;
+    // Veli's approach:
+    priority_queue< WaveletNode*, vector<WaveletNode*>, greater<WaveletNode*> > q;
 	
 	
-	for(int j=0; j<256; j++){
-		if (leaves[j]!=0) {
-			q.push( (leaves[j]) );
-		}
-		codes[j] = 0;
-		codelengths[j] = 0;
-	}
+    for(int j=0; j<256; j++){
+	    if (leaves[j]!=0) {
+		    q.push( (leaves[j]) );
+	    }
+	    codes[j] = 0;
+	    codelengths[j] = 0;
+    }
 	
-	// creates huffman shape:
-	while (q.size() > 1) {
+    // creates huffman shape:
+    while (q.size() > 1) {
 		
-		WaveletNode *left = q.top();
-		q.pop();
+	    WaveletNode *left = q.top();
+	    q.pop();
 		
-		WaveletNode *right = q.top();
-		q.pop();
+	    WaveletNode *right = q.top();
+	    q.pop();
 		
-		q.push(  new WaveletNode(left, right) );
-	}	
+	    q.push(  new WaveletNode(left, right) );
+    }	
 	
 
-	root = q.top();
-	q.pop();
+    root = q.top();
+    q.pop();
 	
 			
-	makeCodes(0,0, root);	// writes codes and codelengths
+    makeCodes(0,0, root);	// writes codes and codelengths
 
 	
-	// merge leaves	(one leaf represent two characters!)
-	for(int j=0; j<256; j++){
+    // merge leaves	(one leaf represent two characters!)
+    for(int j=0; j<256; j++){
 	
-		if (leaves[j]) {
+	    if (leaves[j]) {
 		
-			if (leaves[j]->parent->left==leaves[j]) {
-				leaves[j]->parent->c0=j;
-			} else {
-				leaves[j]->parent->c1=j;
-			}
-			leaves[j]=leaves[j]->parent; // merge
-		}
-	}
+		    if (leaves[j]->parent->left==leaves[j]) {
+			    leaves[j]->parent->c0=j;
+		    } else {
+			    leaves[j]->parent->c1=j;
+		    }
+		    leaves[j]=leaves[j]->parent; // merge
+	    }
+    }
 
 	
-	deleteLeaves(root);
+    deleteLeaves(root);
 	
-	appendBVTrees(root);
+    appendBVTrees(root);
 	
-	// array C needed for backwards search
-	for(int j=0; j<256+256; j++) C[j] = 0;
+    // array C needed for backwards search
+    for(int j=0; j<256+256; j++) C[j] = 0;
 	
 	
 }
-
 
 void DynFMI::insert(uchar c, ulong i){
 	#ifndef NDEBUG
@@ -370,10 +357,6 @@ ulong DynFMI::select(uchar c, ulong i){
 void DynFMI::addText(uchar *str, ulong n){
 	ulong i=1;
 	
-	
-	
-	
-
 	insert(str[n-2],i); // insert second last character, corresponds to suffix of length 1
 
 	for (ulong t=n-2; t > 0; t--) {
@@ -387,11 +370,9 @@ void DynFMI::addText(uchar *str, ulong n){
 
 }
 
-
-
 ulong DynFMI::getNumberOfSymbolsSmallerThan(uchar c){
-	int j = 256+c;
-	ulong r=0;
+	int j = 256 + c;
+	ulong r = 0;
 	while(j>1) {
 		if (binaryTree_isRightChild(j)) 
 			r += C[binaryTree_left(binaryTree_parent(j))];
@@ -400,9 +381,6 @@ ulong DynFMI::getNumberOfSymbolsSmallerThan(uchar c){
 	}
 	return r;
 }
-
-
-
 
 void DynFMI::printDynFMIContent(ostream& stream){
 	uchar c;
